@@ -1,0 +1,232 @@
+.private-access-section {
+    padding: 5rem 0 6rem;
+  
+background: radial-gradient(0.12% 0.12% at 20% 30%, rgba(251, 210, 107, 0.6) 0%, rgba(251, 210, 107, 0) 100%), radial-gradient(0.12% 0.12% at 60% 70%, rgba(251, 210, 107, 0.5) 0%, rgba(251, 210, 107, 0) 100%), radial-gradient(0.19% 0.19% at 80% 20%, rgba(251, 210, 107, 0.7) 0%, rgba(251, 210, 107, 0) 100%), radial-gradient(0.12% 0.12% at 35% 85%, rgba(251, 210, 107, 0.4) 0%, rgba(251, 210, 107, 0) 100%), radial-gradient(0.12% 0.12% at 90% 50%, rgba(251, 210, 107, 0.5) 0%, rgba(251, 210, 107, 0) 100%), radial-gradient(0.19% 0.19% at 10% 60%, rgba(251, 210, 107, 0.6) 0%, rgba(251, 210, 107, 0) 100%);
+
+
+}
+
+/* ── Modal Overlay ──────────────────────────────────────── */
+.pa-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 1, 1, 0.82);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+    padding: 20px;
+    animation: pa-fade-in 0.25s ease;
+}
+
+@keyframes pa-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ── Modal Card ─────────────────────────────────────────── */
+.pa-modal-card {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    background: linear-gradient(160deg, #1c0f0a 0%, #0e0808 100%);
+    border: 1px solid rgba(214, 165, 77, 0.28);
+    border-radius: 5px;
+    padding: 2.4rem 2rem 2rem;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.03);
+    animation: pa-slide-up 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes pa-slide-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0);    }
+}
+
+/* Close button */
+.pa-modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.35);
+    cursor: pointer;
+    padding: 6px;
+    line-height: 0;
+    transition: color 0.2s ease;
+}
+.pa-modal-close:hover { color: #fff; }
+
+/* ── Header ─────────────────────────────────────────────── */
+.pa-modal-header {
+    text-align: center;
+    margin-bottom: 1.4rem;
+}
+
+.pa-modal-eyebrow {
+    display: block;
+    font-family: 'inter', Inter, sans-serif;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    color: rgba(214, 165, 77, 0.75);
+    margin-bottom: 0.8rem;
+}
+
+.pa-modal-title {
+    font-family: 'Playfair Display', 'playfair-display', serif;
+    font-size: 2.1rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 0.4rem;
+    line-height: 1.1;
+}
+
+.pa-modal-title em {
+    font-style: italic;
+    color: #d6a54d;
+}
+
+.pa-modal-sub {
+    font-family: 'cormorant', 'Cormorant Garamond', serif;
+    font-size: 0.95rem;
+    font-style: italic;
+    color: rgba(255,255,255,0.45);
+    margin: 0;
+}
+
+/* Divider */
+.pa-modal-divider {
+    height: 1px;
+    background: rgba(214, 165, 77, 0.12);
+    margin: 1.2rem 0 1.6rem;
+}
+
+/* ── Form ───────────────────────────────────────────────── */
+.pa-modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+}
+
+.pa-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.pa-field-label {
+    font-family: 'inter', Inter, sans-serif;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: rgba(214, 165, 77, 0.65);
+}
+
+.pa-field-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,0.18);
+    color: #ffffff;
+    font-family: 'inter', Inter, sans-serif;
+    font-size: 0.95rem;
+    padding: 0.55rem 0;
+    outline: none;
+    transition: border-color 0.25s ease;
+    width: 100%;
+}
+
+.pa-field-input::placeholder {
+    color: rgba(255,255,255,0.22);
+}
+
+.pa-field-input:focus {
+    border-bottom-color: #d6a54d;
+}
+
+/* ── 4-Digit Code Row ───────────────────────────────────── */
+.pa-code-row {
+    display: flex;
+    gap: 1.2rem;
+    justify-content: center;
+    margin-bottom: 0.4rem;
+}
+
+.pa-code-input {
+    width: 36px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid rgba(255,255,255,0.2);
+    color: #d6a54d;
+    font-family: 'inter', Inter, sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-align: center;
+    padding: 0.3rem 0;
+    outline: none;
+    transition: border-color 0.2s ease;
+    caret-color: #d6a54d;
+}
+
+.pa-code-input:focus {
+    border-bottom-color: #d6a54d;
+}
+
+.pa-code-underline {
+    height: 1px;
+    background: rgba(255,255,255,0.08);
+    margin-top: 0.6rem;
+}
+
+/* ── Submit Button ──────────────────────────────────────── */
+.pa-submit-btn {
+    width: 100%;
+    background: linear-gradient(110deg, #d6a54d, #f2c86c 40%, #ddad5d 50%, #c78e39 60%, #b17000 100%);
+    color: #0a0603;
+    border: none;
+    border-radius: 3px;
+    font-family: 'inter', Inter, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    padding: 1.05rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: box-shadow 0.25s ease, transform 0.2s ease;
+    margin-top: 0.2rem;
+}
+
+.pa-submit-btn:hover {
+    box-shadow: 0 8px 30px rgba(214, 165, 77, 0.4);
+    transform: translateY(-1px);
+}
+
+.pa-submit-btn:active {
+    transform: translateY(0);
+}
+
+/* ── Footer ─────────────────────────────────────────────── */
+.pa-modal-footer {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-top: 1.6rem;
+}
+
+.pa-footer-line {
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.1);
+    display: block;
+}
+
+.pa-footer-text {
+    font-family: 'inter', Inter, sans-serif;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: rgba(255,255,255,0.28);
+    white-space: nowrap;
+}

@@ -1,0 +1,160 @@
+.navbar-fixed-container {
+  position: fixed;
+  top: 2rem;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.custom-navbar {
+  /* background-color: rgba(22, 22, 22, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  border-radius: 100px;
+  padding: 6px 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); */
+
+  -webkit-backdrop-filter: blur(24px)saturate(160%);
+  box-shadow: var(--shadow-glass), 0 0 60px #e1af4a0d;
+  background: linear-gradient(135deg, #e1af4a0f, #0000004d);
+  background: linear-gradient(135deg, #e1af4a0f, #0b06012e, #0000004d);
+  border: 2px solid #e1af4a33;
+  border: 2px solid lab(74.6012% 11.434 57.0174 / .2);
+  padding: 6px 16px;
+  border-radius: 100px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+
+}
+
+.nav-list {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Logo styling */
+.nav-logo-container {
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.nav-logo img {
+  width: 160px;
+}
+
+
+
+
+/* Divider styling */
+.nav-divider {
+  width: 1px;
+  height: 20px;
+  background-color: rgba(255, 255, 255, 0.18);
+  margin: 0 12px;
+}
+
+.nav-item {
+  position: relative;
+}
+
+.nav-link-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px 24px;
+  font-family: 'cormorant', serif;
+  font-size: 0.92rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.7);
+  transition: color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 100px;
+  outline: none;
+  text-decoration: none;
+}
+
+/* Hover style for inactive buttons */
+.nav-link-btn:not(.active):hover {
+  color: rgba(255, 255, 255, 1);
+}
+
+.nav-link-btn.active {
+  color: #fff;
+}
+
+.nav-text {
+  position: relative;
+  z-index: 2;
+}
+
+.active-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  box-shadow: var(--shadow-glass), 0 0 60px #e1af4a0d;
+  background: linear-gradient(135deg, #e1af4a0f, #0000004d);
+  background: linear-gradient(135deg, #e1af4a0f, #0b06012e, #0000004d);
+  border: 1px solid #e1af4a33;
+  /* border: 1px solid lab(74.6012% 11.434 57.0174 / .2); */
+  color: #fff;
+  border-radius: 50px;
+  
+
+}
+
+/* Profile styling */
+.nav-profile-container {
+  display: flex;
+  align-items: center;
+  padding-right: 4px;
+}
+
+.nav-profile-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.85);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+  padding: 0;
+}
+
+.profile-svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Focus states */
+.nav-link-btn:focus-visible,
+.nav-profile-btn:focus-visible {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
+}

@@ -1,0 +1,60 @@
+.golden-button-two{
+    background:transparent;
+    outline: none;
+    color: #DDAF5A;
+    border: 1px solid #D4AF37;
+    padding: 14px 35px;
+    font-size: 18px;
+    font-weight: 400;
+    font-family: 'inter', serif;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.35s ease, color 0.35s ease, box-shadow 0.35s ease, transform 0.25s ease;
+    width: fit-content;
+    position: relative;
+    overflow: hidden;
+}
+/* .golden-button-two:hover{
+    background: linear-gradient(135deg, #D4AF37 0%, #F5D87A 50%, #C9A227 100%);
+    color: #1a1208;
+    border-color: #F5D87A;
+    box-shadow: 0 0 18px rgba(212, 175, 55, 0.55), 0 6px 20px rgba(212, 175, 55, 0.25);
+} */
+
+
+/* Shine sweep layer */
+.golden-button-two::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -75%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+        120deg,
+        transparent 0%,
+        rgba(255, 245, 180, 0.15) 40%,
+        rgba(255, 255, 220, 0.65) 50%,
+        rgba(255, 245, 180, 0.15) 60%,
+        transparent 100%
+    );
+    transform: skewX(-15deg);
+    transition: all 0.35s ease;
+}
+
+.golden-button-two:hover::before {
+    animation: gold-shine 0.65s ease forwards;
+}
+
+@keyframes gold-shine {
+    0%   { left: -75%; }
+    100% { left: 130%; }
+}
+
+.golden-button-two:hover {
+    transform: scale(1.01);
+    filter: brightness(1.12);
+    box-shadow: 0 6px 28px rgba(200, 150, 20, 0.45);
+    background: linear-gradient(135deg, #D4AF37 0%, #F5D87A 50%, #C9A227 100%);
+    color: #1a1208;
+}

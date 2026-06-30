@@ -1,0 +1,159 @@
+/* ── Cards Section Container ───────────────────────────────────────── */
+.cards-container {
+    padding: 5rem 0 6rem;
+
+background: radial-gradient(134.11% 100.59% at 48.83% 10.67%, rgba(55, 4, 12, 0.65) 0%, #06040A 55%, #030101 100%);
+}
+
+/* ── Cards Row ─────────────────────────────────────────────────────── */
+.tenet-cards-row {
+    display: flex;
+    gap: 1rem;
+    margin-top: 3.5rem;
+    align-items: stretch;
+}
+
+/* ── Individual Card ───────────────────────────────────────────────── */
+.tenet-card {
+    flex: 1;
+    background: linear-gradient(160deg, #1a1714 0%, #111009 100%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+    padding: 1.6rem 1.4rem 1.6rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 240px;
+    position: relative;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.35s ease,
+                box-shadow 0.35s ease;
+    cursor: default;
+}
+
+.tenet-card:hover {
+    border-color: rgba(214, 165, 77, 0.25);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(214, 165, 77, 0.05);
+    transform: translateY(-8px);
+}
+
+/* Active (middle) card — slightly taller & gold border */
+.tenet-card--active {
+    border-color: rgba(214, 165, 77, 0.22);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 40px rgba(214, 165, 77, 0.07);
+    min-height: 265px;
+    background: linear-gradient(160deg, #1e1a14 0%, #130f08 100%);
+}
+
+.tenet-card--active:hover {
+    transform: translateY(-6px);
+    border-color: rgba(214, 165, 77, 0.4);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55), 0 0 50px rgba(214, 165, 77, 0.1);
+}
+
+/* ── Top Row: Numeral + Dash ───────────────────────────────────────── */
+.tenet-card__top {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.tenet-card__numeral {
+    font-family: 'cormorant', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.5rem;
+    background: var(--gold-gradient);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.tenet-card__dash {
+    display: block;
+    height: 1px;
+    width: 28px;
+    background: var(--gold-gradient);
+    flex-shrink: 0;
+    opacity: 0.7;
+    transition: width 0.3s ease-in-out;
+}
+
+.tenet-card:hover .tenet-card__dash{
+    width: 60px;
+}
+
+/* ── Bottom Row: Title + Description ──────────────────────────────── */
+.tenet-card__bottom {
+    margin-top: auto;
+    padding-top: 1.5rem;
+}
+
+.tenet-card__title {
+    font-family: 'cormorant', serif;
+    font-weight: 400;
+    font-size: 1.35rem;
+    color: #f0ede8;
+    line-height: 1.25;
+    margin-bottom: 0.45rem;
+    letter-spacing: 0.01em;
+}
+
+.tenet-card__desc {
+    font-family: 'cormorant', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 0.92rem;
+    color: rgba(214, 165, 77, 0.65);
+    line-height: 1.55;
+    margin: 0;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+    .tenet-cards-row {
+        gap: 0.75rem;
+    }
+
+    .tenet-card {
+        padding: 1.25rem 1rem;
+        min-height: 210px;
+    }
+
+    .tenet-card--active {
+        min-height: 230px;
+    }
+
+    .tenet-card__title {
+        font-size: 1.15rem;
+    }
+
+    .tenet-card__desc {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .tenet-cards-row {
+        flex-wrap: wrap;
+        gap: 0.85rem;
+    }
+
+    .tenet-card {
+        flex: 1 1 calc(50% - 0.5rem);
+        min-height: 190px;
+    }
+
+    .tenet-card--active {
+        flex: 1 1 100%;
+        min-height: 200px;
+    }
+}
+
+@media (max-width: 400px) {
+    .tenet-card {
+        flex: 1 1 100%;
+    }
+}

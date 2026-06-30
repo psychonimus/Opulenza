@@ -1,0 +1,191 @@
+/* ═══════════════════════════════════════════════════════════════
+   All Cigar Listings Grid  —  mirrors AllWhisky.css exactly
+   ═══════════════════════════════════════════════════════════════ */
+
+.all-cigar-section {
+    padding: 3rem 0 6rem;
+    background: #000;
+}
+
+.all-cigar-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+}
+
+/* Card Link */
+.cigar-card-link {
+    text-decoration: none;
+    display: block;
+}
+
+/* Card */
+.cigar-card {
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: #0b0707;
+    overflow: hidden;
+    transition: border-color 0.35s ease, transform 0.35s ease, box-shadow 0.35s ease;
+    position: relative;
+}
+
+.cigar-card:hover {
+    border-color: rgba(214, 165, 77, 0.3);
+    transform: translateY(-5px);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(214, 165, 77, 0.05);
+}
+
+/* Image */
+.cigar-card__image-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: radial-gradient(circle at 50% 30%, rgba(180, 80, 10, 0.07), #060404 70%);
+    overflow: hidden;
+}
+
+.cigar-card__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.cigar-card:hover .cigar-card__image {
+    transform: scale(1.04);
+}
+
+.cigar-card__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, transparent 55%);
+    pointer-events: none;
+}
+
+/* Body */
+.cigar-card__body {
+    padding: 1.5rem;
+}
+
+.cigar-card__title {
+    font-family: 'playfair-display', 'Playfair Display', serif;
+    font-size: 1.35rem;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 0.25rem;
+}
+
+.cigar-card__reference {
+    font-family: 'cormorant', serif;
+    font-size: 1rem;
+    font-style: italic;
+    color: var(--primary-color, #d6a54d);
+    margin-bottom: 0.75rem;
+}
+
+.cigar-card__desc {
+    font-size: 0.88rem;
+    line-height: 1.65;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 1.25rem;
+}
+
+/* Meta grid */
+.cigar-card__meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cigar-card__meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.cigar-card__meta-label {
+    font-family: 'inter', sans-serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.cigar-card__meta-value {
+    font-size: 0.83rem;
+    color: rgba(255, 255, 255, 0.75);
+    font-weight: 500;
+}
+
+/* Footer */
+.cigar-card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.cigar-card__bid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.cigar-card__bid-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.cigar-card__bid-value {
+    font-family: 'cormorant', serif;
+    font-size: 1.35rem;
+    font-style: italic;
+    font-weight: 700;
+    background: linear-gradient(110deg, #d6a54d, #f2c86c 50%, #d6a54d);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: goldShimmer 5s ease infinite;
+}
+
+@keyframes goldShimmer {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.cigar-card__cta {
+    background: linear-gradient(135deg, #E6C687 0%, #C59A4F 100%);
+    border: none;
+    color: #0b0a0f;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    padding: 0.75rem 1.75rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.25s ease, opacity 0.25s ease;
+    border-radius: 1px;
+}
+
+.cigar-card:hover .cigar-card__cta {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(197, 154, 79, 0.3);
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+    .all-cigar-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .all-cigar-grid {
+        grid-template-columns: 1fr;
+    }
+}

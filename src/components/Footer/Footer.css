@@ -1,0 +1,33 @@
+.footer{
+    padding: 2rem 0rem;
+    background-color: #000;
+    border-top: 1px solid rgba(214, 165, 77, 0.22);
+    
+}
+.footer-logo img{
+    width: 170px;
+}
+
+.footer-links ul{
+    list-style: none;
+    display: flex;
+    gap: 20px;
+    
+}
+
+.footer-links ul a{
+    color: #DDAF5A;
+    font-size: 1rem;
+    text-decoration: none;
+    font-family: 'cormorant',serif;
+}
+
+.divider{
+    width: 100%;
+    height: 1px;
+    background: rgba(214, 165, 77, 0.22);
+}
+.footer-copyright p{
+    color: rgba(214, 165, 77, 0.62);
+    font-size: 0.8rem;
+}

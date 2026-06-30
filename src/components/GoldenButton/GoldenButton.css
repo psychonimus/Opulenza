@@ -1,0 +1,55 @@
+.golden-button {
+    background: linear-gradient(135deg, lab(59.1325% 20.9389 57.3315) 0%, lab(86.4073% 6.20413 55.8007) 45%, lab(47.2923% 25.3823 49.5232) 100%);
+    color: #000;
+    padding: 0.6rem 3rem;
+    font-size: 1.2rem;
+    font-family: 'playfair-display', serif;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.3s ease, filter 0.3s ease, box-shadow 0.3s ease;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    display: inline-block;
+    margin-top: 20px;
+    text-align: center;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Shine sweep layer */
+.golden-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -75%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+        120deg,
+        transparent 0%,
+        rgba(255, 245, 180, 0.15) 40%,
+        rgba(255, 255, 220, 0.65) 50%,
+        rgba(255, 245, 180, 0.15) 60%,
+        transparent 100%
+    );
+    transform: skewX(-15deg);
+    transition: none;
+}
+
+.golden-button:hover::before {
+    animation: gold-shine 0.65s ease forwards;
+}
+
+@keyframes gold-shine {
+    0%   { left: -75%; }
+    100% { left: 130%; }
+}
+
+.golden-button:hover {
+    transform: scale(1.03);
+    filter: brightness(1.12);
+    box-shadow: 0 6px 28px rgba(200, 150, 20, 0.45);
+}
+

@@ -1,0 +1,38 @@
+
+
+
+.header-top{
+    font-size: 1rem;
+    font-family: 'cormorant', serif;
+    text-transform: uppercase;
+    letter-spacing: 3.5px;
+    background: var(--gold-gradient);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: flex;
+    align-items: center;
+    
+}
+.header-top span{
+    width: 40px;
+    height: 1px;
+    background: var(--gold-gradient);
+    display: inline-block;
+    margin : 0px 10px;
+}
+
+.header-main{
+    font-size: 4rem;
+    font-family: 'cormorant', serif;
+    font-weight: 300;
+    gap: 0.3em;
+}
+
+.header-main span{
+    background: var(--gold-gradient);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    
+}
