@@ -1,5 +1,5 @@
 import React from 'react'
-import SellPageHero from './SellPagehero/SellPageHero'
+import SellPageHero from './SellPageHero/SellPageHero'
 import SellPageForm from './SellPageForm/SellPageForm'
 
 
