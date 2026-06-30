@@ -1,6 +1,6 @@
 import React from 'react'
 import Header from '../../../Header/Header'
-import "./cigarListingsHeader.css"
+import "./CigarListingsHeader.css"
 
 const CigarListingsHeader = () => {
   return (
