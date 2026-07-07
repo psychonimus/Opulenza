@@ -16,6 +16,12 @@ import ScrollToTop from './components/ScrollToTop/ScrollToTop'
 import { useEffect } from 'react'
 import Lenis from 'lenis'
 import CigarListings from './components/Pages/CigarListings/CigarListings'
+import DetailedCigarPage from './components/Pages/CigarListings/DetailedCigarPage/DetailedCigarPage'
+import PenListings from './components/Pages/PensListings/PenListings'
+import DetailedPenPage from './components/Pages/PensListings/DetailedPenPage/DetailedPenPage'
+import YachtListings from './components/Pages/YachtListings/YachtListings'
+import DetailedYachtPage from './components/Pages/YachtListings/DetailedYachtPage/DetailedYachtPage'
+import VaultPage from './components/Pages/VaultPage/VaultPage'
 
 
 const App = () => {
@@ -56,9 +62,12 @@ const App = () => {
         <Route path='/whisky/:id' element={<DetailedWhiskyPage />} />
         <Route path='/profile' element={<ProfilePage />} />
         <Route path='/cigarsListings' element={<CigarListings />} />
-        
-
-
+        <Route path='/cigar/:id' element={<DetailedCigarPage />} />
+        <Route path='/penListings' element={<PenListings />} />
+        <Route path='/pen/:id' element={<DetailedPenPage />} />
+        <Route path='/yachtListings' element={<YachtListings />} />
+        <Route path='/yacht/:id' element={<DetailedYachtPage />} />
+        <Route path='/vault' element={<VaultPage />} />
       </Routes>
       <Footer />
     </BrowserRouter>

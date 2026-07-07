@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom'
 import './Navbar.css'
 
 const LOGGED_IN_TABS = [
-  { label: 'Concierge', path: '/concierge', activeOn: ['/concierge', '/bidPage', '/watchListing', '/watch', '/sell', '/whiskyListings', '/whisky'] },
+  { label: 'Concierge', path: '/concierge', activeOn: ['/concierge', '/bidPage', '/watchListing', '/watch', '/sell', '/whiskyListings', '/whisky', '/cigarsListings', '/cigar', '/penListings', '/pen', '/yachtListings', '/yacht'] },
   { label: 'Vault',     path: '/vault'     },
   { label: 'Profile',   path: '/profile'   },
 ]
@@ -18,6 +18,12 @@ const Navbar = () => {
     location.pathname.startsWith('/sell') ||
     location.pathname.startsWith('/whiskyListings') ||
     location.pathname.startsWith('/whisky') ||
+    location.pathname.startsWith('/cigarsListings') ||
+    location.pathname.startsWith('/cigar') ||
+    location.pathname.startsWith('/penListings') ||
+    location.pathname.startsWith('/pen') ||
+    location.pathname.startsWith('/yachtListings') ||
+    location.pathname.startsWith('/yacht') ||
     location.pathname.startsWith('/vault') ||
     location.pathname.startsWith('/profile')
 

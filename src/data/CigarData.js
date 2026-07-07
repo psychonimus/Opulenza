@@ -1,7 +1,7 @@
 const CigarData = [
   {
     id: 1,
-    image: '/images/cigars/cohiba-behike/cohiba-behike-main.png',
+    image: '/images/cigars/cohiba/cohiba-main.png',
     title: 'Cohiba',
     reference: 'Behike BHK 56',
     description: 'The most prestigious cigar in the Cohiba portfolio, handcrafted in limited quantities.',
@@ -18,7 +18,7 @@ const CigarData = [
 
   {
     id: 2,
-    image: '/images/cigars/davidoff-oro-blanco/davidoff-oro-blanco-main.png',
+    image: '/images/cigars/davidoff/davidoff-main.png',
     title: 'Davidoff',
     reference: 'Oro Blanco',
     description: 'An exceptionally rare cigar crafted using tobaccos aged for over a decade.',
@@ -35,7 +35,7 @@ const CigarData = [
 
   {
     id: 3,
-    image: '/images/cigars/opus-x/opus-x-main.png',
+    image: '/images/cigars/arturo/arturo-main.png',
     title: 'Arturo Fuente',
     reference: 'OpusX Forbidden X',
     description: 'An iconic premium cigar celebrated for its rich flavor and exceptional rarity.',
@@ -52,7 +52,7 @@ const CigarData = [
 
   {
     id: 4,
-    image: '/images/cigars/montecristo-a/montecristo-a-main.png',
+    image: '/images/cigars/montecristo/montecristo-main.png',
     title: 'Montecristo',
     reference: 'Montecristo A',
     description: 'One of the longest and most iconic Cuban cigars ever produced.',
@@ -69,7 +69,7 @@ const CigarData = [
 
   {
     id: 5,
-    image: '/images/cigars/padron-1964/padron-1964-main.png',
+    image: '/images/cigars/padron/padron-main.png',
     title: 'Padrón',
     reference: '1964 Anniversary Series',
     description: 'A legendary Nicaraguan cigar admired for its complexity and flawless construction.',
@@ -86,7 +86,7 @@ const CigarData = [
 
   {
     id: 6,
-    image: '/images/cigars/trinidad-fundadores/trinidad-fundadores-main.png',
+    image: '/images/cigars/trinidad/trinidad-main.png',
     title: 'Trinidad',
     reference: 'Fundadores',
     description: 'A refined Cuban cigar originally produced exclusively for diplomats and dignitaries.',

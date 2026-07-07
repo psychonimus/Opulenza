@@ -114,11 +114,7 @@ const About = () => {
             <section className="about-hero">
                 <div className="about-hero__overlay" />
                 <div className="about-hero__content">
-                    <p className="about-hero__eyebrow">
-                        <span className="about-eyebrow-line" />
-                        EST. 2006 · GENEVA
-                        <span className="about-eyebrow-line" />
-                    </p>
+                    
                     <h1 className="about-hero__title">
                         The Art of<br />
                         <span className="about-gold-text">Rare Acquisition</span>
@@ -128,7 +124,7 @@ const About = () => {
                         built by collectors, for collectors.
                     </p>
                     <Link to="/watchListing" className="about-hero__cta">
-                        Explore Current Auctions
+                        Enter Private Access
                     </Link>
                 </div>
                 <div className="about-hero__scroll-hint">
@@ -167,11 +163,11 @@ const About = () => {
                             independent experts, and international auction records. If we are not
                             certain, we do not list.
                         </p>
-                        <div className="about-mission__divider" />
-                        <blockquote className="about-quote">
+                        {/* <div className="about-mission__divider" /> */}
+                        {/* <blockquote className="about-quote">
                             "We do not simply sell watches. We steward legacies."
                             <cite>— Élise Fontaine, Co-Founder</cite>
-                        </blockquote>
+                        </blockquote> */}
                     </div>
                     <div className="about-mission__visual">
                         <div className="about-watch-frame">
@@ -208,7 +204,7 @@ const About = () => {
             </section>
 
             {/* ── Timeline ────────────────────────────────────────── */}
-            <section className="about-section about-timeline-section" ref={addRef}>
+            {/* <section className="about-section about-timeline-section" ref={addRef}>
                 <div className="about-container">
                     <p className="about-eyebrow-tag" style={{ textAlign: 'center' }}>OUR HISTORY</p>
                     <h2 className="about-section-title" style={{ textAlign: 'center' }}>
@@ -227,7 +223,7 @@ const About = () => {
                         <div className="about-timeline__line" />
                     </div>
                 </div>
-            </section>
+            </section> */}
 
             {/* ── Team ────────────────────────────────────────────── */}
             <section className="about-section about-team-section" ref={addRef}>
@@ -267,11 +263,9 @@ const About = () => {
                     </p>
                     <div className="about-cta__buttons">
                         <Link to="/watchListing" className="about-btn about-btn--gold">
-                            View Current Auctions
+                            Enter Private Access
                         </Link>
-                        <Link to="/concierge" className="about-btn about-btn--outline">
-                            Request Membership
-                        </Link>
+                        
                     </div>
                 </div>
             </section>

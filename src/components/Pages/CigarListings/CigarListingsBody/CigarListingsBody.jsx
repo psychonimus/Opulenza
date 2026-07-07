@@ -16,7 +16,7 @@ const CigarListingsBody = () => {
 
                         return (
                             <Link
-                                to={`/cigars/${item.id}`}
+                                to={`/cigar/${item.id}`}
                                 key={item.id}
                                 className="cigar-card-link"
                             >

@@ -11,7 +11,6 @@ const whiskyEnrichments = {
         activeBidders: 18,
         reserveMet: true,
         detailedDescription: 'The Macallan 1926 Fine & Rare is widely considered the holy grail of Scotch whisky. One of only 40 bottles ever released, it was distilled in 1926 and bottled in 1986 after 60 years maturing in a sherry cask. A singular expression of patience, provenance, and mastery.',
-        angles: ['/images/whisky/macallan/macallan-main.png', '/images/whisky/macallan/macallan-main.png'],
         liveActivity: [
             { id: 1, member: 'MEMBER #9***2', timeAgo: '1 minute ago', timestamp: Date.now() - 60000, amount: '$2,310,000', amountNumber: 2310000 },
             { id: 2, member: 'MEMBER #4***7', timeAgo: '9 minutes ago', timestamp: Date.now() - 540000, amount: '$2,285,000', amountNumber: 2285000 },
@@ -39,7 +38,6 @@ const whiskyEnrichments = {
         activeBidders: 12,
         reserveMet: true,
         detailedDescription: 'The Dalmore 62-Year-Old decanter is one of the most extraordinary expressions ever released, combining spirit from casks dating as far back as 1868. Presented in a bespoke Caithness crystal decanter, it is a work of art in both form and liquid.',
-        angles: ['/images/whisky/dalmore/dalmore.png', '/images/whisky/dalmore/dalmore.png'],
         liveActivity: [
             { id: 1, member: 'MEMBER #3***1', timeAgo: '3 minutes ago', timestamp: Date.now() - 180000, amount: '$1,480,000', amountNumber: 1480000 },
             { id: 2, member: 'MEMBER #8***6', timeAgo: '14 minutes ago', timestamp: Date.now() - 840000, amount: '$1,465,000', amountNumber: 1465000 },
@@ -67,7 +65,6 @@ const whiskyEnrichments = {
         activeBidders: 21,
         reserveMet: true,
         detailedDescription: 'Yamazaki 55-Year-Old is Japan\'s oldest commercially released single malt, distilled in 1960 and matured in rare Mizunara oak. Each bottle carries the unmistakable incense and sandalwood complexity unique to this sacred Japanese timber.',
-        angles: ['/images/whisky/yamazaki/yamazaki-main.png', '/images/whisky/yamazaki/yamazaki-main.png'],
         liveActivity: [
             { id: 1, member: 'MEMBER #2***9', timeAgo: '5 minutes ago', timestamp: Date.now() - 300000, amount: '$965,000', amountNumber: 965000 },
             { id: 2, member: 'MEMBER #6***3', timeAgo: '18 minutes ago', timestamp: Date.now() - 1080000, amount: '$955,000', amountNumber: 955000 },
@@ -95,7 +92,6 @@ const whiskyEnrichments = {
         activeBidders: 9,
         reserveMet: false,
         detailedDescription: 'Black Bowmore 1964 First Edition is the inaugural release from one of Islay\'s most revered distilleries. Matured in Oloroso sherry casks for 29 years, it offers an incomparable depth of dark fruit, volcanic peat and dried fig that has never been replicated.',
-        angles: ['/images/whisky/bowmore/bowmore-main.png', '/images/whisky/bowmore/bowmore-main.png'],
         liveActivity: [
             { id: 1, member: 'MEMBER #7***1', timeAgo: '11 minutes ago', timestamp: Date.now() - 660000, amount: '$742,000', amountNumber: 742000 },
             { id: 2, member: 'MEMBER #3***5', timeAgo: '28 minutes ago', timestamp: Date.now() - 1680000, amount: '$734,500', amountNumber: 734500 },
@@ -123,7 +119,6 @@ const whiskyEnrichments = {
         activeBidders: 15,
         reserveMet: true,
         detailedDescription: 'The Glenfiddich 1937 Rare Collection is among the oldest whiskies in the world ever committed to bottle. Drawn from a single sherry butt, it spent over 64 years accumulating the extraordinary complexity that could only emerge from one of Scotland\'s longest uninterrupted distillery histories.',
-        angles: ['/images/whisky/glenfiddich/glenfiddich-main.png', '/images/whisky/glenfiddich/glenfiddich-main.png'],
         liveActivity: [
             { id: 1, member: 'MEMBER #5***4', timeAgo: '6 minutes ago', timestamp: Date.now() - 360000, amount: '$1,120,000', amountNumber: 1120000 },
             { id: 2, member: 'MEMBER #2***8', timeAgo: '21 minutes ago', timestamp: Date.now() - 1260000, amount: '$1,107,500', amountNumber: 1107500 },
@@ -151,7 +146,6 @@ const whiskyEnrichments = {
         activeBidders: 11,
         reserveMet: true,
         detailedDescription: 'The Hibiki 35-Year-Old is a transcendent blend of malts and grains from Suntory\'s three distilleries — Yamazaki, Hakushu, and Chita — united by the rare harmony that defines the Hibiki philosophy. Presented in the iconic 35-facet crystal decanter, it is as much sculpture as spirit.',
-        angles: ['/images/whisky/hibiki/hibiki-main.png', '/images/whisky/hibiki/hibiki-main.png'],
         liveActivity: [
             { id: 1, member: 'MEMBER #8***3', timeAgo: '8 minutes ago', timestamp: Date.now() - 480000, amount: '$528,000', amountNumber: 528000 },
             { id: 2, member: 'MEMBER #1***7', timeAgo: '24 minutes ago', timestamp: Date.now() - 1440000, amount: '$523,000', amountNumber: 523000 },
@@ -216,6 +210,7 @@ const DetailedWhiskyPage = () => {
 
     // Image gallery state
     const [mainImage, setMainImage] = useState(item ? item.image : '')
+    const [activeThumbIdx, setActiveThumbIdx] = useState(0)
 
     // Modal / bid state
     const [showBidModal, setShowBidModal] = useState(false)
@@ -295,7 +290,8 @@ const DetailedWhiskyPage = () => {
 
     const formatNum = (num) => String(num).padStart(2, '0')
 
-    const thumbnails = [item.image, ...(item.angles || [item.image])]
+    const thumbnails = [item.image, ...(item.angles || [])]
+    
 
     const handlePlaceBidClick = () => {
         setCustomBidAmount(currentBid + item.bidIncrement)
@@ -430,12 +426,13 @@ const DetailedWhiskyPage = () => {
                                 {thumbnails.map((thumb, idx) => (
                                     <div
                                         key={idx}
-                                        className={`detailed-page__thumb-item ${mainImage === thumb ? 'detailed-page__thumb-item--active' : ''}`}
-                                        onClick={() => setMainImage(thumb)}
+                                        className={`detailed-page__thumb-item ${activeThumbIdx === idx ? 'detailed-page__thumb-item--active' : ''}`}
+                                        onClick={() => { setMainImage(thumb); setActiveThumbIdx(idx) }}
                                     >
                                         <img src={thumb} alt={`View ${idx + 1}`} className="detailed-page__thumb-img" />
                                     </div>
                                 ))}
+                                
                             </div>
 
                         </div>

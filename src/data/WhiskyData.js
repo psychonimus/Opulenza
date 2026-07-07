@@ -2,6 +2,7 @@ const WhiskyData = [
   {
     id: 1,
     image: '/images/whisky/macallan/macallan-main.png',
+    angles: ['/images/whisky/macallan/macallan-2.png', '/images/whisky/macallan/macallan-3.png', '/images/whisky/macallan/macallan-4.png'],
     title: 'The Macallan',
     reference: '1926 Fine & Rare',
     description: 'One of the rarest bottles ever released by The Macallan.',
@@ -22,6 +23,7 @@ const WhiskyData = [
   {
     id: 2,
     image: '/images/whisky/dalmore/dalmore.png',
+    angles: ['/images/whisky/dalmore/dalmore-2.png', '/images/whisky/dalmore/dalmore-3.png', '/images/whisky/dalmore/dalmore-4.png'],
     title: 'The Dalmore',
     reference: '62-Year-Old Decanter',
     description: 'A legendary expression presented in a handcrafted crystal decanter.',
@@ -42,9 +44,10 @@ const WhiskyData = [
   {
     id: 3,
     image: '/images/whisky/yamazaki/yamazaki-main.png',
+    angles: [],
     title: 'Yamazaki',
     reference: '55-Year-Old',
-    description: 'Japan’s oldest and most sought-after single malt whisky.',
+    description: 'Japan\'s oldest and most sought-after single malt whisky.',
     // badge: 'MEMBER EXCLUSIVE',
     currentBid: '$965K',
     detailedpage: '/whisky/3',
@@ -62,6 +65,7 @@ const WhiskyData = [
   {
     id: 4,
     image: '/images/whisky/bowmore/bowmore-main.png',
+    angles: ['/images/whisky/bowmore/bowmore.png'],
     title: 'Bowmore',
     reference: 'Black Bowmore 1964',
     description: 'The first release of the legendary Black Bowmore series.',
@@ -82,6 +86,7 @@ const WhiskyData = [
   {
     id: 5,
     image: '/images/whisky/glenfiddich/glenfiddich-main.png',
+    angles: [],
     title: 'Glenfiddich',
     reference: '1937 Rare Collection',
     description: 'One of the oldest Glenfiddich expressions ever bottled.',
@@ -102,6 +107,7 @@ const WhiskyData = [
   {
     id: 6,
     image: '/images/whisky/hibiki/hibiki-main.png',
+    angles: [],
     title: 'Hibiki',
     reference: '35-Year-Old',
     description: 'A masterpiece blend celebrating Japanese whisky craftsmanship.',

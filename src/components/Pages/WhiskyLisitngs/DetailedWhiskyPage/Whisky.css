@@ -301,14 +301,15 @@
 }
 
 .detailed-page__thumb-item--active {
-    border-color: #d6a54d;
-    box-shadow: 0 0 10px rgba(214, 165, 77, 0.4);
+    border: 2px solid #d6a54d;
+    box-shadow: 0 0 0 1px rgba(214, 165, 77, 0.25), 0 0 14px rgba(214, 165, 77, 0.45);
+    background-color: rgba(214, 165, 77, 0.06);
 }
 
 .detailed-page__thumb-img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
     padding: 0.25rem;
 }
 

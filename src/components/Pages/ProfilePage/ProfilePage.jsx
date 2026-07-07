@@ -46,6 +46,43 @@ const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState('My Bids')
   const initials = member.name.split(' ').map(n => n[0]).join('')
 
+  // Invite states
+  const [showInviteModal, setShowInviteModal] = useState(false)
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteName, setInviteName] = useState('')
+  const [inviteRelation, setInviteRelation] = useState('Collector')
+  const [generatedCode, setGeneratedCode] = useState('')
+  const [copyFeedback, setCopyFeedback] = useState(false)
+
+  const handleGenerateInvite = (e) => {
+    e.preventDefault()
+    if (!inviteEmail || !inviteName) return
+    
+    // Generate a random code: e.g., OPU-INV-A7X9-B2K8
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    const randPart1 = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+    const randPart2 = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+    const code = `OPU-INV-${randPart1}-${randPart2}`
+    
+    setGeneratedCode(code)
+  }
+
+  const handleCopyCode = () => {
+    if (!generatedCode) return
+    navigator.clipboard.writeText(generatedCode)
+    setCopyFeedback(true)
+    setTimeout(() => setCopyFeedback(false), 2000)
+  }
+
+  const handleCloseModal = () => {
+    setShowInviteModal(false)
+    setInviteEmail('')
+    setInviteName('')
+    setInviteRelation('Collector')
+    setGeneratedCode('')
+    setCopyFeedback(false)
+  }
+
   return (
     <div className="prof-page">
       {/* Background */}
@@ -74,6 +111,7 @@ const ProfilePage = () => {
           </div>
           <div className="prof-hero__actions">
             <Link to="/sell" className="prof-btn prof-btn--gold">+ Submit Asset</Link>
+            <button className="prof-btn prof-btn--ghost" onClick={() => setShowInviteModal(true)}>Invite a Friend</button>
             <button className="prof-btn prof-btn--ghost">Edit Profile</button>
           </div>
         </div>
@@ -255,8 +293,94 @@ const ProfilePage = () => {
         </div>
 
       </div>
+
+      {/* ── Invite a Friend Modal ────────────────────────────── */}
+      {showInviteModal && (
+        <div className="prof-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) handleCloseModal() }}>
+          <div className="prof-modal-card">
+            <button className="prof-modal-close" onClick={handleCloseModal}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+
+            <div className="prof-modal-header">
+              <span className="prof-modal-eyebrow">OPULENZA MEMBERSHIP</span>
+              <h2 className="prof-modal-title">Invite a Friend</h2>
+              <p className="prof-modal-desc">
+                As an opulenza member, you can nominate colleagues to receive priority membership review.
+              </p>
+            </div>
+
+            {!generatedCode ? (
+              <form onSubmit={handleGenerateInvite} className="prof-modal-form">
+                <div className="prof-form-group">
+                  <label>Friend's Full Name</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g., Baroness Von Stein"
+                    value={inviteName}
+                    onChange={(e) => setInviteName(e.target.value)}
+                  />
+                </div>
+
+                <div className="prof-form-group">
+                  <label>Friend's Email Address</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="e.g., v.stein@private.court"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                  />
+                </div>
+
+                <div className="prof-form-group">
+                  <label>Relationship / Association</label>
+                  <select
+                    value={inviteRelation}
+                    onChange={(e) => setInviteRelation(e.target.value)}
+                  >
+                    <option value="Collector">Fellow Collector</option>
+                    <option value="Business Partner">Business Associate</option>
+                    <option value="Family Member">Family Member</option>
+                    <option value="Other">Other Executive</option>
+                  </select>
+                </div>
+
+                <button type="submit" className="prof-btn prof-btn--gold prof-btn--block">
+                  Generate Invitation Code
+                </button>
+              </form>
+            ) : (
+              <div className="prof-invite-success">
+                <div className="prof-code-box">
+                  <span className="prof-code-label">PERSONAL ACCREDITED KEY</span>
+                  <div className="prof-code-display">{generatedCode}</div>
+                </div>
+
+                <p className="prof-invite-note">
+                  This code is legally linked to your opulenza account. Copy this key and send it to {inviteName} so they can verify their credentials at registration.
+                </p>
+
+                <div className="prof-invite-actions">
+                  <button onClick={handleCopyCode} className="prof-btn prof-btn--gold">
+                    {copyFeedback ? 'Copied Key!' : 'Copy Invitation Key'}
+                  </button>
+                  <button onClick={handleCloseModal} className="prof-btn prof-btn--ghost">
+                    Finish Nomination
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
 
-export default ProfilePage
+export default ProfilePage
