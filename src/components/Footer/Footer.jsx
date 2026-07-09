@@ -3,6 +3,7 @@ import "./Footer.css"
 import { FaLinkedin } from "react-icons/fa";
 import { TiSocialYoutube } from "react-icons/ti";
 import { RiInstagramFill } from "react-icons/ri";
+import { Link } from 'react-router';
 
 const Footer = () => {
   return (
@@ -18,11 +19,15 @@ const Footer = () => {
                     <div className="col-md-6">
                         <div className="footer-links d-flex justify-content-end">
                             <ul>
-                                <a href="/privacy">Privacy Policy</a>
-                                <a href="/about">About Us</a>
-                                <a href="/about">Concierge</a>
-                                <a href="/services">Contact</a>
+                                <Link to="/privacy">Privacy Policy</Link>
+                                <Link to="/about">About Us</Link>
+                                <Link to="/concierge">Concierge</Link>
+                                <Link to="/contact">Contact</Link>
                             </ul>
+
+
+
+                            
                         </div>
                     </div>
                 </div>
