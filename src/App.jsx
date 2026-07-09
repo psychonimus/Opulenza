@@ -22,6 +22,7 @@ import DetailedPenPage from './components/Pages/PensListings/DetailedPenPage/Det
 import YachtListings from './components/Pages/YachtListings/YachtListings'
 import DetailedYachtPage from './components/Pages/YachtListings/DetailedYachtPage/DetailedYachtPage'
 import VaultPage from './components/Pages/VaultPage/VaultPage'
+import Explore from './components/Pages/Explore/Explore'
 
 
 const App = () => {
@@ -67,6 +68,7 @@ const App = () => {
         <Route path='/pen/:id' element={<DetailedPenPage />} />
         <Route path='/yachtListings' element={<YachtListings />} />
         <Route path='/yacht/:id' element={<DetailedYachtPage />} />
+        <Route path='/explore' element={<Explore />} />
         <Route path='/vault' element={<VaultPage />} />
       </Routes>
       <Footer />

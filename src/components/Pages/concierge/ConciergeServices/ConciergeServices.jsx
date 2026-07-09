@@ -33,6 +33,7 @@ const services = [
         description: 'Discover a curated selection of products sourced exclusively for our members.',
         cta: 'DISCOVER MORE',
         elevated: false,
+        link: "/explore"
     },
 ]
 
