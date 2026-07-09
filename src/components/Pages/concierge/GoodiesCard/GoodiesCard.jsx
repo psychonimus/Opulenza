@@ -17,7 +17,7 @@ const GoodiesCard = () => {
                                 <h2>A Welcome <span>Gesture</span> Awaits</h2>
                                 <p>Enjoy a special welcome gift as you begin your journey with us.</p>
                                 <GoldenButtonTwo 
-                                    Text="CLAIM MY GIFT"
+                                    Text="RESERVE NOW"
                                     onClick={() => setIsModalOpen(true)}
                                 />
                             </div>

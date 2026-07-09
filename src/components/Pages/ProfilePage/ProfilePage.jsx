@@ -57,13 +57,13 @@ const ProfilePage = () => {
   const handleGenerateInvite = (e) => {
     e.preventDefault()
     if (!inviteEmail || !inviteName) return
-    
+
     // Generate a random code: e.g., OPU-INV-A7X9-B2K8
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
     const randPart1 = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
     const randPart2 = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
     const code = `OPU-INV-${randPart1}-${randPart2}`
-    
+
     setGeneratedCode(code)
   }
 
@@ -102,7 +102,7 @@ const ProfilePage = () => {
             </div>
             <div className="prof-hero__info">
               <div className="prof-hero__tier">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
                 {member.tier} MEMBER · SINCE {member.since}
               </div>
               <h1 className="prof-hero__name">{member.name}</h1>
@@ -283,7 +283,7 @@ const ProfilePage = () => {
                   { label: 'Sell an Asset', path: '/sell' },
                 ].map(l => (
                   <Link key={l.label} to={l.path} className="prof-quick-link">{l.label}
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
                   </Link>
                 ))}
               </div>
@@ -307,16 +307,16 @@ const ProfilePage = () => {
 
             <div className="prof-modal-header">
               <span className="prof-modal-eyebrow">OPULENZA MEMBERSHIP</span>
-              <h2 className="prof-modal-title">Invite a Friend</h2>
+              <h2 className="prof-modal-title">Invite a Connoisseur</h2>
               <p className="prof-modal-desc">
-                As an opulenza member, you can nominate colleagues to receive priority membership review.
+                As an Opulenza member, you can nominate colleagues to receive priority membership review.
               </p>
             </div>
 
             {!generatedCode ? (
               <form onSubmit={handleGenerateInvite} className="prof-modal-form">
                 <div className="prof-form-group">
-                  <label>Friend's Full Name</label>
+                  <label>Connoisseur's Full Name</label>
                   <input
                     type="text"
                     required
@@ -327,7 +327,7 @@ const ProfilePage = () => {
                 </div>
 
                 <div className="prof-form-group">
-                  <label>Friend's Email Address</label>
+                  <label>Connoisseur's Email Address</label>
                   <input
                     type="email"
                     required
