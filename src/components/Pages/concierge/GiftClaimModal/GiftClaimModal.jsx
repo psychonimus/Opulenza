@@ -97,7 +97,7 @@ const GiftClaimModal = ({ isOpen, onClose }) => {
 
     return (
         <div className="gift-modal-overlay" onClick={onClose}>
-            <div className="gift-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="gift-modal-card" onClick={(e) => e.stopPropagation()} data-lenis-prevent="true">
                 <button className="gift-modal-close-btn" onClick={onClose} aria-label="Close modal">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line>

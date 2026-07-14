@@ -457,7 +457,7 @@
     border: 1px solid rgba(255, 255, 255, 0.08);
     color: rgba(255, 255, 255, 0.7);
     font-family: 'inter', sans-serif;
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     font-weight: 600;
     letter-spacing: 1.5px;
     padding: 0.9rem;
@@ -1374,7 +1374,7 @@
 }
 
 .recommended-card__info {
-    padding: 1.25rem 0 0 0;
+    padding: 1.25rem;
     display: flex;
     flex-direction: column;
     gap: 0.4rem;

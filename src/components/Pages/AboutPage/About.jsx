@@ -225,29 +225,8 @@ const About = () => {
                 </div>
             </section> */}
 
-            {/* ── Team ────────────────────────────────────────────── */}
-            <section className="about-section about-team-section" ref={addRef}>
-                <div className="about-container">
-                    <p className="about-eyebrow-tag" style={{ textAlign: 'center' }}>THE PEOPLE</p>
-                    <h2 className="about-section-title" style={{ textAlign: 'center' }}>
-                        Our Founding Specialists
-                    </h2>
-                    <div className="about-team-grid">
-                        {team.map((m) => (
-                            <div className="about-team-card" key={m.name}>
-                                <div className="about-team-card__avatar">
-                                    <span>{m.initial}</span>
-                                    <div className="about-avatar-ring" />
-                                </div>
-                                <h3 className="about-team-card__name">{m.name}</h3>
-                                <span className="about-team-card__role">{m.role}</span>
-                                <p className="about-team-card__bio">{m.bio}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
+            
+           
             {/* ── CTA ─────────────────────────────────────────────── */}
             <section className="about-cta-section" ref={addRef}>
                 <div className="about-cta__glow" />

@@ -17,7 +17,7 @@
   padding: 6px 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); */
 
-  -webkit-backdrop-filter: blur(24px)saturate(160%);
+  backdrop-filter: blur(24px)saturate(160%);
   box-shadow: var(--shadow-glass), 0 0 60px #e1af4a0d;
   background: linear-gradient(135deg, #e1af4a0f, #0000004d);
   background: linear-gradient(135deg, #e1af4a0f, #0b06012e, #0000004d);
@@ -27,7 +27,7 @@
   border-radius: 100px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
 
 }
 
@@ -121,7 +121,7 @@
   /* border: 1px solid lab(74.6012% 11.434 57.0174 / .2); */
   color: #fff;
   border-radius: 50px;
-  
+
 
 }
 

@@ -9,7 +9,7 @@ const ConciergeHero = () => {
                 <div className="container" style={{marginTop:"6rem"}}>
                     <Header
                         topText="The Concierge"
-                        mainText="Welcome"
+                        mainText="Hey"
                         highlight=" Anonymus"
                         center={false}
 

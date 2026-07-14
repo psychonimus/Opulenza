@@ -207,6 +207,8 @@
   border-bottom-color: var(--primary-color);
 }
 
+
+
 /* Select */
 .sell-select-wrapper {
   position: relative;
@@ -411,6 +413,110 @@
 .sell-btn-next:hover {
   background: var(--primary-color);
   color: #1a0800;
+}
+
+/* ===== SECTION DIVIDERS & TITLES ===== */
+.sell-section-divider {
+  border-bottom: 1px solid rgba(214, 165, 77, 0.15);
+  padding-bottom: 8px;
+  margin-top: 24px;
+  margin-bottom: 4px;
+}
+
+.sell-section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem;
+  color: var(--primary-color);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  margin: 0;
+}
+
+/* ===== CHECKBOX GROUP ===== */
+.sell-checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 28px;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.sell-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-family: 'inter', Inter, sans-serif;
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.7);
+  user-select: none;
+  transition: color 0.2s ease;
+}
+
+.sell-checkbox-label:hover {
+  color: #fff;
+}
+
+.sell-checkbox-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.sell-checkbox-custom {
+  width: 18px;
+  height: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.02);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.sell-checkbox-label:hover .sell-checkbox-custom {
+  border-color: rgba(214, 165, 77, 0.45);
+}
+
+.sell-checkbox-input:checked ~ .sell-checkbox-custom {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.sell-checkbox-input:checked ~ .sell-checkbox-custom::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 4px;
+  height: 9px;
+  border: solid #1a0800;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.sell-checkbox-text {
+  font-family: 'inter', Inter, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 400;
+}
+
+/* ===== FILE HELPER TEXTS ===== */
+.sell-file-placeholder-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+  line-height: 1.3;
+}
+
+.sell-file-helper {
+  font-family: 'inter', Inter, sans-serif;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.38);
+  font-weight: 400;
 }
 
 /* ===== RESPONSIVE ===== */
