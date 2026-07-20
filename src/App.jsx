@@ -3,7 +3,7 @@ import Navbar from './components/Navbar/Navbar'
 import Home from './components/Pages/Home/Home'
 import Footer from './components/Footer/Footer'
 import Concierge from './components/Pages/concierge/Concierge'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import BidPage from './components/Pages/BidPage/BidPage'
 import WatchListing from './components/Pages/WatchListings/WatchListing'
 import DetailedPage from './components/Pages/WatchListings/DetailedPage/DetailedPage'
@@ -23,7 +23,48 @@ import YachtListings from './components/Pages/YachtListings/YachtListings'
 import DetailedYachtPage from './components/Pages/YachtListings/DetailedYachtPage/DetailedYachtPage'
 import VaultPage from './components/Pages/VaultPage/VaultPage'
 import Explore from './components/Pages/Explore/Explore'
+import AdminPanel from './components/Pages/AdminPanel/AdminPanel'
 
+
+const AppLayout = () => {
+  const location = useLocation()
+  const isAdmin = location.pathname.startsWith('/admin')
+
+  if (isAdmin) {
+    return (
+      <Routes>
+        <Route path='/admin' element={<AdminPanel />} />
+      </Routes>
+    )
+  }
+
+  return (
+    <>
+      <Navbar />
+      <Routes>
+        <Route path='/' element={<Home />} />
+        <Route path='/about' element={<About />} />
+        <Route path='/concierge' element={<Concierge />} />
+        <Route path='/bidPage' element={<BidPage />} />
+        <Route path='/watchListing' element={<WatchListing />} />
+        <Route path='/watch/:id' element={<DetailedPage />} />
+        <Route path='/sell' element={<SellPage />} />
+        <Route path='/whiskyListings' element={<WhiskyListings />} />
+        <Route path='/whisky/:id' element={<DetailedWhiskyPage />} />
+        <Route path='/profile' element={<ProfilePage />} />
+        <Route path='/cigarsListings' element={<CigarListings />} />
+        <Route path='/cigar/:id' element={<DetailedCigarPage />} />
+        <Route path='/penListings' element={<PenListings />} />
+        <Route path='/pen/:id' element={<DetailedPenPage />} />
+        <Route path='/yachtListings' element={<YachtListings />} />
+        <Route path='/yacht/:id' element={<DetailedYachtPage />} />
+        <Route path='/explore' element={<Explore />} />
+        <Route path='/vault' element={<VaultPage />} />
+      </Routes>
+      <Footer />
+    </>
+  )
+}
 
 const App = () => {
   useEffect(() => {
@@ -50,28 +91,7 @@ const App = () => {
   return (
     <BrowserRouter>
       <ScrollToTop />
-      <Navbar />
-      <Routes>
-        <Route path='/' element={<Home />} />
-        <Route path='/about' element={<About />} />
-        <Route path='/concierge' element={<Concierge />} />
-        <Route path='/bidPage' element={<BidPage />} />
-        <Route path='/watchListing' element={<WatchListing />} />
-        <Route path='/watch/:id' element={<DetailedPage />} />
-        <Route path='/sell' element={<SellPage />} />
-        <Route path='/whiskyListings' element={<WhiskyListings />} />
-        <Route path='/whisky/:id' element={<DetailedWhiskyPage />} />
-        <Route path='/profile' element={<ProfilePage />} />
-        <Route path='/cigarsListings' element={<CigarListings />} />
-        <Route path='/cigar/:id' element={<DetailedCigarPage />} />
-        <Route path='/penListings' element={<PenListings />} />
-        <Route path='/pen/:id' element={<DetailedPenPage />} />
-        <Route path='/yachtListings' element={<YachtListings />} />
-        <Route path='/yacht/:id' element={<DetailedYachtPage />} />
-        <Route path='/explore' element={<Explore />} />
-        <Route path='/vault' element={<VaultPage />} />
-      </Routes>
-      <Footer />
+      <AppLayout />
     </BrowserRouter>
   )
 }

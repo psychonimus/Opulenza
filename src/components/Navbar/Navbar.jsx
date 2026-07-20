@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Link, useLocation } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import './Navbar.css'
 
 const LOGGED_IN_TABS = [
@@ -10,7 +10,10 @@ const LOGGED_IN_TABS = [
 ]
 
 const Navbar = () => {
+  const navigate = useNavigate()
   const location = useLocation()
+  const [menuOpen, setMenuOpen] = useState(false)
+
   const isLoggedIn = location.pathname.startsWith('/concierge') ||
     location.pathname.startsWith('/bidPage') ||
     location.pathname.startsWith('/watchListing') ||
@@ -27,6 +30,14 @@ const Navbar = () => {
     location.pathname.startsWith('/explore') ||
     location.pathname.startsWith('/vault') ||
     location.pathname.startsWith('/profile')
+
+  // Close menu on route change
+  useEffect(() => { setMenuOpen(false) }, [location.pathname])
+
+  const handleLogout = () => {
+    setMenuOpen(false)
+    navigate('/')
+  }
 
   return (
     <div className="navbar-fixed-container">
@@ -46,13 +57,13 @@ const Navbar = () => {
             </motion.div>
           </li>
 
-          {/* Logged-in navigation links */}
+          {/* Desktop: Logged-in navigation links */}
           {isLoggedIn && LOGGED_IN_TABS.map((tab) => {
             const isActive = tab.activeOn
               ? tab.activeOn.some(p => location.pathname.startsWith(p))
               : location.pathname === tab.path
             return (
-              <li key={tab.path} className="nav-item">
+              <li key={tab.path} className="nav-item nav-item--desktop">
                 <Link
                   to={tab.path}
                   className={`nav-link-btn ${isActive ? 'active' : ''}`}
@@ -70,8 +81,83 @@ const Navbar = () => {
             )
           })}
 
+
+
         </ul>
       </nav>
+
+      {/* Desktop logout button — fixed to top-right, outside the pill */}
+      {isLoggedIn && (
+        <motion.button
+          id="navbar-logout-btn"
+          className="nav-logout-btn nav-logout-btn--desktop"
+          onClick={handleLogout}
+          title="Log out"
+        >
+          <svg className="nav-logout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          <span className="nav-text">Logout</span>
+        </motion.button>
+      )}
+
+      {/* Mobile hamburger — fixed to top-right, outside the pill */}
+      {isLoggedIn && (
+        <motion.button
+          className="nav-hamburger-btn nav-hamburger-btn--right"
+          onClick={() => setMenuOpen(prev => !prev)}
+          // whileTap={{ scale: 0.92 }}
+          aria-label="Toggle menu"
+          aria-expanded={menuOpen}
+        >
+          <span className={`hamburger-bar ${menuOpen ? 'open' : ''}`} />
+          <span className={`hamburger-bar ${menuOpen ? 'open' : ''}`} />
+          <span className={`hamburger-bar ${menuOpen ? 'open' : ''}`} />
+        </motion.button>
+      )}
+
+      {/* Mobile dropdown menu */}
+      <AnimatePresence>
+        {menuOpen && isLoggedIn && (
+          <motion.div
+            className="nav-mobile-menu"
+            initial={{ opacity: 0, y: -12, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -12, scale: 0.97 }}
+            transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+          >
+            {LOGGED_IN_TABS.map((tab) => {
+              const isActive = tab.activeOn
+                ? tab.activeOn.some(p => location.pathname.startsWith(p))
+                : location.pathname === tab.path
+              return (
+                <Link
+                  key={tab.path}
+                  to={tab.path}
+                  className={`nav-mobile-link ${isActive ? 'active' : ''}`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {tab.label}
+                  {isActive && <span className="nav-mobile-dot" />}
+                </Link>
+              )
+            })}
+
+            <div className="nav-mobile-divider" />
+
+            <button className="nav-mobile-logout" onClick={handleLogout}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              Logout
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

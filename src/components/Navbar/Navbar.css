@@ -9,26 +9,14 @@
 }
 
 .custom-navbar {
-  /* background-color: rgba(22, 22, 22, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1.5px solid rgba(255, 255, 255, 0.8);
-  border-radius: 100px;
-  padding: 6px 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); */
-
-  backdrop-filter: blur(24px)saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
   box-shadow: var(--shadow-glass), 0 0 60px #e1af4a0d;
-  background: linear-gradient(135deg, #e1af4a0f, #0000004d);
   background: linear-gradient(135deg, #e1af4a0f, #0b06012e, #0000004d);
-  border: 2px solid #e1af4a33;
-  border: 2px solid lab(74.6012% 11.434 57.0174 / .2);
+  border: 2px solid lab(74.6012% 11.434 57.0174 / 0.2);
   padding: 6px 16px;
   border-radius: 100px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
-
 }
 
 .nav-list {
@@ -40,7 +28,7 @@
   gap: 4px;
 }
 
-/* Logo styling */
+/* ─── Logo ─────────────────────────────────────────────── */
 .nav-logo-container {
   display: flex;
   align-items: center;
@@ -59,10 +47,7 @@
   width: 160px;
 }
 
-
-
-
-/* Divider styling */
+/* ─── Divider ───────────────────────────────────────────── */
 .nav-divider {
   width: 1px;
   height: 20px;
@@ -70,6 +55,7 @@
   margin: 0 12px;
 }
 
+/* ─── Nav items ─────────────────────────────────────────── */
 .nav-item {
   position: relative;
 }
@@ -94,7 +80,6 @@
   text-decoration: none;
 }
 
-/* Hover style for inactive buttons */
 .nav-link-btn:not(.active):hover {
   color: rgba(255, 255, 255, 1);
 }
@@ -115,17 +100,13 @@
   right: 0;
   bottom: 0;
   box-shadow: var(--shadow-glass), 0 0 60px #e1af4a0d;
-  background: linear-gradient(135deg, #e1af4a0f, #0000004d);
   background: linear-gradient(135deg, #e1af4a0f, #0b06012e, #0000004d);
   border: 1px solid #e1af4a33;
-  /* border: 1px solid lab(74.6012% 11.434 57.0174 / .2); */
   color: #fff;
   border-radius: 50px;
-
-
 }
 
-/* Profile styling */
+/* ─── Profile ───────────────────────────────────────────── */
 .nav-profile-container {
   display: flex;
   align-items: center;
@@ -153,8 +134,238 @@
   height: 18px;
 }
 
-/* Focus states */
+/* ─── Focus states ──────────────────────────────────────── */
 .nav-link-btn:focus-visible,
 .nav-profile-btn:focus-visible {
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
+}
+
+/* ─── Desktop Logout button ─────────────────────────────── */
+.nav-logout-btn {
+  position: absolute;
+  right: 2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(225, 175, 74, 0.07);
+  border: 1px solid rgba(225, 175, 74, 0.28);
+  border-radius: 100px;
+  padding: 9px 20px;
+  cursor: pointer;
+  font-family: 'cormorant', serif;
+  font-size: 0.92rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(4px);
+  transition: color 0.3s ease, background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  outline: none;
+  white-space: nowrap;
+}
+
+.nav-logout-btn:hover {
+  color: #fff;
+  background: rgba(200, 60, 60, 0.18);
+  border-color: rgba(220, 80, 80, 0.55);
+  box-shadow: 0 0 18px rgba(200, 60, 60, 0.22);
+}
+
+.nav-logout-btn:focus-visible {
+  box-shadow: 0 0 0 2px rgba(225, 175, 74, 0.5);
+}
+
+.nav-logout-icon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+/* ─── Hamburger button (mobile only, right-side) ───────── */
+.nav-hamburger-btn {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 38px;
+  height: 38px;
+  background: rgba(225, 175, 74, 0.07);
+  border: 1px solid rgba(225, 175, 74, 0.25);
+  border-radius: 50%;
+  cursor: pointer;
+  outline: none;
+  padding: 0;
+}
+
+/* Right-side floating variant — hidden on desktop, shown on mobile */
+.nav-hamburger-btn--right {
+  display: none;
+  position: absolute;
+  right: 2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  backdrop-filter: blur(4px);
+}
+
+.hamburger-bar {
+  display: block;
+  width: 16px;
+  height: 1.5px;
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 2px;
+  transition: transform 0.3s ease, opacity 0.3s ease, width 0.3s ease;
+  transform-origin: center;
+}
+
+/* Animated X state */
+.nav-hamburger-btn .hamburger-bar.open:nth-child(1) {
+  transform: translateY(6.5px) rotate(45deg);
+}
+.nav-hamburger-btn .hamburger-bar.open:nth-child(2) {
+  opacity: 0;
+  width: 0;
+}
+.nav-hamburger-btn .hamburger-bar.open:nth-child(3) {
+  transform: translateY(-6.5px) rotate(-45deg);
+}
+
+/* ─── Mobile dropdown menu ──────────────────────────────── */
+.nav-mobile-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(340px, calc(100vw - 2rem));
+  background: linear-gradient(135deg, #1a1208cc, #0b0601e6);
+  border: 1px solid rgba(225, 175, 74, 0.2);
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(225, 175, 74, 0.05);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-mobile-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-family: 'cormorant', serif;
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.65);
+  text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.nav-mobile-link:hover {
+  background: rgba(225, 175, 74, 0.08);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.nav-mobile-link.active {
+  background: rgba(225, 175, 74, 0.1);
+  color: #fff;
+}
+
+.nav-mobile-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #e1af4a;
+  box-shadow: 0 0 8px rgba(225, 175, 74, 0.6);
+  flex-shrink: 0;
+}
+
+.nav-mobile-divider {
+  height: 1px;
+  background: rgba(225, 175, 74, 0.15);
+  margin: 4px 8px;
+}
+
+.nav-mobile-logout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  font-family: 'cormorant', serif;
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: rgba(255, 100, 100, 0.75);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+  text-align: left;
+}
+
+.nav-mobile-logout svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.nav-mobile-logout:hover {
+  background: rgba(200, 60, 60, 0.12);
+  color: rgba(255, 120, 120, 1);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .navbar-fixed-container {
+    top: 1rem;
+    padding: 0 1rem;
+  }
+
+  /* Desktop nav tabs hidden on mobile */
+  .nav-item--desktop {
+    display: none;
+  }
+
+  /* Desktop logout button hidden on mobile */
+  .nav-logout-btn--desktop {
+    display: none;
+  }
+
+  /* Show right-side hamburger on mobile */
+  .nav-hamburger-btn--right {
+    display: flex;
+    right: 1rem; /* match container padding */
+  }
+
+  /* Fix dropdown overflow on mobile:
+     anchor to both sides instead of centering with translateX */
+  .nav-mobile-menu {
+    left: 1rem;
+    right: 1rem;
+    width: auto;
+    transform: none;
+  }
+
+  .nav-logo img {
+    width: 120px;
+  }
+
+  .custom-navbar {
+    padding: 6px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-logo img {
+    width: 105px;
+  }
 }
