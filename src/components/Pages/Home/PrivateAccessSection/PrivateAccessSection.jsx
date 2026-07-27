@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Header from '../../../Header/Header'
 import GoldenButton from '../../../GoldenButton/GoldenButton'
 import "./PrivateAccessSection.css"
+import { customerLogin } from '../../../../services/loginservice/LoginServices'
 
 const PrivateAccessSection = () => {
   const [showModal, setShowModal] = useState(false)
@@ -35,7 +36,18 @@ const PrivateAccessSection = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    navigate('/concierge')
+    const loginObj = {
+      userName:email,
+      password:password
+    }
+    customerLogin(loginObj)
+    .then((res)=>{
+      console.log("login response",res)
+    })
+    .catch((err)=>{
+      console.log("error in login",err)
+    })
+    // navigate('/concierge')
   }
 
   return (
@@ -155,4 +167,4 @@ const PrivateAccessSection = () => {
   )
 }
 
-export default PrivateAccessSection
+export default PrivateAccessSection
