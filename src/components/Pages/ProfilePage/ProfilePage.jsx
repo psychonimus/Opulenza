@@ -1,21 +1,11 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import {inviteUser} from '../../../services/inviteService/InviteService'
 import './ProfilePage.css'
 
-// ── Mock Data ────────────────────────────────────────────
-const member = {
-  name: 'Alexander Harrington',
-  memberId: 'MBR-0042',
-  tier: 'OBSIDIAN',
-  since: '2019',
-  avatar: null, // no image — shows initials
-  email: 'a.harrington@private.vault',
-  location: 'Geneva, Switzerland',
-  totalBids: 34,
-  activeBids: 3,
-  wonAuctions: 11,
-  portfolioValue: '$14.2M',
-}
+// ── Helpers ──────────────────────────────────────────────
+const getInitials = (name = '') =>
+  name.split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase().slice(0, 2)
 
 const bids = [
   { id: 1, title: 'Patek Philippe Ref. 2499', image: '/images/pattek/pattek-phillipe.png', currentBid: '$2,840,000', yourBid: '$2,800,000', status: 'outbid', closes: '2d 4h', link: '/watch/1' },
@@ -43,28 +33,78 @@ const StatusBadge = ({ status }) => {
 
 // ── Component ────────────────────────────────────────────
 const ProfilePage = () => {
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('My Bids')
-  const initials = member.name.split(' ').map(n => n[0]).join('')
+
+  // ── Pull real user from localStorage ──────────────────
+  const [member, setMember] = useState({
+    name: '',
+    memberId: '',
+    tier: 'OBSIDIAN',
+    since: '',
+    avatar: null,
+    email: '',
+    location: '',
+    totalBids: 0,
+    activeBids: 0,
+    wonAuctions: 0,
+    portfolioValue: '—',
+  })
+
+  const raw = localStorage.getItem('user')
+
+  useEffect(() => {
+    try {
+      
+      if (!raw) return
+      const u = JSON.parse(raw)
+      // Map whatever fields the API returns — adjust key names to match your API response
+      setMember(prev => ({
+        ...prev,
+        name:     u.role    || u.name        || u.userName   || prev.name,
+        memberId: u.memberId    || u.id          || prev.memberId,
+        email:    u.email       || prev.email,
+        location: u.location    || u.city        || prev.location,
+        tier:     u.tier        || u.memberType  || prev.tier,
+        since:    u.memberSince || u.createdYear || prev.since,
+      }))
+    } catch (_) {
+      // localStorage parse error — silently keep defaults
+    }
+  }, [])
+
+  const initials = getInitials(member.name)
 
   // Invite states
   const [showInviteModal, setShowInviteModal] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteName, setInviteName] = useState('')
-  const [inviteRelation, setInviteRelation] = useState('Collector')
+  const [inviteRemark, setInviteRemark] = useState('')
   const [generatedCode, setGeneratedCode] = useState('')
   const [copyFeedback, setCopyFeedback] = useState(false)
 
-  const handleGenerateInvite = (e) => {
+  const handleGenerateInvite = async (e) => {
     e.preventDefault()
-    if (!inviteEmail || !inviteName) return
+    if (!inviteEmail) return
+
+    const inviteObj = {
+      email : inviteEmail,
+      remark : inviteRemark
+    }
+
+    try{
+      const res = await inviteUser(inviteObj);
+    }
+    catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        'Invite failed. Please try again.'
+      setError(msg)
+    }
 
     // Generate a random code: e.g., OPU-INV-A7X9-B2K8
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-    const randPart1 = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
-    const randPart2 = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
-    const code = `OPU-INV-${randPart1}-${randPart2}`
-
-    setGeneratedCode(code)
+    
   }
 
   const handleCopyCode = () => {
@@ -113,6 +153,9 @@ const ProfilePage = () => {
             <Link to="/sell" className="prof-btn prof-btn--gold">+ Submit Asset</Link>
             <button className="prof-btn prof-btn--ghost" onClick={() => setShowInviteModal(true)}>Invite a Friend</button>
             <button className="prof-btn prof-btn--ghost">Edit Profile</button>
+            {
+              JSON.parse(raw).role === "SuperAdmin" && <button className="prof-btn prof-btn--ghost" onClick={() => navigate('/admin')}>Dashboard</button>
+            }
           </div>
         </div>
 
@@ -316,14 +359,14 @@ const ProfilePage = () => {
             {!generatedCode ? (
               <form onSubmit={handleGenerateInvite} className="prof-modal-form">
                 <div className="prof-form-group">
-                  <label>Connoisseur's Full Name</label>
+                  {/* <label>Connoisseur's Full Name</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g., Baroness Von Stein"
                     value={inviteName}
                     onChange={(e) => setInviteName(e.target.value)}
-                  />
+                  /> */}
                 </div>
 
                 <div className="prof-form-group">
@@ -338,6 +381,17 @@ const ProfilePage = () => {
                 </div>
 
                 <div className="prof-form-group">
+                  <label>Remarks</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g., v.stein@private.court"
+                    value={inviteRemark}
+                    onChange={(e) => setInviteRemark(e.target.value)}
+                  />
+                </div>
+
+                {/* <div className="prof-form-group">
                   <label>Relationship / Association</label>
                   <select
                     value={inviteRelation}
@@ -348,7 +402,7 @@ const ProfilePage = () => {
                     <option value="Family Member">Family Member</option>
                     <option value="Other">Other Executive</option>
                   </select>
-                </div>
+                </div> */}
 
                 <button type="submit" className="prof-btn prof-btn--gold prof-btn--block">
                   Generate Invitation Code

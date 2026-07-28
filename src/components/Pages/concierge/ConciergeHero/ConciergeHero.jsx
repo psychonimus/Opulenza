@@ -3,6 +3,8 @@ import Header from '../../../Header/Header'
 import "./ConciergeHero.css"
 
 const ConciergeHero = () => {
+
+    const user = JSON.parse(localStorage.getItem('user'))
     return (
         <>
             <section className="concierge-hero">
@@ -10,7 +12,7 @@ const ConciergeHero = () => {
                     <Header
                         topText="The Concierge"
                         mainText="Hey"
-                        highlight=" Anonymus"
+                        highlight={user.role}
                         center={false}
 
                     />

@@ -30,7 +30,7 @@ background: radial-gradient(0.12% 0.12% at 20% 30%, rgba(251, 210, 107, 0.6) 0%,
 .pa-modal-card {
     position: relative;
     width: 100%;
-    max-width: 420px;
+    max-width: 620px;
     background: linear-gradient(160deg, #1c0f0a 0%, #0e0808 100%);
     border: 1px solid rgba(214, 165, 77, 0.28);
     border-radius: 5px;
@@ -229,4 +229,82 @@ background: radial-gradient(0.12% 0.12% at 20% 30%, rgba(251, 210, 107, 0.6) 0%,
     letter-spacing: 0.2em;
     color: rgba(255,255,255,0.28);
     white-space: nowrap;
-}
+}
+
+/* ── Error Message ──────────────────────────────────────── */
+.pa-error-msg {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: #ff6b6b;
+    background: rgba(255, 80, 80, 0.08);
+    border: 1px solid rgba(255, 80, 80, 0.25);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 4px;
+    text-align: center;
+}
+
+/* ── Disabled / Loading Submit ──────────────────────────── */
+.pa-submit-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    letter-spacing: 0.22em;
+}
+
+/* ── Registration card (wider) ──────────────────────────── */
+.pa-reg-card {
+    max-width: 1020px;
+    height: 80vh;
+    overflow-y: scroll;
+}
+
+/* ── Two-column row inside registration form ─────────────── */
+.pa-reg-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.4rem 2rem;
+}
+
+@media (max-width: 560px) {
+    .pa-reg-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ── Invite-code badge ───────────────────────────────────── */
+.pa-invite-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(214, 165, 77, 0.07);
+    border: 1px solid rgba(214, 165, 77, 0.22);
+    border-radius: 4px;
+    padding: 0.55rem 0.9rem;
+    font-family: 'inter', Inter, sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.14em;
+    color: rgba(214, 165, 77, 0.75);
+}
+
+.pa-invite-badge svg {
+    color: #d6a54d;
+    flex-shrink: 0;
+}
+
+.pa-invite-badge strong {
+    color: #d6a54d;
+    letter-spacing: 0.2em;
+}
+
+/* ── Hint text below code row ────────────────────────────── */
+.pa-code-hint {
+    font-family: 'inter', Inter, sans-serif;
+    font-size: 0.63rem;
+    letter-spacing: 0.1em;
+    color: rgba(214, 165, 77, 0.7);
+    margin-top: 0.5rem;
+    text-align: center;
+    animation: pa-fade-in 0.3s ease;
+}
+

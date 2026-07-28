@@ -3,7 +3,7 @@ import Navbar from './components/Navbar/Navbar'
 import Home from './components/Pages/Home/Home'
 import Footer from './components/Footer/Footer'
 import Concierge from './components/Pages/concierge/Concierge'
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import BidPage from './components/Pages/BidPage/BidPage'
 import WatchListing from './components/Pages/WatchListings/WatchListing'
 import DetailedPage from './components/Pages/WatchListings/DetailedPage/DetailedPage'
@@ -25,18 +25,28 @@ import VaultPage from './components/Pages/VaultPage/VaultPage'
 import Explore from './components/Pages/Explore/Explore'
 import AdminPanel from './components/Pages/AdminPanel/AdminPanel'
 
+// ── Auth Guard ────────────────────────────────────────────────
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('token')
+  return token ? children : <Navigate to="/" replace />
+}
+
+// ── Admin Guard ───────────────────────────────────────────────
+const AdminRoute = ({ children }) => {
+  const user = JSON.parse(localStorage.getItem('user')) || {}
+  return user?.role === 'SuperAdmin' ? children : <Navigate to="/" replace />
+}
+
 
 const AppLayout = () => {
   const location = useLocation()
-  const isAdmin = location.pathname.startsWith('/admin')
+  const user = JSON.parse(localStorage.getItem('user')) || {}
 
-  if (isAdmin) {
-    return (
-      <Routes>
-        <Route path='/admin' element={<AdminPanel />} />
-      </Routes>
-    )
-  }
+
+
+
+
+
 
   return (
     <>
@@ -44,24 +54,26 @@ const AppLayout = () => {
       <Routes>
         <Route path='/' element={<Home />} />
         <Route path='/about' element={<About />} />
-        <Route path='/concierge' element={<Concierge />} />
-        <Route path='/bidPage' element={<BidPage />} />
-        <Route path='/watchListing' element={<WatchListing />} />
-        <Route path='/watch/:id' element={<DetailedPage />} />
-        <Route path='/sell' element={<SellPage />} />
-        <Route path='/whiskyListings' element={<WhiskyListings />} />
-        <Route path='/whisky/:id' element={<DetailedWhiskyPage />} />
-        <Route path='/profile' element={<ProfilePage />} />
-        <Route path='/cigarsListings' element={<CigarListings />} />
-        <Route path='/cigar/:id' element={<DetailedCigarPage />} />
-        <Route path='/penListings' element={<PenListings />} />
-        <Route path='/pen/:id' element={<DetailedPenPage />} />
-        <Route path='/yachtListings' element={<YachtListings />} />
-        <Route path='/yacht/:id' element={<DetailedYachtPage />} />
-        <Route path='/explore' element={<Explore />} />
-        <Route path='/vault' element={<VaultPage />} />
+        <Route path='/concierge' element={<ProtectedRoute><Concierge /></ProtectedRoute>} />
+        <Route path='/bidPage' element={<ProtectedRoute><BidPage /></ProtectedRoute>} />
+        <Route path='/watchListing' element={<ProtectedRoute><WatchListing /></ProtectedRoute>} />
+        <Route path='/watch/:id' element={<ProtectedRoute><DetailedPage /></ProtectedRoute>} />
+        <Route path='/sell' element={<ProtectedRoute><SellPage /></ProtectedRoute>} />
+        <Route path='/whiskyListings' element={<ProtectedRoute><WhiskyListings /></ProtectedRoute>} />
+        <Route path='/whisky/:id' element={<ProtectedRoute><DetailedWhiskyPage /></ProtectedRoute>} />
+        <Route path='/profile' element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path='/cigarsListings' element={<ProtectedRoute><CigarListings /></ProtectedRoute>} />
+        <Route path='/cigar/:id' element={<ProtectedRoute><DetailedCigarPage /></ProtectedRoute>} />
+        <Route path='/penListings' element={<ProtectedRoute><PenListings /></ProtectedRoute>} />
+        <Route path='/pen/:id' element={<ProtectedRoute><DetailedPenPage /></ProtectedRoute>} />
+        <Route path='/yachtListings' element={<ProtectedRoute><YachtListings /></ProtectedRoute>} />
+        <Route path='/yacht/:id' element={<ProtectedRoute><DetailedYachtPage /></ProtectedRoute>} />
+        <Route path='/explore' element={<ProtectedRoute><Explore /></ProtectedRoute>} />
+        <Route path='/vault' element={<ProtectedRoute><VaultPage /></ProtectedRoute>} />
+
       </Routes>
       <Footer />
+
     </>
   )
 }
@@ -91,7 +103,12 @@ const App = () => {
   return (
     <BrowserRouter>
       <ScrollToTop />
-      <AppLayout />
+      <Routes>
+        {/* Admin panel — no Navbar or Footer */}
+        <Route path='/admin' element={<AdminRoute><AdminPanel /></AdminRoute>} />
+        {/* All other pages — with Navbar and Footer */}
+        <Route path='/*' element={<AppLayout />} />
+      </Routes>
     </BrowserRouter>
   )
 }

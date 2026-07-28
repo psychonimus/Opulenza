@@ -49,6 +49,10 @@ const AdminPanel = () => {
   const ActivePage = ROUTE_MAP[activeNav] || AdminDashboard
   const isDashboard = activeNav === 'dashboard'
 
+  const user = JSON.parse(localStorage.getItem('user'));
+
+  
+
   return (
     <div className="admin-root">
       <AdminSidebar
@@ -83,7 +87,7 @@ const AdminPanel = () => {
               </div>
               <div className="admin-topbar__right">
                 <button className="admin-topbar__action-btn">
-                  <MdAdd size={16} /> Quick action
+                  <MdAdd size={16} /> Quick actions
                 </button>
                 <button className="admin-topbar__icon-btn" title="Settings">
                   <MdSettings size={18} />
@@ -95,8 +99,8 @@ const AdminPanel = () => {
                 <div className="admin-topbar__avatar">
                   <span className="admin-topbar__avatar-initials">PM</span>
                   <div className="admin-topbar__avatar-info">
-                    <span className="admin-topbar__avatar-name">Prename</span>
-                    <span className="admin-topbar__avatar-role">Super Admin</span>
+                    <span className="admin-topbar__avatar-name">sfsdfsddfsdfsdfsdfsfdf</span>
+                    <span className="admin-topbar__avatar-role">{user.role}</span>
                   </div>
                 </div>
               </div>

@@ -13,28 +13,20 @@ const Navbar = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'))
 
-  const isLoggedIn = location.pathname.startsWith('/concierge') ||
-    location.pathname.startsWith('/bidPage') ||
-    location.pathname.startsWith('/watchListing') ||
-    location.pathname.startsWith('/watch') ||
-    location.pathname.startsWith('/sell') ||
-    location.pathname.startsWith('/whiskyListings') ||
-    location.pathname.startsWith('/whisky') ||
-    location.pathname.startsWith('/cigarsListings') ||
-    location.pathname.startsWith('/cigar') ||
-    location.pathname.startsWith('/penListings') ||
-    location.pathname.startsWith('/pen') ||
-    location.pathname.startsWith('/yachtListings') ||
-    location.pathname.startsWith('/yacht') ||
-    location.pathname.startsWith('/explore') ||
-    location.pathname.startsWith('/vault') ||
-    location.pathname.startsWith('/profile')
+  // Re-check auth whenever the route changes (covers login / logout navigations)
+  useEffect(() => {
+    setIsLoggedIn(!!localStorage.getItem('token'))
+  }, [location.pathname])
 
   // Close menu on route change
   useEffect(() => { setMenuOpen(false) }, [location.pathname])
 
   const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    setIsLoggedIn(false)
     setMenuOpen(false)
     navigate('/')
   }

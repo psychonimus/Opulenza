@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   MdFilterList,
   MdFileDownload,
@@ -113,6 +114,9 @@ function buildArea(data) {
 
 const GMVChart = () => {
   const yLabels = ['$8M', '$6M', '$4M', '$2M', '$0M']
+
+
+
 
   return (
     <div className="admin-chart">
@@ -262,6 +266,16 @@ const StatCard = ({ card }) => {
 
 // ── Main Dashboard Component ──────────────────────────────────────────────────
 const AdminDashboard = () => {
+
+  const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem('user'));
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    navigate('/')
+  }
+
   return (
     <div className="admin-dashboard">
       {/* Top Bar */}
@@ -292,10 +306,11 @@ const AdminDashboard = () => {
             <span className="admin-topbar__notif-dot" />
           </button>
           <div className="admin-topbar__avatar">
-            <span className="admin-topbar__avatar-initials">PM</span>
+            <span className="admin-topbar__avatar-initials">{user?.userName?.slice(0,2)}</span>
             <div className="admin-topbar__avatar-info">
-              <span className="admin-topbar__avatar-name">Prename</span>
-              <span className="admin-topbar__avatar-role">Super Admin</span>
+              <span className="admin-topbar__avatar-name">{user?.userName}</span>
+              <span className="admin-topbar__avatar-role">{user?.role}</span>
+              <button onClick={handleLogout}>logout</button>
             </div>
           </div>
         </div>
