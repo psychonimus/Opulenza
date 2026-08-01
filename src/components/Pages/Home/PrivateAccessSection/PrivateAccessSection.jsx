@@ -371,6 +371,8 @@ const PrivateAccessSection = () => {
   const [code, setCode] = useState(Array(10).fill(''))
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  // loginStep: 'email' | 'password' | 'invite'
+  const [loginStep, setLoginStep] = useState('email')
   const codeRefs = Array.from({ length: 10 }, () => useRef(null))
   const navigate = useNavigate()
 
@@ -395,6 +397,13 @@ const PrivateAccessSection = () => {
     }
   }
 
+  const handleProceed = (e) => {
+    e.preventDefault()
+    if (!email) return
+    setError('')
+    setLoginStep('password')
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
     setError('')
@@ -405,8 +414,8 @@ const PrivateAccessSection = () => {
 
     const loginObj = {
       userName: email,
-      password: password,
-      invitationCode: filledCode || undefined,
+      password: loginStep === 'password' ? password : undefined,
+      invitationCode: loginStep === 'invite' ? filledCode : undefined,
     }
 
     customerLogin(loginObj)
@@ -431,6 +440,15 @@ const PrivateAccessSection = () => {
       .finally(() => {
         setLoading(false)
       })
+  }
+
+  const handleCloseLoginModal = () => {
+    setShowModal(false)
+    setLoginStep('email')
+    setEmail('')
+    setPassword('')
+    setCode(Array(10).fill(''))
+    setError('')
   }
 
   const handleRegistrationSuccess = () => {
@@ -460,11 +478,11 @@ const PrivateAccessSection = () => {
       {showModal && (
         <div
           className="pa-modal-overlay"
-          onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false) }}
+          onClick={(e) => { if (e.target === e.currentTarget) handleCloseLoginModal() }}
         >
           <div className="pa-modal-card">
 
-            <button className="pa-modal-close" onClick={() => setShowModal(false)} aria-label="Close">
+            <button className="pa-modal-close" onClick={handleCloseLoginModal} aria-label="Close">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
               </svg>
@@ -478,63 +496,116 @@ const PrivateAccessSection = () => {
 
             <div className="pa-modal-divider" />
 
-            <form className="pa-modal-form" onSubmit={handleSubmit}>
-
-              <div className="pa-field">
-                <label className="pa-field-label">MEMBER ID / EMAIL</label>
-                <input
-                  type="email"
-                  className="pa-field-input"
-                  placeholder="member@private"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  autoFocus
-                />
-              </div>
-
-              <div className="pa-field">
-                <label className="pa-field-label">PASSWORD</label>
-                <input
-                  type="password"
-                  className="pa-field-input"
-                  placeholder="••••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-
-              {/* Invite code */}
-              <div className="pa-field">
-                <label className="pa-field-label">PRIVATE ACCESS CODE (OPTIONAL)</label>
-                <div className="pa-code-row">
-                  {code.map((digit, idx) => (
-                    <input
-                      key={idx}
-                      ref={codeRefs[idx]}
-                      type="text"
-                      inputMode="text"
-                      maxLength={1}
-                      className="pa-code-input"
-                      value={digit}
-                      onChange={(e) => handleCodeChange(idx, e.target.value)}
-                      onKeyDown={(e) => handleCodeKeyDown(idx, e)}
-                    />
-                  ))}
+            {/* ── Step 1: Email only ── */}
+            {loginStep === 'email' && (
+              <form className="pa-modal-form" onSubmit={handleProceed}>
+                <div className="pa-field">
+                  <label className="pa-field-label">MEMBER ID / EMAIL</label>
+                  <input
+                    type="email"
+                    className="pa-field-input"
+                    placeholder="member@private"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoFocus
+                  />
                 </div>
-                <div className="pa-code-underline" />
-                {isInviteCodeFilled(code) && (
-                  <p className="pa-code-hint">✦ Invite code detected — you'll complete registration after verification.</p>
-                )}
-              </div>
 
-              {error && <p className="pa-error-msg">{error}</p>}
+                {error && <p className="pa-error-msg">{error}</p>}
 
-              <button type="submit" className="pa-submit-btn" disabled={loading}>
-                {loading ? 'VERIFYING...' : 'CONTINUE'}
-              </button>
+                <button type="submit" className="pa-submit-btn">
+                  PROCEED
+                </button>
+              </form>
+            )}
 
-            </form>
+            {/* ── Step 2: Password ── */}
+            {loginStep === 'password' && (
+              <form className="pa-modal-form" onSubmit={handleSubmit}>
+                <div className="pa-field pa-field--locked">
+                  <label className="pa-field-label">MEMBER ID / EMAIL</label>
+                  <div className="pa-field-locked-val">{email}</div>
+                </div>
+
+                <div className="pa-field">
+                  <label className="pa-field-label">PASSWORD</label>
+                  <input
+                    type="password"
+                    className="pa-field-input"
+                    placeholder="••••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoFocus
+                  />
+                </div>
+
+                {error && <p className="pa-error-msg">{error}</p>}
+
+                <button type="submit" className="pa-submit-btn" disabled={loading}>
+                  {loading ? 'VERIFYING...' : 'LOGIN'}
+                </button>
+
+                <button
+                  type="button"
+                  className="pa-invite-toggle-btn"
+                  onClick={() => { setError(''); setLoginStep('invite') }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                  </svg>
+                  Login with invite code instead
+                </button>
+              </form>
+            )}
+
+            {/* ── Step 3: Invite Code ── */}
+            {loginStep === 'invite' && (
+              <form className="pa-modal-form" onSubmit={handleSubmit}>
+                <div className="pa-field pa-field--locked">
+                  <label className="pa-field-label">MEMBER ID / EMAIL</label>
+                  <div className="pa-field-locked-val">{email}</div>
+                </div>
+
+                <div className="pa-field">
+                  <label className="pa-field-label">PRIVATE ACCESS CODE</label>
+                  <div className="pa-code-row">
+                    {code.map((digit, idx) => (
+                      <input
+                        key={idx}
+                        ref={codeRefs[idx]}
+                        type="text"
+                        inputMode="text"
+                        maxLength={1}
+                        className="pa-code-input"
+                        value={digit}
+                        onChange={(e) => handleCodeChange(idx, e.target.value)}
+                        onKeyDown={(e) => handleCodeKeyDown(idx, e)}
+                      />
+                    ))}
+                  </div>
+                  <div className="pa-code-underline" />
+                  {isInviteCodeFilled(code) && (
+                    <p className="pa-code-hint">✦ Invite code detected — you'll complete registration after verification.</p>
+                  )}
+                </div>
+
+                {error && <p className="pa-error-msg">{error}</p>}
+
+                <button type="submit" className="pa-submit-btn" disabled={loading}>
+                  {loading ? 'VERIFYING...' : 'LOGIN'}
+                </button>
+
+                <button
+                  type="button"
+                  className="pa-invite-toggle-btn"
+                  onClick={() => { setError(''); setCode(Array(10).fill('')); setLoginStep('password') }}
+                >
+                  ← Use password instead
+                </button>
+              </form>
+            )}
 
             <div className="pa-modal-footer">
               <span className="pa-footer-line" />

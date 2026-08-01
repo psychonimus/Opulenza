@@ -1,19 +1,27 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   MdSearch, MdFilterList, MdMoreVert, MdEdit, MdDelete,
   MdCheckCircle, MdCancel, MdPersonAdd, MdVerified,
 } from 'react-icons/md'
 
-const users = [
-  { id: 1, name: 'James Whitmore', email: 'james.w@opulenza.com', role: 'Buyer', status: 'Active', joined: 'Jan 12, 2024', verified: true, spend: '$42,800' },
-  { id: 2, name: 'Sophia Chen', email: 'sophia.c@opulenza.com', role: 'Seller', status: 'Active', joined: 'Feb 3, 2024', verified: true, spend: '$128,400' },
-  { id: 3, name: 'Marcus Delacroix', email: 'marcus.d@opulenza.com', role: 'Buyer', status: 'Suspended', joined: 'Mar 18, 2024', verified: false, spend: '$6,200' },
-  { id: 4, name: 'Elena Vasquez', email: 'elena.v@opulenza.com', role: 'Seller', status: 'Active', joined: 'Apr 5, 2024', verified: true, spend: '$390,000' },
-  { id: 5, name: 'Nathaniel Ford', email: 'nathaniel.f@opulenza.com', role: 'Buyer', status: 'Pending', joined: 'May 22, 2024', verified: false, spend: '$0' },
-  { id: 6, name: 'Isabelle Laurent', email: 'isabelle.l@opulenza.com', role: 'Buyer', status: 'Active', joined: 'Jun 1, 2024', verified: true, spend: '$75,100' },
-  { id: 7, name: 'Ricardo Montoya', email: 'r.montoya@opulenza.com', role: 'Seller', status: 'Active', joined: 'Jun 29, 2024', verified: true, spend: '$210,500' },
-  { id: 8, name: 'Priya Nair', email: 'priya.n@opulenza.com', role: 'Buyer', status: 'Pending', joined: 'Jul 14, 2024', verified: false, spend: '$0' },
-]
+import { FaCheckCircle } from "react-icons/fa";
+import { RiCloseCircleFill } from "react-icons/ri";
+
+import {userData} from '../../../services/getUserData/GetUserData'
+
+
+
+
+// const users = [
+//   { id: 1, name: 'James Whitmore', email: 'james.w@opulenza.com', role: 'Buyer', status: 'Active', joined: 'Jan 12, 2024', verified: true, spend: '$42,800' },
+//   { id: 2, name: 'Sophia Chen', email: 'sophia.c@opulenza.com', role: 'Seller', status: 'Active', joined: 'Feb 3, 2024', verified: true, spend: '$128,400' },
+//   { id: 3, name: 'Marcus Delacroix', email: 'marcus.d@opulenza.com', role: 'Buyer', status: 'Suspended', joined: 'Mar 18, 2024', verified: false, spend: '$6,200' },
+//   { id: 4, name: 'Elena Vasquez', email: 'elena.v@opulenza.com', role: 'Seller', status: 'Active', joined: 'Apr 5, 2024', verified: true, spend: '$390,000' },
+//   { id: 5, name: 'Nathaniel Ford', email: 'nathaniel.f@opulenza.com', role: 'Buyer', status: 'Pending', joined: 'May 22, 2024', verified: false, spend: '$0' },
+//   { id: 6, name: 'Isabelle Laurent', email: 'isabelle.l@opulenza.com', role: 'Buyer', status: 'Active', joined: 'Jun 1, 2024', verified: true, spend: '$75,100' },
+//   { id: 7, name: 'Ricardo Montoya', email: 'r.montoya@opulenza.com', role: 'Seller', status: 'Active', joined: 'Jun 29, 2024', verified: true, spend: '$210,500' },
+//   { id: 8, name: 'Priya Nair', email: 'priya.n@opulenza.com', role: 'Buyer', status: 'Pending', joined: 'Jul 14, 2024', verified: false, spend: '$0' },
+// ]
 
 const statusColor = {
   Active: { bg: '#dcfce7', color: '#15803d' },
@@ -37,12 +45,20 @@ const UserManagement = () => {
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('All')
 
-  const filtered = users.filter(u => {
-    const matchSearch = u.name.toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase())
-    const matchStatus = filterStatus === 'All' || u.status === filterStatus
-    return matchSearch && matchStatus
-  })
+  // const filtered = users.filter(u => {
+  //   const matchSearch = u.name.toLowerCase().includes(search.toLowerCase()) ||
+  //     u.email.toLowerCase().includes(search.toLowerCase())
+  //   const matchStatus = filterStatus === 'All' || u.status === filterStatus
+  //   return matchSearch && matchStatus
+  // })
+
+  const [approvalList, setApprovalList] = useState([]);
+
+  useEffect(() => {
+    userData().then(res => {
+      setApprovalList(res.data.data);
+    })
+  }, []);
 
   return (
     <div className="ap-page">
@@ -97,53 +113,80 @@ const UserManagement = () => {
         <table className="ap-table">
           <thead>
             <tr>
-              <th>User</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Joined</th>
-              <th>Total Spend</th>
-              <th>Verified</th>
+              <th>Sr.</th>
+              <th>Member Id</th>
+              <th>Member No.</th>
+              <th>Membership Type</th>
+              <th>Membership Status</th>
+              {/* <th>Membership Status</th> */}
+              <th>Title</th>
+              <th>First Name</th>
+              <th>Middle Name</th>
+              <th>Last Name</th>
+              <th>Display Name</th>
+              <th>DOB</th>
+              <th>Gender</th>
+              <th>Primary Email</th>
+              <th>Secondary Email</th>
+              <th>Primary Mobile</th>
+              <th>Secondary Mobile</th>
+              <th>Family Office Name</th>
+              <th>Occupation</th>
+              <th>Company Name</th>
+              <th>Website</th>
+              <th>Bio</th>
+              <th>Created On</th>
               <th>Actions</th>
+              
             </tr>
           </thead>
           <tbody>
-            {filtered.map(u => (
+            {approvalList.map((u, id) => (
               <tr key={u.id}>
                 <td>
                   <div className="ap-user-cell">
-                    <div className="ap-avatar">{u.name.split(' ').map(n => n[0]).join('')}</div>
-                    <div>
-                      <div className="ap-user-cell__name">{u.name}</div>
-                      <div className="ap-user-cell__email">{u.email}</div>
-                    </div>
+                    <div className="ap-avatar">{id}</div>
+                    
+                    
                   </div>
                 </td>
                 <td>
-                  <span className="ap-badge" style={roleColor[u.role]}>{u.role}</span>
+                  <span className="ap-badge" style={roleColor[u.role]}>{u.memberID}</span>
                 </td>
                 <td>
-                  <span className="ap-badge" style={statusColor[u.status]}>{u.status}</span>
+                  <span className="ap-badge" style={statusColor[u.status]}>{u.memberNo}</span>
                 </td>
-                <td className="ap-table__muted">{u.joined}</td>
-                <td className="ap-table__value">{u.spend}</td>
-                <td>
-                  {u.verified
-                    ? <MdCheckCircle size={18} color="#15803d" />
-                    : <MdCancel size={18} color="#9ca3af" />}
-                </td>
+                <td className="ap-table__muted">{u.membershipType}</td>
+                <td className="ap-table__value">{u.membershipStatus}</td>
+                <td className="ap-table__value">{u.title}</td>
+                <td className="ap-table__value">{u.firstName}</td>
+                <td className="ap-table__value">{u.middleName}</td>
+                <td className="ap-table__value">{u.lastName}</td>
+                <td className="ap-table__value">{u.displayName}</td>
+                <td className="ap-table__value">{u.dateOfBirth}</td>
+                <td className="ap-table__value">{u.gender}</td>
+                <td className="ap-table__value">{u.primaryEmail}</td>
+                <td className="ap-table__value">{u.secondaryEmail}</td>
+                <td className="ap-table__value">{u.primaryMobile}</td>
+                <td className="ap-table__value">{u.secondaryMobile}</td>
+                <td className="ap-table__value">{u.familyOfficeName}</td>
+                <td className="ap-table__value">{u.occupation}</td>
+                <td className="ap-table__value">{u.companyName}</td>
+                <td className="ap-table__value">{u.website}</td>
+                <td className="ap-table__value">{u.bio}</td>
+                <td className="ap-table__value">{u.createdOn}</td>
+                
                 <td>
                   <div className="ap-action-group">
-                    <button className="ap-icon-btn" title="Edit"><MdEdit size={15} /></button>
-                    <button className="ap-icon-btn ap-icon-btn--danger" title="Delete"><MdDelete size={15} /></button>
+                    <button className="ap-icon-btn" title="Edit"><FaCheckCircle size={15} /></button>
+                    <button className="ap-icon-btn ap-icon-btn--danger" title="Delete"><RiCloseCircleFill size={15} /></button>
                   </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        {filtered.length === 0 && (
-          <div className="ap-empty">No users match your search.</div>
-        )}
+        
       </div>
     </div>
   )

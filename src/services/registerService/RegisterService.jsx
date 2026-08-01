@@ -1,10 +1,5 @@
-import api from "../../http-common";
+import axios from "axios";
 
-export const registerUser = async (dataObj) => {
-    try {
-        const { data } = await api.post("api/member/register", dataObj);
-        return data;
-    } catch (error) {
-        throw error;
-    }
-};
+export const registerUser = (dataObj) => {
+    return axios.post("http://115.124.123.180:8091/api/member/register", dataObj);
+}

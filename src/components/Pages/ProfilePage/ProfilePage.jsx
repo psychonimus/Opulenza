@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import {inviteUser} from '../../../services/inviteService/InviteService'
+import { inviteUser } from '../../../services/inviteService/InviteService'
 import './ProfilePage.css'
 
 // ── Helpers ──────────────────────────────────────────────
@@ -55,18 +55,18 @@ const ProfilePage = () => {
 
   useEffect(() => {
     try {
-      
+
       if (!raw) return
       const u = JSON.parse(raw)
       // Map whatever fields the API returns — adjust key names to match your API response
       setMember(prev => ({
         ...prev,
-        name:     u.role    || u.name        || u.userName   || prev.name,
-        memberId: u.memberId    || u.id          || prev.memberId,
-        email:    u.email       || prev.email,
-        location: u.location    || u.city        || prev.location,
-        tier:     u.tier        || u.memberType  || prev.tier,
-        since:    u.memberSince || u.createdYear || prev.since,
+        name: u.role || u.name || u.userName || prev.name,
+        memberId: u.memberId || u.id || prev.memberId,
+        email: u.email || prev.email,
+        location: u.location || u.city || prev.location,
+        tier: u.tier || u.memberType || prev.tier,
+        since: u.memberSince || u.createdYear || prev.since,
       }))
     } catch (_) {
       // localStorage parse error — silently keep defaults
@@ -82,29 +82,33 @@ const ProfilePage = () => {
   const [inviteRemark, setInviteRemark] = useState('')
   const [generatedCode, setGeneratedCode] = useState('')
   const [copyFeedback, setCopyFeedback] = useState(false)
+  const [inviteSuccess, setInviteSuccess] = useState(false)
+  const [error, setError] = useState('')
 
   const handleGenerateInvite = async (e) => {
     e.preventDefault()
     if (!inviteEmail) return
 
+    setError('')
+
     const inviteObj = {
-      email : inviteEmail,
-      remark : inviteRemark
+      Name : inviteName,
+      InviteTo: inviteEmail,
+      Remarks: inviteRemark
     }
 
-    try{
-      const res = await inviteUser(inviteObj);
-    }
-    catch (err) {
+    try {
+      const res = await inviteUser(inviteObj)
+      const code = res?.data?.inviteCode || res?.inviteCode || ''
+      setGeneratedCode(code)
+      setInviteSuccess(true)
+    } catch (err) {
       const msg =
         err?.response?.data?.message ||
         err?.response?.data?.error ||
         'Invite failed. Please try again.'
       setError(msg)
     }
-
-    // Generate a random code: e.g., OPU-INV-A7X9-B2K8
-    
   }
 
   const handleCopyCode = () => {
@@ -118,9 +122,11 @@ const ProfilePage = () => {
     setShowInviteModal(false)
     setInviteEmail('')
     setInviteName('')
-    setInviteRelation('Collector')
+    setInviteRemark('')
     setGeneratedCode('')
     setCopyFeedback(false)
+    setInviteSuccess(false)
+    setError('')
   }
 
   return (
@@ -356,17 +362,17 @@ const ProfilePage = () => {
               </p>
             </div>
 
-            {!generatedCode ? (
+            {!inviteSuccess ? (
               <form onSubmit={handleGenerateInvite} className="prof-modal-form">
                 <div className="prof-form-group">
-                  {/* <label>Connoisseur's Full Name</label>
+                  <label>Connoisseur's Full Name</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g., Baroness Von Stein"
                     value={inviteName}
                     onChange={(e) => setInviteName(e.target.value)}
-                  /> */}
+                  />
                 </div>
 
                 <div className="prof-form-group">
@@ -385,7 +391,7 @@ const ProfilePage = () => {
                   <input
                     type="text"
                     required
-                    placeholder="e.g., v.stein@private.court"
+                    placeholder="Some Remarks"
                     value={inviteRemark}
                     onChange={(e) => setInviteRemark(e.target.value)}
                   />
@@ -404,27 +410,35 @@ const ProfilePage = () => {
                   </select>
                 </div> */}
 
+                {error && (
+                  <p className="prof-invite-error">{error}</p>
+                )}
+
                 <button type="submit" className="prof-btn prof-btn--gold prof-btn--block">
                   Generate Invitation Code
                 </button>
               </form>
             ) : (
               <div className="prof-invite-success">
+                <div className="prof-invite-success-msg">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="28" height="28">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="9 12 11 14 15 10" />
+                  </svg>
+                  <span>Invitation code generated successfully!</span>
+                </div>
+
                 <div className="prof-code-box">
                   <span className="prof-code-label">PERSONAL ACCREDITED KEY</span>
                   <div className="prof-code-display">{generatedCode}</div>
                 </div>
 
-                <p className="prof-invite-note">
-                  This code is legally linked to your opulenza account. Copy this key and send it to {inviteName} so they can verify their credentials at registration.
-                </p>
-
                 <div className="prof-invite-actions">
                   <button onClick={handleCopyCode} className="prof-btn prof-btn--gold">
-                    {copyFeedback ? 'Copied Key!' : 'Copy Invitation Key'}
+                    {copyFeedback ? 'Copied!' : 'Copy Code'}
                   </button>
                   <button onClick={handleCloseModal} className="prof-btn prof-btn--ghost">
-                    Finish Nomination
+                    Close
                   </button>
                 </div>
               </div>

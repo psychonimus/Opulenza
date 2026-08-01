@@ -23,35 +23,99 @@ import {
 import './AdminPanel.css'
 
 const ROUTE_MAP = {
-  'dashboard':           AdminDashboard,
-  'user-management':     UserManagement,
-  'seller-management':   SellerManagement,
-  'listing-management':  ListingManagement,
-  'authentication':      Authentication,
-  'valuation-requests':  ValuationRequests,
-  'auction-management':  AuctionManagement,
-  'offers-negotiations': OffersNegotiations,
-  'escrow-payments':     EscrowPayments,
-  'logistics':           Logistics,
-  'vault-management':    VaultManagement,
-  'complaints-disputes': ComplaintsDisputes,
-  'marketing-promotions':MarketingPromotions,
-  'gift-program':        GiftProgram,
-  'analytics-reports':   AnalyticsReports,
-  'roles-permissions':   RolesPermissions,
-  'platform-settings':   PlatformSettings,
-}
+  dashboard: {
+    component: AdminDashboard,
+    roles: ["SuperAdmin", "SellerManager"]
+  },
+  "user-management": {
+    component: UserManagement,
+    roles: ["SuperAdmin"]
+  },
+  "seller-management": {
+    component: SellerManagement,
+    roles: ["SuperAdmin", "SellerManager"]
+  },
+  "listing-management": {
+    component: ListingManagement,
+    roles: ["SuperAdmin", "ListingManager"]
+  },
+  authentication: {
+    component: Authentication,
+    roles: ["SuperAdmin"]
+  },
+  "valuation-requests": {
+    component: ValuationRequests,
+    roles: ["SuperAdmin", "ValuationTeam"]
+  },
+  "auction-management": {
+    component: AuctionManagement,
+    roles: ["SuperAdmin", "AuctionManager"]
+  },
+  "offers-negotiations": {
+    component: OffersNegotiations,
+    roles: ["SuperAdmin", "Sales"]
+  },
+  "escrow-payments": {
+    component: EscrowPayments,
+    roles: ["SuperAdmin", "Finance"]
+  },
+  logistics: {
+    component: Logistics,
+    roles: ["SuperAdmin", "Logistics"]
+  },
+  "vault-management": {
+    component: VaultManagement,
+    roles: ["SuperAdmin", "VaultManager"]
+  },
+  "complaints-disputes": {
+    component: ComplaintsDisputes,
+    roles: ["SuperAdmin", "Support"]
+  },
+  "marketing-promotions": {
+    component: MarketingPromotions,
+    roles: ["SuperAdmin", "Marketing"]
+  },
+  "gift-program": {
+    component: GiftProgram,
+    roles: ["SuperAdmin", "Marketing"]
+  },
+  "analytics-reports": {
+    component: AnalyticsReports,
+    roles: ["SuperAdmin", "Management"]
+  },
+  "roles-permissions": {
+    component: RolesPermissions,
+    roles: ["SuperAdmin"]
+  },
+  "platform-settings": {
+    component: PlatformSettings,
+    roles: ["SuperAdmin"]
+  }
+};
 
 const AdminPanel = () => {
   const [activeNav, setActiveNav] = useState('dashboard')
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
-  const ActivePage = ROUTE_MAP[activeNav] || AdminDashboard
+  // const ActivePage = ROUTE_MAP[activeNav] || AdminDashboard
   const isDashboard = activeNav === 'dashboard'
 
   const user = JSON.parse(localStorage.getItem('user'));
+  const role = user?.role;
 
-  
+  const currentRoute = ROUTE_MAP[activeNav];
+
+  const hasAccess =
+    currentRoute?.roles.includes(role);
+
+  const ActivePage = hasAccess
+    ? currentRoute.component
+    : Unauthorized;
+
+
+
+
+
 
   return (
     <div className="admin-root">
@@ -60,6 +124,7 @@ const AdminPanel = () => {
         setActiveNav={setActiveNav}
         collapsed={sidebarCollapsed}
         setCollapsed={setSidebarCollapsed}
+        role={role}
       />
 
       {/* Main area */}
@@ -99,7 +164,7 @@ const AdminPanel = () => {
                 <div className="admin-topbar__avatar">
                   <span className="admin-topbar__avatar-initials">PM</span>
                   <div className="admin-topbar__avatar-info">
-                    <span className="admin-topbar__avatar-name">sfsdfsddfsdfsdfsdfsfdf</span>
+                    <span className="admin-topbar__avatar-name">{user.userName}</span>
                     <span className="admin-topbar__avatar-role">{user.role}</span>
                   </div>
                 </div>
