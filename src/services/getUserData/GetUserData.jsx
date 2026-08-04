@@ -14,8 +14,12 @@ import api from "../../http-common";
 //        throw error;
 //     }
 // };
+export const checkUserEmail = (email) => {
+    return api.get(`/api/auth/IsPasswordExists?Email=${email}`);
+  };
+
 
 export const userData = () => {
-  return api.get("/api/invitation/listForApproval");
+  return api.get("/api/member/listForApproval");
 };
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { inviteUser } from '../../../services/inviteService/InviteService'
 import './ProfilePage.css'
+import { useUser } from '../../../services/showUserInfo/ShowUserInfo'
 
 // ── Helpers ──────────────────────────────────────────────
 const getInitials = (name = '') =>
@@ -51,27 +52,33 @@ const ProfilePage = () => {
     portfolioValue: '—',
   })
 
-  const raw = localStorage.getItem('user')
+  // const raw = localStorage.getItem('user')
 
-  useEffect(() => {
-    try {
+  const { userInfo } = useUser()
 
-      if (!raw) return
-      const u = JSON.parse(raw)
-      // Map whatever fields the API returns — adjust key names to match your API response
-      setMember(prev => ({
-        ...prev,
-        name: u.role || u.name || u.userName || prev.name,
-        memberId: u.memberId || u.id || prev.memberId,
-        email: u.email || prev.email,
-        location: u.location || u.city || prev.location,
-        tier: u.tier || u.memberType || prev.tier,
-        since: u.memberSince || u.createdYear || prev.since,
-      }))
-    } catch (_) {
-      // localStorage parse error — silently keep defaults
-    }
-  }, [])
+ 
+
+      
+
+  // useEffect(() => {
+  //   try {
+
+  //     if (!userInfo) return
+  //     const u = userInfo
+  //     // Map whatever fields the API returns — adjust key names to match your API response
+  //     setMember(prev => ({
+  //       ...prev,
+  //       name: u.role || u.firstName || u.userName || prev.name,
+  //       memberId: u.memberId || u.id || prev.memberId,
+  //       email: u.email || prev.email,
+  //       location: u.location || u.city || prev.location,
+  //       tier: u.tier || u.memberType || prev.tier,
+  //       since: u.memberSince || u.createdYear || prev.since,
+  //     }))
+  //   } catch (_) {
+  //     // localStorage parse error — silently keep defaults
+  //   }
+  // }, [])
 
   const initials = getInitials(member.name)
 
@@ -142,7 +149,7 @@ const ProfilePage = () => {
             <div className="prof-avatar">
               {member.avatar
                 ? <img src={member.avatar} alt={member.name} />
-                : <span className="prof-avatar__initials">{initials}</span>
+                : <span className="prof-avatar__initials">{userInfo?.firstName?.charAt(0) + userInfo?.lastName?.charAt(0)}</span>
               }
               <span className="prof-avatar__status" title="Online" />
             </div>
@@ -151,8 +158,8 @@ const ProfilePage = () => {
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
                 {member.tier} MEMBER · SINCE {member.since}
               </div>
-              <h1 className="prof-hero__name">{member.name}</h1>
-              <p className="prof-hero__id">{member.memberId} · {member.location}</p>
+              <h1 className="prof-hero__name">{userInfo?.firstName + " " + userInfo?.lastName}</h1>
+              <p className="prof-hero__id">{userInfo?.email}</p>
             </div>
           </div>
           <div className="prof-hero__actions">
@@ -160,7 +167,7 @@ const ProfilePage = () => {
             <button className="prof-btn prof-btn--ghost" onClick={() => setShowInviteModal(true)}>Invite a Friend</button>
             <button className="prof-btn prof-btn--ghost">Edit Profile</button>
             {
-              JSON.parse(raw).role === "SuperAdmin" && <button className="prof-btn prof-btn--ghost" onClick={() => navigate('/admin')}>Dashboard</button>
+              userInfo?.role === "SuperAdmin" && <button className="prof-btn prof-btn--ghost" onClick={() => navigate('/admin')}>Dashboard</button>
             }
           </div>
         </div>
@@ -316,7 +323,7 @@ const ProfilePage = () => {
                 <span className="prof-member-card__tier">{member.tier}</span>
               </div>
               <div className="prof-member-card__id">{member.memberId}</div>
-              <div className="prof-member-card__name">{member.name}</div>
+              <div className="prof-member-card__name">{userInfo.firstName + " " + userInfo.lastName}</div>
               <div className="prof-member-card__since">Member since {member.since}</div>
               <div className="prof-member-card__shine" />
             </div>

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import './Navbar.css'
 
+
 const LOGGED_IN_TABS = [
   { label: 'Concierge', path: '/concierge', activeOn: ['/concierge', '/bidPage', '/watchListing', '/watch', '/sell', '/whiskyListings', '/whisky', '/cigarsListings', '/cigar', '/penListings', '/pen', '/yachtListings', '/yacht', '/explore'] },
   { label: 'Vault',     path: '/vault'     },
@@ -25,7 +26,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('token')
-    localStorage.removeItem('user')
+    // localStorage.removeItem('user')
     setIsLoggedIn(false)
     setMenuOpen(false)
     navigate('/')

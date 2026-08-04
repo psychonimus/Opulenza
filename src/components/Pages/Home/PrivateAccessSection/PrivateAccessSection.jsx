@@ -5,15 +5,18 @@ import GoldenButton from '../../../GoldenButton/GoldenButton'
 import "./PrivateAccessSection.css"
 import { customerLogin } from '../../../../services/loginservice/LoginServices'
 import { registerUser } from '../../../../services/registerService/RegisterService'
-
+import { checkUserEmail } from '../../../../services/getUserData/GetUserData'
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const isInviteCodeFilled = (code) => code.join('').trim().length === 10
 
+
+
+
 // ── Registration Modal ────────────────────────────────────────────────────────
-const RegistrationModal = ({ inviteCode, onSuccess, onClose }) => {
+const RegistrationModal = ({ inviteCode, onSuccess, onClose , loginData, setLoginData}) => {
   const [form, setForm] = useState({
     membershipTypeID: 1,
-    oP_MemberInvitations_Id: 20,
+    oP_MemberInvitations_Id: loginData?.invitationId,
     firstName: '',
     middleName: '',
     lastName: '',
@@ -34,6 +37,7 @@ const RegistrationModal = ({ inviteCode, onSuccess, onClose }) => {
     password: '',
     confirmPassword: '',
   })
+  
 
   // registerUser(form)
   //   .then(() => {
@@ -79,6 +83,7 @@ const RegistrationModal = ({ inviteCode, onSuccess, onClose }) => {
     try {
       await registerUser({ ...form, invitationCode: inviteCode })
       onSuccess()
+      setLoginData(null);
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
@@ -127,14 +132,14 @@ const RegistrationModal = ({ inviteCode, onSuccess, onClose }) => {
               />
             </div>
             <div className="pa-field">
-              <label className="pa-field-label">MIDDLE NAME</label>
+              <label className="pa-field-label">MIDDLE NAME(optional)</label>
               <input
                 type="text"
                 className="pa-field-input"
                 placeholder="Ashford"
                 value={form.middleName}
                 onChange={set('middleName')}
-                required
+                
                 autoFocus
               />
             </div>
@@ -239,7 +244,7 @@ const RegistrationModal = ({ inviteCode, onSuccess, onClose }) => {
             </div>
 
             <div className="pa-field">
-              <label className="pa-field-label">FAMILY OFFICE NAME</label>
+              <label className="pa-field-label">FAMILY OFFICE NAME (OPTIONAL)</label>
               <input
                 type="text"
                 className="pa-field-input"
@@ -250,7 +255,7 @@ const RegistrationModal = ({ inviteCode, onSuccess, onClose }) => {
             </div>
 
             <div className="pa-field">
-              <label className="pa-field-label">OCCUPATION</label>
+              <label className="pa-field-label">OCCUPATION (OPTIONAL)</label>
               <input
                 type="text"
                 className="pa-field-input"
@@ -268,15 +273,16 @@ const RegistrationModal = ({ inviteCode, onSuccess, onClose }) => {
                 placeholder="Enter company name"
                 value={form.companyName}
                 onChange={set('companyName')}
+                required
               />
             </div>
 
             <div className="pa-field">
-              <label className="pa-field-label">WEBSITE</label>
+              <label className="pa-field-label">WEBSITE (OPTIONAL)</label>
               <input
-                type="url"
+                type="text"
                 className="pa-field-input"
-                placeholder="https://example.com"
+                placeholder="Enter website"
                 value={form.website}
                 onChange={set('website')}
               />
@@ -373,6 +379,10 @@ const PrivateAccessSection = () => {
   const [error, setError] = useState('')
   // loginStep: 'email' | 'password' | 'invite'
   const [loginStep, setLoginStep] = useState('email')
+  const [loginData, setLoginData] = useState(null)
+  // true  → after email step show password input
+  // false → after email step show invitation code input
+  const [requiresPassword, setRequiresPassword] = useState(false)
   const codeRefs = Array.from({ length: 10 }, () => useRef(null))
   const navigate = useNavigate()
 
@@ -401,7 +411,21 @@ const PrivateAccessSection = () => {
     e.preventDefault()
     if (!email) return
     setError('')
-    setLoginStep('password')
+    
+    // Route to the appropriate next step based on requiresPassword
+    checkUserEmail(email)
+      .then((res) => {
+        setRequiresPassword(res?.data?.data);
+        setLoginStep(res?.data?.data ? 'password' : 'invite')
+      })
+      .catch((err) => {
+        const msg =
+          err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          'Invalid credentials. Please try again.'
+        setError(msg)
+      })
+    
   }
 
   const handleSubmit = (e) => {
@@ -419,7 +443,9 @@ const PrivateAccessSection = () => {
     }
 
     customerLogin(loginObj)
-      .then(() => {
+      .then((res) => {
+        setLoginData(res.data)
+        
         setShowModal(false)
         if (usingInvite) {
           // Invite-code login → show registration form
@@ -441,6 +467,9 @@ const PrivateAccessSection = () => {
         setLoading(false)
       })
   }
+
+
+  
 
   const handleCloseLoginModal = () => {
     setShowModal(false)
@@ -523,6 +552,18 @@ const PrivateAccessSection = () => {
             {/* ── Step 2: Password ── */}
             {loginStep === 'password' && (
               <form className="pa-modal-form" onSubmit={handleSubmit}>
+
+                <button
+                  type="button"
+                  className="pa-back-btn"
+                  onClick={() => { setError(''); setPassword(''); setLoginStep('email');}}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
+                  Back
+                </button>
+
                 <div className="pa-field pa-field--locked">
                   <label className="pa-field-label">MEMBER ID / EMAIL</label>
                   <div className="pa-field-locked-val">{email}</div>
@@ -563,6 +604,18 @@ const PrivateAccessSection = () => {
             {/* ── Step 3: Invite Code ── */}
             {loginStep === 'invite' && (
               <form className="pa-modal-form" onSubmit={handleSubmit}>
+
+                <button
+                  type="button"
+                  className="pa-back-btn"
+                  onClick={() => { setError(''); setCode(Array(10).fill('')); setLoginStep('email') }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
+                  Back
+                </button>
+
                 <div className="pa-field pa-field--locked">
                   <label className="pa-field-label">MEMBER ID / EMAIL</label>
                   <div className="pa-field-locked-val">{email}</div>
@@ -623,6 +676,8 @@ const PrivateAccessSection = () => {
           inviteCode={pendingInviteCode}
           onSuccess={handleRegistrationSuccess}
           onClose={() => setShowRegModal(false)}
+          loginData = {loginData}
+          setLoginData = {setLoginData}
         />
       )}
     </>

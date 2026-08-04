@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import AdminSidebar from './AdminSidebar'
 import AdminDashboard from './AdminDashboard'
 import UserManagement from './UserManagement'
@@ -22,10 +22,20 @@ import {
 } from 'react-icons/md'
 import './AdminPanel.css'
 
+import { useUser } from '../../../services/showUserInfo/ShowUserInfo'
+
+
+const Unauthorized = () => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#aaa', fontSize: '1.2rem' }}>
+    🚫 You do not have permission to view this page.
+  </div>
+)
+
 const ROUTE_MAP = {
   dashboard: {
     component: AdminDashboard,
     roles: ["SuperAdmin", "SellerManager"]
+
   },
   "user-management": {
     component: UserManagement,
@@ -100,8 +110,13 @@ const AdminPanel = () => {
   // const ActivePage = ROUTE_MAP[activeNav] || AdminDashboard
   const isDashboard = activeNav === 'dashboard'
 
-  const user = JSON.parse(localStorage.getItem('user'));
-  const role = user?.role;
+  // const user = JSON.parse(localStorage.getItem('user'));
+
+  const { userInfo } = useUser()
+  const role = userInfo?.role
+
+
+  
 
   const currentRoute = ROUTE_MAP[activeNav];
 
@@ -162,10 +177,10 @@ const AdminPanel = () => {
                   <span className="admin-topbar__notif-dot" />
                 </button>
                 <div className="admin-topbar__avatar">
-                  <span className="admin-topbar__avatar-initials">PM</span>
+                  <span className="admin-topbar__avatar-initials">{userInfo?.firstName?.slice(0,1) + userInfo?.lastName?.slice(0,1)}</span>
                   <div className="admin-topbar__avatar-info">
-                    <span className="admin-topbar__avatar-name">{user.userName}</span>
-                    <span className="admin-topbar__avatar-role">{user.role}</span>
+                    <span className="admin-topbar__avatar-name">{userInfo.firstrName}</span>
+                    <span className="admin-topbar__avatar-role">{userInfo.role}</span>
                   </div>
                 </div>
               </div>

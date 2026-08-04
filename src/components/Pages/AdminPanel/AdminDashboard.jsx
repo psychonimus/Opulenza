@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   MdFilterList,
@@ -12,6 +12,8 @@ import {
   MdVolumeOff,
   MdAccountBalanceWallet,
 } from 'react-icons/md'
+
+import { useUser } from '../../../services/showUserInfo/ShowUserInfo'
 
 // ── Stat Cards data ──────────────────────────────────────────────────────────
 const statCards = [
@@ -268,11 +270,15 @@ const StatCard = ({ card }) => {
 const AdminDashboard = () => {
 
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user'));
+  // const user = JSON.parse(localStorage.getItem('user'));
+
+  const { userInfo } = useUser()
+  const user = userInfo
+
 
   const handleLogout = () => {
     localStorage.removeItem('token')
-    localStorage.removeItem('user')
+    // localStorage.removeItem('user')
     navigate('/')
   }
 
@@ -306,9 +312,9 @@ const AdminDashboard = () => {
             <span className="admin-topbar__notif-dot" />
           </button>
           <div className="admin-topbar__avatar">
-            <span className="admin-topbar__avatar-initials">{user?.userName?.slice(0,2)}</span>
+            <span className="admin-topbar__avatar-initials">{user?.firstName?.slice(0,1) + user?.lastName?.slice(0,1)}</span>
             <div className="admin-topbar__avatar-info">
-              <span className="admin-topbar__avatar-name">{user?.userName}</span>
+              <span className="admin-topbar__avatar-name">{user?.firstName +" "+ user?.lastName}</span>
               <span className="admin-topbar__avatar-role">{user?.role}</span>
               <button onClick={handleLogout}>logout</button>
             </div>

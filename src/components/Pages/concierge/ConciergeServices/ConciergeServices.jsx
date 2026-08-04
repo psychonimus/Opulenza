@@ -70,10 +70,10 @@ const ConciergeServices = () => {
                                         </div>
                                         <h3 className="service-card__heading">{service.heading}</h3>
                                         <p className="service-card__desc">{service.description}</p>
-                                        <a href="#" className="service-card__cta">
+                                        <Link to={service.link} className="service-card__cta">
                                             {service.cta}
                                             <span className="service-card__arrow">→</span>
-                                        </a>
+                                        </Link>
                                     </div>
                                 </div>
                             </Link>

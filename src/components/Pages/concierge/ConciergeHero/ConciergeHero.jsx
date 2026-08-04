@@ -1,10 +1,17 @@
 import React from 'react'
 import Header from '../../../Header/Header'
 import "./ConciergeHero.css"
+import { useUser } from '../../../../services/showUserInfo/ShowUserInfo';
 
 const ConciergeHero = () => {
 
-    const user = JSON.parse(localStorage.getItem('user'))
+    const { userInfo } = useUser()
+
+
+    
+    
+
+    
     return (
         <>
             <section className="concierge-hero">
@@ -12,7 +19,7 @@ const ConciergeHero = () => {
                     <Header
                         topText="The Concierge"
                         mainText="Hey"
-                        highlight={user.role}
+                        highlight={userInfo?.firstName}
                         center={false}
 
                     />

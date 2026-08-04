@@ -24,6 +24,7 @@ import DetailedYachtPage from './components/Pages/YachtListings/DetailedYachtPag
 import VaultPage from './components/Pages/VaultPage/VaultPage'
 import Explore from './components/Pages/Explore/Explore'
 import AdminPanel from './components/Pages/AdminPanel/AdminPanel'
+import { useUser } from './services/showUserInfo/ShowUserInfo'
 
 // ── Auth Guard ────────────────────────────────────────────────
 const ProtectedRoute = ({ children }) => {
@@ -33,14 +34,16 @@ const ProtectedRoute = ({ children }) => {
 
 // ── Admin Guard ───────────────────────────────────────────────
 const AdminRoute = ({ children }) => {
-  const user = JSON.parse(localStorage.getItem('user')) || {}
-  return user?.role === 'SuperAdmin' ? children : <Navigate to="/" replace />
+  const { userInfo, loading } = useUser()
+
+  if (loading) return null
+  return userInfo?.role === 'SuperAdmin' ? children : <Navigate to="/" replace />
 }
+
 
 
 const AppLayout = () => {
   const location = useLocation()
-  const user = JSON.parse(localStorage.getItem('user')) || {}
 
 
 

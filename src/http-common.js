@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://115.124.123.180:8091",
+  baseURL: "https://ayurmitra.in/opulenza_reserve",
   // withCredentials: true,
   headers: {
     "Content-Type": "application/json",

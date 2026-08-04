@@ -7,9 +7,12 @@ export const customerLogin = async (dataObj) => {
         password: dataObj.password,
         invitationCode : dataObj.invitationCode
     });
-    // console.log("login api hit", data)        
-    localStorage.setItem("token", data.data.accessToken);
-    localStorage.setItem("user", JSON.stringify(data.data))
+    // console.log("login api hit", data)   
+    if(data?.data?.accessToken)    {
+        localStorage.setItem("token", data.data.accessToken);
+    } 
+    
+    // localStorage.setItem("user", JSON.stringify(data.data))
     return data;
     }
     catch (error){
