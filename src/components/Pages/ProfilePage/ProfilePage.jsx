@@ -323,7 +323,7 @@ const ProfilePage = () => {
                 <span className="prof-member-card__tier">{member.tier}</span>
               </div>
               <div className="prof-member-card__id">{member.memberId}</div>
-              <div className="prof-member-card__name">{userInfo.firstName + " " + userInfo.lastName}</div>
+              <div className="prof-member-card__name">{userInfo?.firstName + " " + userInfo?.lastName}</div>
               <div className="prof-member-card__since">Member since {member.since}</div>
               <div className="prof-member-card__shine" />
             </div>
