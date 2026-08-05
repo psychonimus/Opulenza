@@ -1,18 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import Header from '../../../Header/Header'
 import GoldenButton from '../../../GoldenButton/GoldenButton'
 import "./PrivateAccessSection.css"
-import { customerLogin } from '../../../../services/loginservice/LoginServices'
+import { useAuth } from '../../../../services/showUserInfo/ShowUserInfo'
 import { registerUser } from '../../../../services/registerService/RegisterService'
 import { checkUserEmail } from '../../../../services/getUserData/GetUserData'
-// ── Helpers ──────────────────────────────────────────────────────────────────
+import CommonBackdrop from '../../../CommonBackdrop/CommonBackdrop'
 const isInviteCodeFilled = (code) => code.join('').trim().length === 10
 
 
 
 
-// ── Registration Modal ────────────────────────────────────────────────────────
 const RegistrationModal = ({ inviteCode, onSuccess, onClose , loginData, setLoginData}) => {
   const [form, setForm] = useState({
     membershipTypeID: 1,
@@ -37,33 +35,6 @@ const RegistrationModal = ({ inviteCode, onSuccess, onClose , loginData, setLogi
     password: '',
     confirmPassword: '',
   })
-  
-
-  // registerUser(form)
-  //   .then(() => {
-  //     setShowModal(false)
-  //     if (usingInvite) {
-  //       // Invite-code login → show registration form
-  //       setPending(filledCode)
-  //       setShowRegModal(true)
-  //     } else {
-  //       // Normal password login → go straight to concierge
-  //       navigate('/concierge')
-  //     }
-  //   })
-  //   .catch((err) => {
-  //     const msg =
-  //       err?.response?.data?.message ||
-  //       err?.response?.data?.error ||
-  //       'Invalid credentials. Please try again.'
-  //     setError(msg)
-  //   })
-  //   .finally(() => {
-  //     setLoading(false)
-  //   })
-
-
-
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -96,17 +67,17 @@ const RegistrationModal = ({ inviteCode, onSuccess, onClose , loginData, setLogi
   }
 
   return (
-    <div className="pa-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
+    <>
+      {loading && <CommonBackdrop label="Creating account" />}
+      <div className="pa-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
       <div className="pa-modal-card pa-reg-card" data-lenis-prevent="scroll">
 
-        {/* Close */}
         <button className="pa-modal-close" onClick={onClose} aria-label="Close">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
 
-        {/* Header */}
         <div className="pa-modal-header">
           <span className="pa-modal-eyebrow">— INVITATION ACCEPTED —</span>
           <h2 className="pa-modal-title">Complete your <em>profile.</em></h2>
@@ -117,7 +88,6 @@ const RegistrationModal = ({ inviteCode, onSuccess, onClose , loginData, setLogi
 
         <form className="pa-modal-form" onSubmit={handleRegister}>
 
-          {/* Two-column row */}
           <div className="pa-reg-row">
             <div className="pa-field">
               <label className="pa-field-label">FIRST NAME</label>
@@ -340,7 +310,6 @@ const RegistrationModal = ({ inviteCode, onSuccess, onClose , loginData, setLogi
             </div>
           </div>
 
-          {/* Invite code badge */}
           <div className="pa-invite-badge">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
@@ -364,11 +333,12 @@ const RegistrationModal = ({ inviteCode, onSuccess, onClose , loginData, setLogi
 
       </div>
     </div>
+    </>
   )
 }
 
-// ── Main Component ────────────────────────────────────────────────────────────
 const PrivateAccessSection = () => {
+  const { login } = useAuth()
   const [showModal, setShowModal] = useState(false)
   const [showRegModal, setShowRegModal] = useState(false)
   const [pendingInviteCode, setPending] = useState('')
@@ -376,17 +346,13 @@ const PrivateAccessSection = () => {
   const [password, setPassword] = useState('')
   const [code, setCode] = useState(Array(10).fill(''))
   const [loading, setLoading] = useState(false)
+  const [proceedLoading, setProceedLoading] = useState(false)
   const [error, setError] = useState('')
-  // loginStep: 'email' | 'password' | 'invite'
   const [loginStep, setLoginStep] = useState('email')
   const [loginData, setLoginData] = useState(null)
-  // true  → after email step show password input
-  // false → after email step show invitation code input
   const [requiresPassword, setRequiresPassword] = useState(false)
   const codeRefs = Array.from({ length: 10 }, () => useRef(null))
-  const navigate = useNavigate()
 
-  // Close login modal on Escape
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') setShowModal(false) }
     if (showModal) window.addEventListener('keydown', onKey)
@@ -411,8 +377,8 @@ const PrivateAccessSection = () => {
     e.preventDefault()
     if (!email) return
     setError('')
-    
-    // Route to the appropriate next step based on requiresPassword
+    setProceedLoading(true)
+
     checkUserEmail(email)
       .then((res) => {
         setRequiresPassword(res?.data?.data);
@@ -425,7 +391,9 @@ const PrivateAccessSection = () => {
           'Invalid credentials. Please try again.'
         setError(msg)
       })
-    
+      .finally(() => {
+        setProceedLoading(false)
+      })
   }
 
   const handleSubmit = (e) => {
@@ -436,24 +404,21 @@ const PrivateAccessSection = () => {
     const filledCode = code.join('')
     const usingInvite = isInviteCodeFilled(code)
 
-    const loginObj = {
+    const credentials = {
       userName: email,
       password: loginStep === 'password' ? password : undefined,
       invitationCode: loginStep === 'invite' ? filledCode : undefined,
+      _inviteMode: usingInvite,
     }
 
-    customerLogin(loginObj)
-      .then((res) => {
-        setLoginData(res.data)
-        
+    login(credentials)
+      .then(({ tokenData }) => {
+        setLoginData(tokenData?.data ?? tokenData)
         setShowModal(false)
+
         if (usingInvite) {
-          // Invite-code login → show registration form
           setPending(filledCode)
           setShowRegModal(true)
-        } else {
-          // Normal password login → go straight to concierge
-          navigate('/concierge')
         }
       })
       .catch((err) => {
@@ -482,11 +447,13 @@ const PrivateAccessSection = () => {
 
   const handleRegistrationSuccess = () => {
     setShowRegModal(false)
-    navigate('/concierge')
   }
 
   return (
     <>
+      {(loading || proceedLoading) && (
+        <CommonBackdrop label={proceedLoading ? 'Verifying' : 'Signing in'} />
+      )}
       <section className='private-access-section'>
         <div className="container">
           <Header

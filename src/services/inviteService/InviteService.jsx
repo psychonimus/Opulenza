@@ -11,3 +11,23 @@ export const inviteUser = async (inviteObj) => {
         throw error;
     }
 }
+
+export const getInvitationApprovalList = async () => {
+    try {
+        const { data } = await api.get("api/invitation/InvitationApprovalList");
+        return data;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export const approveInvitation = async (invitationId) => {
+    try {
+        const { data } = await api.post("api/invitation/InvitationApprove", {
+            InvitationID: invitationId
+        });
+        return data;
+    } catch (error) {
+        throw error;
+    }
+}

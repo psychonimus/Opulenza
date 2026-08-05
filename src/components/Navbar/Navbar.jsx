@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
+import { useAuth } from '../../services/showUserInfo/ShowUserInfo'
 import './Navbar.css'
 
 
@@ -11,25 +12,16 @@ const LOGGED_IN_TABS = [
 ]
 
 const Navbar = () => {
-  const navigate = useNavigate()
   const location = useLocation()
+  const { isAuthenticated, logout } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'))
-
-  // Re-check auth whenever the route changes (covers login / logout navigations)
-  useEffect(() => {
-    setIsLoggedIn(!!localStorage.getItem('token'))
-  }, [location.pathname])
 
   // Close menu on route change
   useEffect(() => { setMenuOpen(false) }, [location.pathname])
 
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    // localStorage.removeItem('user')
-    setIsLoggedIn(false)
     setMenuOpen(false)
-    navigate('/')
+    logout()
   }
 
   return (
@@ -44,14 +36,14 @@ const Navbar = () => {
               whileTap={{ scale: 0.95 }}
               className="nav-logo"
             >
-              <Link to={isLoggedIn ? '/concierge' : '/'}>
+              <Link to={isAuthenticated ? '/concierge' : '/'}>
                 <img src="/images/opulenza-logo.png" alt="Opulenza" />
               </Link>
             </motion.div>
           </li>
 
           {/* Desktop: Logged-in navigation links */}
-          {isLoggedIn && LOGGED_IN_TABS.map((tab) => {
+          {isAuthenticated && LOGGED_IN_TABS.map((tab) => {
             const isActive = tab.activeOn
               ? tab.activeOn.some(p => location.pathname.startsWith(p))
               : location.pathname === tab.path
@@ -80,7 +72,7 @@ const Navbar = () => {
       </nav>
 
       {/* Desktop logout button — fixed to top-right, outside the pill */}
-      {isLoggedIn && (
+      {isAuthenticated && (
         <motion.button
           id="navbar-logout-btn"
           className="nav-logout-btn nav-logout-btn--desktop"
@@ -97,11 +89,10 @@ const Navbar = () => {
       )}
 
       {/* Mobile hamburger — fixed to top-right, outside the pill */}
-      {isLoggedIn && (
+      {isAuthenticated && (
         <motion.button
           className="nav-hamburger-btn nav-hamburger-btn--right"
           onClick={() => setMenuOpen(prev => !prev)}
-          // whileTap={{ scale: 0.92 }}
           aria-label="Toggle menu"
           aria-expanded={menuOpen}
         >
@@ -113,7 +104,7 @@ const Navbar = () => {
 
       {/* Mobile dropdown menu */}
       <AnimatePresence>
-        {menuOpen && isLoggedIn && (
+        {menuOpen && isAuthenticated && (
           <motion.div
             className="nav-mobile-menu"
             initial={{ opacity: 0, y: -12, scale: 0.97 }}

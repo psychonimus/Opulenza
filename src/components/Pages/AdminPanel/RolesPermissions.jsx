@@ -131,9 +131,9 @@ const RolesPermissions = () => {
         </div>
 
         {/* Permission matrix */}
-        <div className="ap-table-card">
+        <div className="ap-table-card" style={{padding:"10px"}}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <h3 style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>Permissions for: {selected}</h3>
+            <h3 style={{ fontSize: 14, fontWeight: 600, color: '#111827', }}>Permissions for: {selected}</h3>
             <button className="ap-icon-btn"><MdEdit size={15} /></button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>

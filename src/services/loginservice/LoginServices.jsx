@@ -1,22 +1,12 @@
 import api from "../../http-common";
 
-export const customerLogin = async (dataObj) => {
-    try{
-        const { data } = await api.post("/api/auth/login", {
-        userName: dataObj.userName,
-        password: dataObj.password,
-        invitationCode : dataObj.invitationCode
-    });
-    // console.log("login api hit", data)   
-    if(data?.data?.accessToken)    {
-        localStorage.setItem("token", data.data.accessToken);
-    } 
-    
-    // localStorage.setItem("user", JSON.stringify(data.data))
-    return data;
-    }
-    catch (error){
-       throw error;
-    }
+export const customerLoginApi = async (credentials) => {
+  const { data } = await api.post("/api/auth/login", {
+    userName: credentials.userName,
+    password: credentials.password,
+    invitationCode: credentials.invitationCode,
+  });
+  return data;
 };
 
+export const showUserData = () => api.get("/api/member/Me");

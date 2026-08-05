@@ -20,6 +20,7 @@ import {
   MdSearch,
   MdChevronLeft,
   MdChevronRight,
+  MdMailOutline,
 } from 'react-icons/md'
 
 const navGroups = [
@@ -36,6 +37,12 @@ const navGroups = [
         id: 'user-management',
         label: 'User Management',
         icon: MdPeople,
+        roles: ['SuperAdmin']
+      },
+      {
+        id: 'invitations',
+        label: 'Invitations',
+        icon: MdMailOutline,
         roles: ['SuperAdmin']
       },
       {
@@ -198,7 +205,7 @@ const AdminSidebar = ({
         </div>
       )}
 
-      <nav className="admin-sidebar__nav">
+      <nav className="admin-sidebar__nav" data-lenis-prevent={true}>
         {navGroups.map((group) => {
           const visibleItems = group.items.filter((item) =>
             item.roles.includes(role)

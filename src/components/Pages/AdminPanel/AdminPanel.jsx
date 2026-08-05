@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import AdminSidebar from './AdminSidebar'
 import AdminDashboard from './AdminDashboard'
 import UserManagement from './UserManagement'
+import Invitations from './Invitations'
 import SellerManagement from './SellerManagement'
 import ListingManagement from './ListingManagement'
 import Authentication from './Authentication'
@@ -39,6 +40,10 @@ const ROUTE_MAP = {
   },
   "user-management": {
     component: UserManagement,
+    roles: ["SuperAdmin"]
+  },
+  invitations: {
+    component: Invitations,
     roles: ["SuperAdmin"]
   },
   "seller-management": {
@@ -129,7 +134,7 @@ const AdminPanel = () => {
 
 
 
-
+console.log("AdminPanel: userInfo:", userInfo);
 
 
   return (

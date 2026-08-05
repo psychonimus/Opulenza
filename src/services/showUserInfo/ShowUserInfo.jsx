@@ -1,41 +1,172 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
-import api from '../../http-common'
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  clearTokens,
+  saveTokens,
+  scheduleAutoRefresh,
+  setAuthUpdater,
+  startTokenAutoRefresh,
+} from "../../http-common";
+import { customerLoginApi, showUserData } from "../loginservice/LoginServices";
 
-// ── Raw API call (kept for backward-compat if needed elsewhere) ───────────────
-export const showUserData = () => api.get('/api/member/Me')
+const AuthContext = createContext(null);
 
-// ── Context ───────────────────────────────────────────────────────────────────
-const UserContext = createContext(null)
+export const AUTH_STATUS = {
+  INITIALIZING: "initializing",
+  AUTHENTICATED: "authenticated",
+  UNAUTHENTICATED: "unauthenticated",
+};
 
 export const UserProvider = ({ children }) => {
-  const [userInfo, setUserInfo] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const navigate = useNavigate();
+
+  const [user, setUser] = useState(null);
+  const [status, setStatus] = useState(AUTH_STATUS.INITIALIZING);
+
+  const navigateRef = useRef(navigate);
+  useEffect(() => {
+    navigateRef.current = navigate;
+  }, [navigate]);
+
+  const fetchAndSetUser = useCallback(async () => {
+    try {
+      const res = await showUserData();
+      const userData = res?.data?.data ?? res?.data ?? null;
+      setUser(userData);
+      setStatus(AUTH_STATUS.AUTHENTICATED);
+      return userData;
+    } catch {
+      clearTokens();
+      setUser(null);
+      setStatus(AUTH_STATUS.UNAUTHENTICATED);
+      return null;
+    }
+  }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
+
     if (!token) {
-      setLoading(false)
-      return
+      setStatus(AUTH_STATUS.UNAUTHENTICATED);
+      return;
     }
-    showUserData()
-      .then((res) => {
-        const user = res?.data?.data ?? res?.data ?? null
-        setUserInfo(user)
-      })
-      .catch(() => {
-        setUserInfo(null)
-      })
-      .finally(() => {
-        setLoading(false)
-      })
-  }, [])
 
-  return (
-    <UserContext.Provider value={{ userInfo, loading, setUserInfo }}>
-      {children}
-    </UserContext.Provider>
-  )
-}
+    startTokenAutoRefresh();
+    fetchAndSetUser();
+  }, []);
 
-// ── Hook ──────────────────────────────────────────────────────────────────────
-export const useUser = () => useContext(UserContext)
+  useEffect(() => {
+    if (status !== AUTH_STATUS.AUTHENTICATED) return;
+
+    const expiresAt = localStorage.getItem("expiresAt");
+    if (expiresAt) {
+      scheduleAutoRefresh(expiresAt);
+    }
+
+    setAuthUpdater((newTokenData) => {
+      if (newTokenData?.expiresAt) {
+        scheduleAutoRefresh(newTokenData.expiresAt);
+      }
+    });
+
+    return () => {
+      setAuthUpdater(null);
+    };
+  }, [status]);
+
+  useEffect(() => {
+    const handleStorage = (e) => {
+      if (e.key === "token" && !e.newValue) {
+        setUser(null);
+        setStatus(AUTH_STATUS.UNAUTHENTICATED);
+        navigateRef.current("/", { replace: true });
+      }
+
+      if (e.key === "token" && e.newValue && !e.oldValue) {
+        fetchAndSetUser();
+      }
+    };
+
+    const handleAuthFailed = () => {
+      setUser(null);
+      setStatus(AUTH_STATUS.UNAUTHENTICATED);
+      navigateRef.current("/", { replace: true });
+    };
+
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("auth-failed", handleAuthFailed);
+    window.addEventListener("auth:logout", handleAuthFailed);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("auth-failed", handleAuthFailed);
+      window.removeEventListener("auth:logout", handleAuthFailed);
+    };
+  }, [fetchAndSetUser]);
+
+  const login = useCallback(
+    async (credentials) => {
+      const data = await customerLoginApi(credentials);
+      const tokenData = data?.data ?? data;
+
+      if (!tokenData?.accessToken) {
+        throw new Error("Login API did not return an access token.");
+      }
+
+      saveTokens(tokenData);
+
+      const userData = await fetchAndSetUser();
+
+      if (userData && !credentials._inviteMode) {
+        navigateRef.current("/concierge", { replace: true });
+      }
+
+      return { tokenData, userData };
+    },
+    [fetchAndSetUser],
+  );
+
+  const logout = useCallback(() => {
+    clearTokens();
+    setUser(null);
+    setStatus(AUTH_STATUS.UNAUTHENTICATED);
+    window.dispatchEvent(new Event("auth:logout"));
+    navigateRef.current("/", { replace: true });
+  }, []);
+
+  const refreshUser = useCallback(() => {
+    return fetchAndSetUser();
+  }, [fetchAndSetUser]);
+
+  const value = {
+    user,
+    userInfo: user,
+    status,
+    loading: status === AUTH_STATUS.INITIALIZING,
+    isAuthenticated: status === AUTH_STATUS.AUTHENTICATED,
+    login,
+    logout,
+    refreshUser,
+    setUser,
+    setUserInfo: setUser,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+export const useAuth = () => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error("useAuth must be used inside <UserProvider>");
+  }
+  return ctx;
+};
+
+export const useUser = () => useAuth();

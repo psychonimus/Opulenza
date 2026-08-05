@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
-import { MdPersonAdd, MdSearch } from "react-icons/md";
+import { useEffect, useMemo, useState } from "react";
+import { MdPersonAdd, MdSearch, MdPeopleOutline } from "react-icons/md";
 import { FaCheckCircle } from "react-icons/fa";
 import { RiCloseCircleFill } from "react-icons/ri";
 import { userData } from "../../../services/getUserData/GetUserData";
 import { VerifyUser } from "../../../services/approveUser/ApproveUser";
+import { useBackdrop } from "../../CommonBackdrop/BackdropContext";
 
 const statusColor = {
   Active: { bg: "#dcfce7", color: "#15803d" },
@@ -38,37 +39,78 @@ const statCards = [
   },
 ];
 
+const COLUMN_COUNT = 22;
+
 const UserManagement = () => {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [approvalList, setApprovalList] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { showBackdrop, hideBackdrop } = useBackdrop();
 
-  const handleAction = (rowData) => {
-    
-    VerifyUser({
-      MemberId: rowData.memberID,
-    })
-      .then((response) => {
-        console.log("response", response);
+  const fetchUserData = () => {
+    setIsLoading(true);
+    setError(null);
+    userData()
+      .then((res) => {
+        setApprovalList(res?.data?.data ?? []);
       })
       .catch((err) => {
-        console.log("err", err);
-      });
+        console.error("Failed to fetch users:", err);
+        setError("We couldn't load users. Please try again.");
+        setApprovalList([]);
+      })
+      .finally(() => setIsLoading(false));
   };
 
   useEffect(() => {
-    userData()
-      .then((res) => {
-        setApprovalList(res.data.data);
-      })
-      .catch((err) => err);
+    fetchUserData();
   }, []);
 
-  
+  const handleApprove = (rowData) => {
+    showBackdrop('Processing');
+    VerifyUser({ MemberId: rowData.memberID })
+      .then(() => fetchUserData())
+      .catch((err) => console.error("Approve failed:", err))
+      .finally(() => hideBackdrop());
+  };
+
+  const handleReject = (rowData) => {
+    showBackdrop('Processing');
+    VerifyUser({ MemberId: rowData.memberID })
+      .then(() => fetchUserData())
+      .catch((err) => console.error("Reject failed:", err))
+      .finally(() => hideBackdrop());
+  };
+
+  const filteredList = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return approvalList.filter((u) => {
+      const matchesStatus =
+        filterStatus === "All" || u.membershipStatus === filterStatus;
+
+      if (!matchesStatus) return false;
+      if (!query) return true;
+
+      const displayName = (
+        u.displayName || `${u.firstName ?? ""} ${u.lastName ?? ""}`
+      ).toLowerCase();
+      const email = (u.primaryEmail || "").toLowerCase();
+
+      return displayName.includes(query) || email.includes(query);
+    });
+  }, [approvalList, search, filterStatus]);
+
+  const getInitials = (u) => {
+    const first = u.firstName?.[0] ?? "";
+    const last = u.lastName?.[0] ?? "";
+    return (first + last).toUpperCase() || "?";
+  };
 
   return (
     <div className="ap-page">
-      {/* Page Header */}
       <div className="ap-page-header">
         <div>
           <h1 className="ap-page-title">User Management</h1>
@@ -80,7 +122,7 @@ const UserManagement = () => {
           <MdPersonAdd size={16} /> Invite User
         </button>
       </div>
-      {/* Stat Row */}
+
       <div className="ap-stat-row">
         {statCards.map((s) => (
           <div key={s.label} className="ap-mini-stat">
@@ -92,7 +134,7 @@ const UserManagement = () => {
           </div>
         ))}
       </div>
-      2{/* Toolbar */}
+
       <div className="ap-toolbar">
         <div className="ap-search">
           <MdSearch size={16} className="ap-search__icon" />
@@ -115,7 +157,7 @@ const UserManagement = () => {
           ))}
         </div>
       </div>
-      {/* Table */}
+
       <div className="ap-table-card">
         <table className="ap-table">
           <thead>
@@ -125,7 +167,6 @@ const UserManagement = () => {
               <th>Member No.</th>
               <th>Membership Type</th>
               <th>Membership Status</th>
-              {/* <th>Membership Status</th> */}
               <th>Title</th>
               <th>First Name</th>
               <th>Middle Name</th>
@@ -147,74 +188,105 @@ const UserManagement = () => {
             </tr>
           </thead>
           <tbody>
-            {approvalList?.length > 0 ? (
-              <>
-                {approvalList?.length > 0 &&
-                  approvalList.map((u, id) => (
-                    <tr key={u.id}>
-                      <td>
-                        <div className="ap-user-cell">
-                          <div className="ap-avatar">{id}</div>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="ap-badge" style={roleColor[u.role]}>
-                          {u.memberID}
-                        </span>
-                      </td>
-                      <td>
-                        <span
-                          className="ap-badge"
-                          style={statusColor[u.status]}
-                        >
-                          {u.memberNo}
-                        </span>
-                      </td>
-                      <td className="ap-table__muted">{u.membershipType}</td>
-                      <td className="ap-table__value">{u.membershipStatus}</td>
-                      <td className="ap-table__value">{u.title}</td>
-                      <td className="ap-table__value">{u.firstName}</td>
-                      <td className="ap-table__value">{u.middleName}</td>
-                      <td className="ap-table__value">{u.lastName}</td>
-                      <td className="ap-table__value">{u.displayName}</td>
-                      <td className="ap-table__value">{u.dateOfBirth}</td>
-                      <td className="ap-table__value">{u.gender}</td>
-                      <td className="ap-table__value">{u.primaryEmail}</td>
-                      <td className="ap-table__value">{u.secondaryEmail}</td>
-                      <td className="ap-table__value">{u.primaryMobile}</td>
-                      <td className="ap-table__value">{u.secondaryMobile}</td>
-                      <td className="ap-table__value">{u.familyOfficeName}</td>
-                      <td className="ap-table__value">{u.occupation}</td>
-                      <td className="ap-table__value">{u.companyName}</td>
-                      <td className="ap-table__value">{u.website}</td>
-                      <td className="ap-table__value">{u.bio}</td>
-                      <td className="ap-table__value">{u.createdOn}</td>
-
-                      <td>
-                        <div className="ap-action-group">
-                          <button
-                            onClick={() => handleAction(u)}
-                            className="ap-icon-btn cursor-pointer"
-                            title="Edit"
-                          >
-                            <FaCheckCircle size={15} />
-                          </button>
-                          <button
-                            onClick={() => handleAction(u)}
-                            className="ap-icon-btn cursor-pointer ap-icon-btn--danger"
-                            title="Delete"
-                          >
-                            <RiCloseCircleFill size={15} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-              </>
+            {isLoading ? (
+              <tr>
+                <td colSpan={COLUMN_COUNT}>
+                  <div style={emptyStateStyle}>
+                    <div style={spinnerStyle} />
+                    <p style={emptyStateTextStyle}>Loading users…</p>
+                  </div>
+                </td>
+              </tr>
+            ) : error ? (
+              <tr>
+                <td colSpan={COLUMN_COUNT}>
+                  <div style={emptyStateStyle}>
+                    <p style={{ ...emptyStateTextStyle, color: "#b91c1c" }}>
+                      {error}
+                    </p>
+                    <button
+                      className="ap-btn ap-btn--primary"
+                      onClick={fetchUserData}
+                    >
+                      Retry
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ) : filteredList.length > 0 ? (
+              filteredList.map((u, idx) => (
+                <tr key={u.memberID ?? idx}>
+                  <td>
+                    <div className="ap-user-cell">
+                      <div className="ap-avatar">{getInitials(u)}</div>
+                    </div>
+                  </td>
+                  <td className="ap-table__muted">{u.memberID}</td>
+                  <td className="ap-table__muted">{u.memberNo}</td>
+                  <td>
+                    <span
+                      className="ap-badge"
+                      style={roleColor[u.membershipType] ?? {}}
+                    >
+                      {u.membershipType}
+                    </span>
+                  </td>
+                  <td>
+                    <span
+                      className="ap-badge"
+                      style={statusColor[u.membershipStatus] ?? {}}
+                    >
+                      {u.membershipStatus}
+                    </span>
+                  </td>
+                  <td className="ap-table__value">{u.title}</td>
+                  <td className="ap-table__value">{u.firstName}</td>
+                  <td className="ap-table__value">{u.middleName}</td>
+                  <td className="ap-table__value">{u.lastName}</td>
+                  <td className="ap-table__value">{u.displayName}</td>
+                  <td className="ap-table__value">{u.dateOfBirth}</td>
+                  <td className="ap-table__value">{u.gender}</td>
+                  <td className="ap-table__value">{u.primaryEmail}</td>
+                  <td className="ap-table__value">{u.secondaryEmail}</td>
+                  <td className="ap-table__value">{u.primaryMobile}</td>
+                  <td className="ap-table__value">{u.secondaryMobile}</td>
+                  <td className="ap-table__value">{u.familyOfficeName}</td>
+                  <td className="ap-table__value">{u.occupation}</td>
+                  <td className="ap-table__value">{u.companyName}</td>
+                  <td className="ap-table__value">{u.website}</td>
+                  <td className="ap-table__value">{u.bio}</td>
+                  <td className="ap-table__value">{u.createdOn}</td>
+                  <td>
+                    <div className="ap-action-group">
+                      <button
+                        onClick={() => handleApprove(u)}
+                        className="ap-icon-btn cursor-pointer"
+                        title="Approve"
+                      >
+                        <FaCheckCircle size={15} />
+                      </button>
+                      <button
+                        onClick={() => handleReject(u)}
+                        className="ap-icon-btn cursor-pointer ap-icon-btn--danger"
+                        title="Reject"
+                      >
+                        <RiCloseCircleFill size={15} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
             ) : (
               <tr>
-                <td colSpan="23" className="ap-table__empty">
-                  No users found.
+                <td colSpan={COLUMN_COUNT}>
+                  <div style={emptyStateStyle}>
+                    <MdPeopleOutline size={32} color="#9ca3af" />
+                    <p style={emptyStateTextStyle}>
+                      {approvalList.length === 0
+                        ? "No users found."
+                        : "No users match your search or filter."}
+                    </p>
+                  </div>
                 </td>
               </tr>
             )}
@@ -223,6 +295,32 @@ const UserManagement = () => {
       </div>
     </div>
   );
+};
+
+const emptyStateStyle = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "10px",
+  padding: "48px 16px",
+  width: "100%",
+  textAlign: "center",
+};
+
+const emptyStateTextStyle = {
+  margin: 0,
+  color: "#6b7280",
+  fontSize: "14px",
+};
+
+const spinnerStyle = {
+  width: "24px",
+  height: "24px",
+  border: "3px solid #e5e7eb",
+  borderTopColor: "#3b5bdb",
+  borderRadius: "50%",
+  animation: "ap-spin 0.8s linear infinite",
 };
 
 export default UserManagement;
