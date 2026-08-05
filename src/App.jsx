@@ -24,6 +24,7 @@ import DetailedYachtPage from './components/Pages/YachtListings/DetailedYachtPag
 import VaultPage from './components/Pages/VaultPage/VaultPage'
 import Explore from './components/Pages/Explore/Explore'
 import AdminPanel from './components/Pages/AdminPanel/AdminPanel'
+import TermsPage from './components/Pages/TermsPage/TermsPage'
 import { useUser } from './services/showUserInfo/ShowUserInfo'
 
 // ── Auth Guard ────────────────────────────────────────────────
@@ -45,18 +46,14 @@ const AdminRoute = ({ children }) => {
 const AppLayout = () => {
   const location = useLocation()
 
-
-
-
-
-
-
   return (
     <>
       <Navbar />
       <Routes>
         <Route path='/' element={<Home />} />
         <Route path='/about' element={<About />} />
+        <Route path='/terms' element={<TermsPage />} />
+        <Route path='/terms-and-conditions' element={<TermsPage />} />
         <Route path='/concierge' element={<ProtectedRoute><Concierge /></ProtectedRoute>} />
         <Route path='/bidPage' element={<ProtectedRoute><BidPage /></ProtectedRoute>} />
         <Route path='/watchListing' element={<ProtectedRoute><WatchListing /></ProtectedRoute>} />

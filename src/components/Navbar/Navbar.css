@@ -366,10 +366,9 @@
     display: none;
   }
 
-  /* Show right-side hamburger on mobile */
+  /* Standalone right hamburger hidden */
   .nav-hamburger-btn--right {
-    display: flex;
-    right: 1rem; /* match container padding */
+    display: none;
   }
 
   /* Fix dropdown overflow on mobile:

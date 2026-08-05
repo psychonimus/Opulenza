@@ -25,7 +25,7 @@ const Navbar = () => {
   const expandScrollY = useRef(0)
   const transitionTimeoutRef = useRef(null)
 
-  const isCollapsed = !isMobile && (stage === 'collapsingCenter' || stage === 'collapsedRight')
+  const isCollapsed = stage === 'collapsingCenter' || stage === 'collapsedRight'
   const showHamburger = isCollapsed || menuOpen || isMobile
 
   // Re-check auth whenever the route changes
@@ -33,15 +33,11 @@ const Navbar = () => {
     setIsLoggedIn(!!localStorage.getItem('token'))
   }, [location.pathname])
 
-  // Track window size for mobile breakpoint and reset stage when entering mobile
+  // Track window size for mobile breakpoint
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth <= 768
       setIsMobile(mobile)
-      if (mobile) {
-        setStage('expanded')
-        setIsManuallyExpanded(false)
-      }
     }
     handleResize()
     window.addEventListener('resize', handleResize)
@@ -53,13 +49,13 @@ const Navbar = () => {
 
   // Calculate pixel shift needed to slide pill to right edge
   const updateRightOffset = useCallback(() => {
-    if (!navRef.current || isMobile) return
+    if (!navRef.current) return
     const navWidth = navRef.current.offsetWidth
     const containerWidth = window.innerWidth
     const padding = containerWidth <= 768 ? 16 : 32
     const offset = (containerWidth / 2) - (navWidth / 2) - padding
     setRightOffset(Math.max(0, offset))
-  }, [isMobile])
+  }, [])
 
   useEffect(() => {
     updateRightOffset()
@@ -67,10 +63,8 @@ const Navbar = () => {
     return () => window.removeEventListener('resize', updateRightOffset)
   }, [updateRightOffset, stage])
 
-  // Scroll listener for collapse/expand sequence (Desktop only)
+  // Scroll listener for collapse/expand sequence
   useEffect(() => {
-    if (isMobile) return
-
     const handleScroll = () => {
       const scrollY = window.scrollY
       const scrollThreshold = 60
@@ -112,7 +106,7 @@ const Navbar = () => {
     return () => {
       window.removeEventListener('scroll', handleScroll)
     }
-  }, [stage, isManuallyExpanded, isMobile])
+  }, [stage, isManuallyExpanded])
 
   const handleBurgerClick = () => {
     if (isMobile) {
@@ -151,7 +145,7 @@ const Navbar = () => {
     navigate('/')
   }
 
-  const targetX = (!isMobile && stage === 'collapsedRight') ? rightOffset : 0
+  const targetX = stage === 'collapsedRight' ? rightOffset : 0
 
   return (
     <div className="navbar-fixed-container">
