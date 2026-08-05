@@ -38,7 +38,7 @@ const formFields = {
     { id: 'specSection', label: 'Watches - Specifications', type: 'section' },
     { id: 'brand', label: 'Brand', type: 'text', placeholder: 'e.g. Patek Philippe', half: true },
     { id: 'model', label: 'Model', type: 'text', placeholder: 'e.g. Nautilus 5711/1A', half: true },
-    { id: 'referenceNumber', label: 'Reference Number', type: 'text', placeholder: 'Found on papers or caseback', half: true },
+    { id: 'referenceNumber', label: 'Serial Number', type: 'text', placeholder: 'Found on papers or caseback', half: true },
     { id: 'yearOfPurchase', label: 'Year of Purchase', type: 'select', options: years, half: true },
 
     // Pricing & Auction
@@ -49,7 +49,7 @@ const formFields = {
 
     // Condition & Accessories
     { id: 'condSection', label: 'Condition & Accessories', type: 'section' },
-    { id: 'condition', label: 'Current Condition', type: 'select', options: ['Unworn / New', 'Excellent', 'Very Good', 'Good', 'Fair'], half: true },
+    { id: 'condition', label: 'Current Condition', type: 'select', options: ['Unworn / New', 'Excellent', 'Scratched', 'Good', 'Fair'], half: true },
     { id: 'Case', label: 'Box Case available?', type: 'select', options: ['Yes', 'No'], half: true },
 
     // Documentation
