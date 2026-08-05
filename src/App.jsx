@@ -3,12 +3,7 @@ import Navbar from "./components/Navbar/Navbar";
 import Home from "./components/Pages/Home/Home";
 import Footer from "./components/Footer/Footer";
 import Concierge from "./components/Pages/concierge/Concierge";
-import {
-  Routes,
-  Route,
-  Navigate,
-  useLocation,
-} from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import BidPage from "./components/Pages/BidPage/BidPage";
 import WatchListing from "./components/Pages/WatchListings/WatchListing";
 import DetailedPage from "./components/Pages/WatchListings/DetailedPage/DetailedPage";
@@ -29,6 +24,7 @@ import DetailedYachtPage from "./components/Pages/YachtListings/DetailedYachtPag
 import VaultPage from "./components/Pages/VaultPage/VaultPage";
 import Explore from "./components/Pages/Explore/Explore";
 import AdminPanel from "./components/Pages/AdminPanel/AdminPanel";
+import TermsPage from "./components/Pages/TermsPage/TermsPage";
 import { useAuth, AUTH_STATUS } from "./services/showUserInfo/ShowUserInfo";
 import { useBackdrop } from "./components/CommonBackdrop/BackdropContext";
 import CommonBackdrop from "./components/CommonBackdrop/CommonBackdrop";
@@ -60,142 +56,32 @@ const AdminRoute = ({ children }) => {
 };
 
 const AppLayout = () => {
-  useLocation();
+  const location = useLocation()
 
   return (
     <>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route
-          path="/concierge"
-          element={
-            <ProtectedRoute>
-              <Concierge />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/bidPage"
-          element={
-            <ProtectedRoute>
-              <BidPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/watchListing"
-          element={
-            <ProtectedRoute>
-              <WatchListing />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/watch/:id"
-          element={
-            <ProtectedRoute>
-              <DetailedPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/sell"
-          element={
-            <ProtectedRoute>
-              <SellPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/whiskyListings"
-          element={
-            <ProtectedRoute>
-              <WhiskyListings />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/whisky/:id"
-          element={
-            <ProtectedRoute>
-              <DetailedWhiskyPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/cigarsListings"
-          element={
-            <ProtectedRoute>
-              <CigarListings />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/cigar/:id"
-          element={
-            <ProtectedRoute>
-              <DetailedCigarPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/penListings"
-          element={
-            <ProtectedRoute>
-              <PenListings />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/pen/:id"
-          element={
-            <ProtectedRoute>
-              <DetailedPenPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/yachtListings"
-          element={
-            <ProtectedRoute>
-              <YachtListings />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/yacht/:id"
-          element={
-            <ProtectedRoute>
-              <DetailedYachtPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/explore"
-          element={
-            <ProtectedRoute>
-              <Explore />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/vault"
-          element={
-            <ProtectedRoute>
-              <VaultPage />
-            </ProtectedRoute>
-          }
-        />
+        <Route path='/' element={<Home />} />
+        <Route path='/about' element={<About />} />
+        <Route path='/terms' element={<TermsPage />} />
+        <Route path='/terms-and-conditions' element={<TermsPage />} />
+        <Route path='/concierge' element={<ProtectedRoute><Concierge /></ProtectedRoute>} />
+        <Route path='/bidPage' element={<ProtectedRoute><BidPage /></ProtectedRoute>} />
+        <Route path='/watchListing' element={<ProtectedRoute><WatchListing /></ProtectedRoute>} />
+        <Route path='/watch/:id' element={<ProtectedRoute><DetailedPage /></ProtectedRoute>} />
+        <Route path='/sell' element={<ProtectedRoute><SellPage /></ProtectedRoute>} />
+        <Route path='/whiskyListings' element={<ProtectedRoute><WhiskyListings /></ProtectedRoute>} />
+        <Route path='/whisky/:id' element={<ProtectedRoute><DetailedWhiskyPage /></ProtectedRoute>} />
+        <Route path='/profile' element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path='/cigarsListings' element={<ProtectedRoute><CigarListings /></ProtectedRoute>} />
+        <Route path='/cigar/:id' element={<ProtectedRoute><DetailedCigarPage /></ProtectedRoute>} />
+        <Route path='/penListings' element={<ProtectedRoute><PenListings /></ProtectedRoute>} />
+        <Route path='/pen/:id' element={<ProtectedRoute><DetailedPenPage /></ProtectedRoute>} />
+        <Route path='/yachtListings' element={<ProtectedRoute><YachtListings /></ProtectedRoute>} />
+        <Route path='/yacht/:id' element={<ProtectedRoute><DetailedYachtPage /></ProtectedRoute>} />
+        <Route path='/explore' element={<ProtectedRoute><Explore /></ProtectedRoute>} />
+        <Route path='/vault' element={<ProtectedRoute><VaultPage /></ProtectedRoute>} />
       </Routes>
       <Footer />
     </>

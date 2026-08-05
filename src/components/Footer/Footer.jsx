@@ -19,7 +19,7 @@ const Footer = () => {
                     <div className="col-md-6">
                         <div className="footer-links d-flex justify-content-end">
                             <ul>
-                                <Link to="/privacy">Privacy Policy</Link>
+                                <Link to="/terms">Terms & Conditions</Link>
                                 <Link to="/about">About Us</Link>
                                 <Link to="/concierge">Concierge</Link>
                                 <Link to="/contact">Contact</Link>
