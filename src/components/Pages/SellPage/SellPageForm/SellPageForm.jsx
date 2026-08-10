@@ -1,29 +1,36 @@
 import React, { useState } from 'react'
 import './SellPageForm.css'
+import { SendSellingFormData } from '../../../../services/sellingServices/sendSellingFormData/SendSellingFormData'
+import { number } from 'framer-motion'
 
 const categories = [
   {
     id: 'watches',
+    number : '1',
     label: 'Watches',
     subtitle: 'Patek Philippe, Audemars Piguet, Rolex',
   },
   {
-    id: 'wines',
+    id: 'whisky',
+    number : '2',
     label: 'Whisky',
     subtitle: 'Bordeaux, Burgundy, Rare Cognac',
   },
   {
     id: 'cigars',
+    number : '3',
     label: 'Cigars',
     subtitle: 'Cohiba, Montecristo, Pre-1980 Curated',
   },
   {
     id: 'pens',
+    number : '4',
     label: 'Luxury Pens',
     subtitle: 'Montblanc, Cartier, Visconti',
   },
   {
     id: 'yacht',
+    number : '5',
     label: 'Yacht',
     subtitle: 'Sunseeker, Ferretti, Azimut',
   },
@@ -38,14 +45,14 @@ const formFields = {
     { id: 'specSection', label: 'Watches - Specifications', type: 'section' },
     { id: 'brand', label: 'Brand', type: 'text', placeholder: 'e.g. Patek Philippe', half: true },
     { id: 'model', label: 'Model', type: 'text', placeholder: 'e.g. Nautilus 5711/1A', half: true },
-    { id: 'referenceNumber', label: 'Serial Number', type: 'text', placeholder: 'Found on papers or caseback', half: true },
+    { id: 'serialNumber', label: 'Serial Number', type: 'text', placeholder: 'Found on papers or caseback', half: true },
     { id: 'yearOfPurchase', label: 'Year of Purchase', type: 'select', options: years, half: true },
 
     // Pricing & Auction
     { id: 'pricingSection', label: 'Pricing & Auction', type: 'section' },
     { id: 'originalPrice', label: 'Original Price (USD)', type: 'text', placeholder: 'Value at acquisition', half: true },
-    { id: 'minimumPrice', label: 'Minimum expected Price (USD)', type: 'text', placeholder: 'Minimum expected Price', half: true },
-    { id: 'endDate', label: 'Select Auction End Date (Max 15 days)', type: 'date', half: true },
+    { id: 'expectedPrice', label: 'Expected Price (USD)', type: 'text', placeholder: 'Expected Price', half: true },
+    { id: 'auctionEndDate', label: 'Select Auction End Date (Max 15 days)', type: 'date', half: true },
 
     // Condition & Accessories
     { id: 'condSection', label: 'Condition & Accessories', type: 'section' },
@@ -65,20 +72,20 @@ const formFields = {
     { id: 'photoStrapBracelet', label: 'Strap / Bracelet & Clasp', type: 'file', placeholder: 'Strap texture, links, and clasp wear.', half: true },
     { id: 'photoBoxPapers', label: 'Box & Papers presentation', type: 'file', placeholder: 'Outer box, presentation case, tag, and accessories.', half: true },
   ],
-  wines: [
+  whisky: [
     // Whisky / Wine - Specifications
     { id: 'specSection', label: 'Whisky / Wine - Specifications', type: 'section' },
-    { id: 'distilleryName', label: 'Distillery / Producer Name', type: 'text', placeholder: 'e.g. Macallan, Lafite', half: true },
-    { id: 'series', label: 'Series / Bottling Name', type: 'text', placeholder: 'e.g. Rare Vintage, Gran Reserva', half: true },
-    { id: 'vintage', label: 'Vintage Year', type: 'select', options: years, half: true },
+    { id: 'producerName', label: 'Distillery / Producer Name', type: 'text', placeholder: 'e.g. Macallan, Lafite', half: true },
+    { id: 'bottlingName', label: 'Series / Bottling Name', type: 'text', placeholder: 'e.g. Rare Vintage, Gran Reserva', half: true },
+    { id: 'vintageYear', label: 'Vintage Year', type: 'select', options: years, half: true },
     { id: 'age', label: 'Age (Years Aged)', type: 'text', placeholder: 'e.g. 18 YO, 25 YO', half: true },
-    { id: 'abv', label: '% ABV / Proof', type: 'text', placeholder: 'e.g. 43%', half: true },
-    { id: 'size', label: 'Bottle Size', type: 'text', placeholder: 'e.g. 70 cl, 750 ml', half: true },
+    { id: 'proof', label: '% ABV / Proof', type: 'text', placeholder: 'e.g. 43%', half: true },
+    { id: 'bottleSize', label: 'Bottle Size', type: 'text', placeholder: 'e.g. 70 cl, 750 ml', half: true },
     { id: 'productionType', label: 'Production Type', type: 'select', options: ['Single Malt', 'Single Grain', 'Blended Malt', 'Red Wine', 'White Wine', 'Cognac / Brandy', 'Other'], half: true },
     { id: 'region', label: 'Region', type: 'select', options: ['Speyside', 'Islay', 'Highlands', 'Lowlands', 'Bordeaux', 'Burgundy', 'Champagne', 'Other'], half: true },
-    { id: 'distilleryBottling', label: 'Bottling Type', type: 'select', options: ['Distillery Bottling', 'Independent Bottler', 'Estate Bottled'], half: true },
+    { id: 'bottlingType', label: 'Bottling Type', type: 'select', options: ['Distillery Bottling', 'Independent Bottler', 'Estate Bottled'], half: true },
     { id: 'distilleryStatus', label: 'Distillery Status', type: 'select', options: ['Active', 'Closed / Silent', 'N/A'], half: true },
-    { id: 'bottleType', label: 'Bottle / Container Type', type: 'select', options: ['Standard Bottle', 'Decanter', 'Magnum', 'Cask / Barrel'], half: true },
+    { id: 'bottle', label: 'Bottle / Container Type', type: 'select', options: ['Standard Bottle', 'Decanter', 'Magnum', 'Cask / Barrel'], half: true },
 
     // Quantity & Storage
     { id: 'quantitySection', label: 'Quantity & Storage', type: 'section' },
@@ -99,24 +106,24 @@ const formFields = {
     { id: 'photoPackagingCase', label: 'Original Case & Packaging', type: 'file', placeholder: 'Original wooden box, carton, booklet, or outer case.', half: true },
 
     // Pricing
-    { id: 'pricingSection', label: 'Pricing & Value', type: 'section' },
-    { id: 'estimatedValue', label: 'Estimated Value (USD)', type: 'text', placeholder: 'Total desired value for the listing', half: true },
+    { id: 'originalPrice', label: 'Pricing & Value', type: 'section' },
+    { id: 'expectedPrice', label: 'Estimated Value (USD)', type: 'text', placeholder: 'Total desired value for the listing', half: true },
   ],
   cigars: [
     // Cigars - Specifications
     { id: 'specSection', label: 'Cigars - Specifications', type: 'section' },
-    { id: 'name', label: 'Release / Edition Name', type: 'text', placeholder: 'e.g. Partagas Lusitanias 2024', half: true },
+    { id: 'editionName', label: 'Release / Edition Name', type: 'text', placeholder: 'e.g. Partagas Lusitanias 2024', half: true },
     { id: 'brand', label: 'Brand', type: 'text', placeholder: 'e.g. Partagas, Cohiba', half: true },
-    { id: 'vitola', label: 'Vitola (Factory / Commercial Shape)', type: 'text', placeholder: 'e.g. Prominentes, Robusto', half: true },
-    { id: 'year', label: 'Box Year (Production Date)', type: 'select', options: years, half: true },
-    { id: 'ringGauge', label: 'Ring Gauge & Length', type: 'text', placeholder: 'e.g. 49 / 194mm (7.6 inches)', half: true },
+    { id: 'commercialShape', label: 'Vitola (Factory / Commercial Shape)', type: 'text', placeholder: 'e.g. Prominentes, Robusto', half: true },
+    { id: 'boxYear', label: 'Box Year (Production Date)', type: 'select', options: years, half: true },
+    { id: 'length', label: 'Ring Gauge & Length', type: 'text', placeholder: 'e.g. 49 / 194mm (7.6 inches)', half: true },
     { id: 'origin', label: 'Country of Origin', type: 'select', options: ['Cuba', 'Dominican Republic', 'Nicaragua', 'Honduras', 'Other'], half: true },
-    { id: 'packaging', label: 'Packaging Type', type: 'text', placeholder: 'e.g. Dress Box of 25, Cabinet of 50', half: true },
+    { id: 'packagingType', label: 'Packaging Type', type: 'text', placeholder: 'e.g. Dress Box of 25, Cabinet of 50', half: true },
     { id: 'quantity', label: 'Quantity (Cigars Included)', type: 'text', placeholder: 'e.g. 25', half: true },
 
     // Storage & Preservation
     { id: 'storageSection', label: 'Storage & Preservation', type: 'section' },
-    { id: 'storageBox', label: 'Original Box / Humidor Status', type: 'select', options: ['Yes – Sealed', 'Yes – Opened', 'No Box - Loose Cigars'], half: true },
+    { id: 'orignalBox', label: 'Original Box / Humidor Status', type: 'select', options: ['Yes – Sealed', 'Yes – Opened', 'No Box - Loose Cigars'], half: true },
 
     // Documentation
     { id: 'docSection', label: 'Documentation', type: 'section' },
@@ -132,8 +139,8 @@ const formFields = {
     { id: 'photoBandCap', label: 'Cigar Band & Cap close-up', type: 'file', placeholder: 'Macro shot of individual cigar head, band, and foot.', half: true },
 
     // Pricing
-    { id: 'pricingSection', label: 'Pricing & Value', type: 'section' },
-    { id: 'askingPrice', label: 'Asking Price (USD)', type: 'text', placeholder: 'Your desired price', half: true },
+    { id: 'originalPrice', label: 'Pricing & Value', type: 'section' },
+    { id: 'expectedPrice', label: 'Asking Price (USD)', type: 'text', placeholder: 'Your desired price', half: true },
   ],
   pens: [
     // Pens - Specifications
@@ -141,7 +148,7 @@ const formFields = {
     { id: 'brand', label: 'Brand', type: 'text', placeholder: 'e.g. Montblanc, Namiki', half: true },
     { id: 'model', label: 'Model / Collection Name', type: 'text', placeholder: 'e.g. Meisterstück 149, Emperor', half: true },
     { id: 'penType', label: 'Pen Type', type: 'select', options: ['Fountain', 'Rollerball', 'Ballpoint'], half: true },
-    { id: 'yearOfManufacturing', label: 'Year of Manufacturing', type: 'select', options: years, half: true },
+    { id: 'manifacturingYear', label: 'Year of Manufacturing', type: 'select', options: years, half: true },
     { id: 'limitedEditionRegistry', label: 'Limited Edition Registry (If applicable)', type: 'text', placeholder: 'e.g. No. 012 / 888', half: true },
     { id: 'serialNumber', label: 'Serial Number (Mandatory)', type: 'text', placeholder: 'Enter serial number', half: true },
 
@@ -158,8 +165,8 @@ const formFields = {
 
     // Condition
     { id: 'conditionSection', label: 'Condition', type: 'section' },
-    { id: 'conditionGrade', label: 'Condition Grade', type: 'select', options: ['Mint / Uninked', 'Near Mint', 'Excellent', 'Good'], half: true },
-    { id: 'inclusions', label: 'Inclusions', type: 'checkbox-group', options: ['Original Outer Box', 'Presentation Case', 'Service Guide'], half: false },
+    { id: 'condition', label: 'Condition Grade', type: 'select', options: ['Mint / Uninked', 'Near Mint', 'Excellent', 'Good'], half: true },
+    { id: 'orignalOuterBox', label: 'Inclusions', type: 'checkbox-group', options: ['Original Outer Box', 'Presentation Case', 'Service Guide'], half: false },
 
     // Photo Requirements
     { id: 'photoSection', label: 'Photo Requirements', type: 'section' },
@@ -170,8 +177,8 @@ const formFields = {
     { id: 'photoBoxCert', label: 'Box and/or authenticity certificate.', type: 'file', placeholder: 'Images of box, papers, or certificate.', half: true },
 
     // Pricing
-    { id: 'pricingSection', label: 'Pricing', type: 'section' },
-    { id: 'askingPrice', label: 'Asking Price (USD)', type: 'text', placeholder: 'Your desired price', half: true },
+    { id: 'originalPrice', label: 'Pricing', type: 'section' },
+    { id: 'expectedPrice', label: 'Asking Price (USD)', type: 'text', placeholder: 'Your desired price', half: true },
   ],
   yacht: [
     // Yacht - Specifications
@@ -181,7 +188,7 @@ const formFields = {
     { id: 'yearBuilt', label: 'Year Built', type: 'select', options: years, half: true },
     { id: 'length', label: 'Length (meters / feet)', type: 'text', placeholder: 'e.g. 22m (72ft)', half: true },
     { id: 'hullType', label: 'Hull Type', type: 'select', options: ['Motor Yacht', 'Sailing Yacht', 'Catamaran', 'Superyacht', 'Speedboat'], half: true },
-    { id: 'flag', label: 'Flag / Registry', type: 'text', placeholder: 'e.g. Cayman Islands', half: true },
+    { id: 'registry', label: 'Flag / Registry', type: 'text', placeholder: 'e.g. Cayman Islands', half: true },
     { id: 'condition', label: 'Current Condition', type: 'select', options: ['Showroom / Pristine', 'Excellent', 'Good', 'Needs Refit'], half: true },
 
     // Documentation
@@ -199,21 +206,29 @@ const formFields = {
     { id: 'photoEngineRoom', label: 'Engine Room / Propulsion', type: 'file', placeholder: 'Close-up of main engines, generators, and bilge.', half: true },
 
     // Pricing
-    { id: 'pricingSection', label: 'Pricing & Value', type: 'section' },
-    { id: 'askingPrice', label: 'Asking Price (USD)', type: 'text', placeholder: 'Your desired price', half: true },
+    { id: 'originalPrice', label: 'Pricing & Value', type: 'section' },
+    { id: 'expectedPrice', label: 'Asking Price (USD)', type: 'text', placeholder: 'Your desired price', half: true },
   ],
 }
 
 const SellPageForm = () => {
   const [activeCategory, setActiveCategory] = useState('watches')
-  const [formData, setFormData] = useState({})
+  // const [activeCategoryId, setActiveCategoryId] = useState('1')
+  const [formData, setFormData] = useState({
+    categoryId : "1",
+  })
   const [fileNames, setFileNames] = useState({})
 
-  const handleCategoryChange = (id) => {
+  // console.log(formData)
+
+  const handleCategoryChange = (id,number) => {
     setActiveCategory(id)
-    setFormData({})
+    
+    setFormData(prev => ({...prev, categoryId: number}))
     setFileNames({})
   }
+  
+
 
   const handleChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.id]: e.target.value }))
@@ -228,6 +243,22 @@ const SellPageForm = () => {
   }
 
   const fields = formFields[activeCategory] || []
+
+  // console.log(fields)
+
+
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    SendSellingFormData(formData)
+    .then((res) => {
+        console.log(res)
+        setFormData('');
+    })
+    .catch((err) => {
+        console.log(err)
+    })
+  }
 
   return (
     <section className="sell-form-section">
@@ -248,7 +279,7 @@ const SellPageForm = () => {
               <button
                 key={cat.id}
                 className={`sell-category-card${activeCategory === cat.id ? ' active' : ''}`}
-                onClick={() => handleCategoryChange(cat.id)}
+                onClick={() => handleCategoryChange(cat.id, cat.number)}
               >
                 {activeCategory === cat.id && (
                   <span className="sell-category-check">
@@ -401,8 +432,8 @@ const SellPageForm = () => {
               </svg>
               Previous Step
             </button>
-            <button className="sell-btn-next">
-              Save &amp; Continue
+            <button type='submit' onClick={(e)=> handleSubmit(e)}  className="sell-btn-next">
+              Submit
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
