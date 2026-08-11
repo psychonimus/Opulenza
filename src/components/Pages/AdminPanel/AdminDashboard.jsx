@@ -272,14 +272,11 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   // const user = JSON.parse(localStorage.getItem('user'));
 
-  const { userInfo } = useUser()
+  const { userInfo, logout } = useUser()
   const user = userInfo
 
-
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    // localStorage.removeItem('user')
-    navigate('/')
+    logout()
   }
 
   return (

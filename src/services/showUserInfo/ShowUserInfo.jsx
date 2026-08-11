@@ -116,7 +116,13 @@ export const UserProvider = ({ children }) => {
       const data = await customerLoginApi(credentials);
       const tokenData = data?.data ?? data;
 
-      if (!tokenData?.accessToken) {
+      const accessToken =
+        tokenData?.accessToken ||
+        tokenData?.token ||
+        tokenData?.access_token ||
+        tokenData?.jwt;
+
+      if (!accessToken) {
         throw new Error("Login API did not return an access token.");
       }
 

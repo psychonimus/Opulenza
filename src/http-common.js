@@ -17,6 +17,40 @@ let _authUpdater = null;
 let scheduledTimer = null;
 let refreshPromise = null;
 
+function parseExpiresAt(expiresAt) {
+  if (expiresAt === null || expiresAt === undefined || expiresAt === "") {
+    return NaN;
+  }
+
+  if (typeof expiresAt === "number") {
+    if (Number.isNaN(expiresAt)) return NaN;
+    if (expiresAt < 1e11) {
+      return Date.now() + expiresAt * 1000;
+    }
+    return expiresAt;
+  }
+
+  const str = String(expiresAt).trim();
+
+  if (/^\d+$/.test(str)) {
+    const num = Number(str);
+    if (Number.isNaN(num)) return NaN;
+    if (num < 1e11) {
+      return Date.now() + num * 1000;
+    }
+    return num;
+  }
+
+  const normalized = str.replace(/(\.\d{3})\d+/, "$1");
+  let t = new Date(normalized).getTime();
+  if (!Number.isNaN(t)) return t;
+
+  t = new Date(str).getTime();
+  if (!Number.isNaN(t)) return t;
+
+  return NaN;
+}
+
 export function setAuthUpdater(fn) {
   _authUpdater = fn;
 }
@@ -32,17 +66,45 @@ export function clearTokens() {
 }
 
 export function saveTokens(tokenData) {
-  const accessToken = tokenData?.accessToken;
-  const refreshToken = tokenData?.refreshToken;
-  const expiresAt = tokenData?.expiresAt;
+  if (!tokenData) return;
 
-  if (!accessToken) return;
+  const accessToken =
+    tokenData?.accessToken ||
+    tokenData?.token ||
+    tokenData?.access_token ||
+    tokenData?.jwt;
 
-  localStorage.setItem("token", accessToken);
-  if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
-  if (expiresAt) {
-    localStorage.setItem("expiresAt", expiresAt);
-    scheduleAutoRefresh(expiresAt);
+  const refreshToken =
+    tokenData?.refreshToken ||
+    tokenData?.refresh_token;
+
+  let expiresAt =
+    tokenData?.expiresAt ||
+    tokenData?.expires_at ||
+    tokenData?.expiration;
+
+  if (!expiresAt && (tokenData?.expiresIn || tokenData?.expires_in)) {
+    const expiresIn = Number(tokenData.expiresIn || tokenData.expires_in);
+    if (!Number.isNaN(expiresIn)) {
+      expiresAt = new Date(Date.now() + expiresIn * 1000).toISOString();
+    }
+  }
+
+  if (accessToken) {
+    localStorage.setItem("token", accessToken);
+  }
+
+  if (refreshToken) {
+    localStorage.setItem("refreshToken", refreshToken);
+  }
+
+  if (expiresAt !== undefined && expiresAt !== null) {
+    const parsedTime = parseExpiresAt(expiresAt);
+    if (!Number.isNaN(parsedTime)) {
+      const isoString = new Date(parsedTime).toISOString();
+      localStorage.setItem("expiresAt", isoString);
+      scheduleAutoRefresh(isoString);
+    }
   }
 }
 
@@ -54,14 +116,24 @@ export function scheduleAutoRefresh(expiresAt) {
 
   if (!expiresAt) return;
 
-  const expiryTime = new Date(expiresAt).getTime();
+  const expiryTime = parseExpiresAt(expiresAt);
   if (Number.isNaN(expiryTime)) return;
 
-  const delay = Math.max(0, expiryTime - REFRESH_BUFFER_MS - Date.now());
+  const now = Date.now();
+  const timeRemaining = expiryTime - now;
+
+  if (timeRemaining <= 0) {
+    refreshAccessToken().catch(() => {});
+    return;
+  }
+
+  const buffer = Math.min(REFRESH_BUFFER_MS, Math.max(10000, timeRemaining * 0.2));
+  const delay = Math.max(0, timeRemaining - buffer);
+  const safeDelay = Math.min(delay, 2147483647);
 
   scheduledTimer = setTimeout(() => {
     refreshAccessToken().catch(() => {});
-  }, delay);
+  }, safeDelay);
 }
 
 export function startTokenAutoRefresh() {
@@ -71,13 +143,28 @@ export function startTokenAutoRefresh() {
 
   if (!token || !refreshToken || !expiresAt) return;
 
-  const expiryTime = new Date(expiresAt).getTime();
+  const expiryTime = parseExpiresAt(expiresAt);
+  if (Number.isNaN(expiryTime)) return;
 
-  if (Date.now() >= expiryTime - REFRESH_BUFFER_MS) {
+  if (isTokenNearExpiry()) {
     refreshAccessToken().catch(() => {});
   } else {
     scheduleAutoRefresh(expiresAt);
   }
+}
+
+export function isTokenNearExpiry() {
+  const expiresAt = localStorage.getItem("expiresAt");
+  if (!expiresAt) return false;
+
+  const expiryTime = parseExpiresAt(expiresAt);
+  if (Number.isNaN(expiryTime)) return false;
+
+  const now = Date.now();
+  const timeRemaining = expiryTime - now;
+  const buffer = Math.min(REFRESH_BUFFER_MS, Math.max(10000, timeRemaining * 0.2));
+
+  return now >= expiryTime - buffer;
 }
 
 export function refreshAccessToken() {
@@ -91,15 +178,26 @@ export function refreshAccessToken() {
   }
 
   refreshPromise = refreshApi
-    .post("/api/auth/refresh", { refreshToken: storedRefreshToken })
+    .post("/api/auth/refresh", {
+      refreshToken: storedRefreshToken,
+      refresh_token: storedRefreshToken,
+    })
     .then((response) => {
       const tokenData = response.data?.data ?? response.data;
-      const newAccessToken = tokenData?.accessToken;
+      const newAccessToken =
+        tokenData?.accessToken ||
+        tokenData?.token ||
+        tokenData?.access_token ||
+        tokenData?.jwt;
 
-      if (!newAccessToken) throw new Error("No access token");
+      if (!newAccessToken) {
+        throw new Error("No access token returned from refresh endpoint.");
+      }
 
       saveTokens(tokenData);
-      if (typeof _authUpdater === "function") _authUpdater(tokenData);
+      if (typeof _authUpdater === "function") {
+        _authUpdater(tokenData);
+      }
 
       return newAccessToken;
     })
@@ -116,7 +214,18 @@ export function refreshAccessToken() {
 }
 
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    const url = config.url || "";
+    const isAuthEndpoint = url.includes("/auth/login") || url.includes("/auth/refresh");
+
+    if (!config._retry && !isAuthEndpoint && isTokenNearExpiry()) {
+      try {
+        await refreshAccessToken();
+      } catch (error) {
+        return Promise.reject(error);
+      }
+    }
+
     const token = localStorage.getItem("token");
     if (token) {
       config.headers = config.headers || {};
@@ -150,5 +259,9 @@ api.interceptors.response.use(
     }
   },
 );
+
+if (typeof window !== "undefined") {
+  startTokenAutoRefresh();
+}
 
 export default api;
