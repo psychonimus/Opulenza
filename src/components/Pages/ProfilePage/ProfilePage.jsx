@@ -60,7 +60,7 @@ const ProfilePage = () => {
   const [showInviteModal, setShowInviteModal] = useState(false)
 
 
-console.log("AdminPanel: userInfo:", userInfo);
+// console.log("AdminPanel: userInfo:", userInfo);
 
 
   return (

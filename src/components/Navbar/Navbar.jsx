@@ -30,13 +30,20 @@ const Navbar = () => {
 
   // Track window size for mobile breakpoint
   useEffect(() => {
+    let resizeTimer
     const handleResize = () => {
-      const mobile = window.innerWidth <= 768
-      setIsMobile(mobile)
+      clearTimeout(resizeTimer)
+      resizeTimer = setTimeout(() => {
+        const mobile = window.innerWidth <= 768
+        setIsMobile(mobile)
+      }, 100)
     }
     handleResize()
     window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
+    return () => {
+      clearTimeout(resizeTimer)
+      window.removeEventListener('resize', handleResize)
+    }
   }, [])
 
   // Close menu on route change
@@ -53,47 +60,61 @@ const Navbar = () => {
   }, [])
 
   useEffect(() => {
+    let resizeTimer
+    const onResize = () => {
+      clearTimeout(resizeTimer)
+      resizeTimer = setTimeout(updateRightOffset, 100)
+    }
     updateRightOffset()
-    window.addEventListener('resize', updateRightOffset)
-    return () => window.removeEventListener('resize', updateRightOffset)
+    window.addEventListener('resize', onResize)
+    return () => {
+      clearTimeout(resizeTimer)
+      window.removeEventListener('resize', onResize)
+    }
   }, [updateRightOffset, stage])
 
-  // Scroll listener for collapse/expand sequence
+  // Scroll listener for collapse/expand sequence (rAF throttled)
   useEffect(() => {
+    let ticking = false
     const handleScroll = () => {
-      const scrollY = window.scrollY
-      const scrollThreshold = 60
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const scrollY = window.scrollY
+          const scrollThreshold = 60
 
-      if (scrollY > scrollThreshold) {
-        if (stage === 'expanded') {
-          if (!isManuallyExpanded) {
-            if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current)
-            setStage('collapsingCenter')
-            transitionTimeoutRef.current = setTimeout(() => {
-              setStage('collapsedRight')
-            }, 250)
-          } else if (Math.abs(scrollY - expandScrollY.current) > 15) {
-            // User manually expanded, but has started scrolling again -> re-collapse
+          if (scrollY > scrollThreshold) {
+            if (stage === 'expanded') {
+              if (!isManuallyExpanded) {
+                if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current)
+                setStage('collapsingCenter')
+                transitionTimeoutRef.current = setTimeout(() => {
+                  setStage('collapsedRight')
+                }, 250)
+              } else if (Math.abs(scrollY - expandScrollY.current) > 15) {
+                setIsManuallyExpanded(false)
+                if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current)
+                setStage('collapsingCenter')
+                transitionTimeoutRef.current = setTimeout(() => {
+                  setStage('collapsedRight')
+                }, 250)
+              }
+            }
+          } else if (scrollY <= 15) {
             setIsManuallyExpanded(false)
-            if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current)
-            setStage('collapsingCenter')
-            transitionTimeoutRef.current = setTimeout(() => {
-              setStage('collapsedRight')
-            }, 250)
+            if (stage === 'collapsedRight') {
+              if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current)
+              setStage('expandingCenter')
+              transitionTimeoutRef.current = setTimeout(() => {
+                setStage('expanded')
+              }, 300)
+            } else if (stage === 'collapsingCenter') {
+              if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current)
+              setStage('expanded')
+            }
           }
-        }
-      } else if (scrollY <= 15) {
-        setIsManuallyExpanded(false)
-        if (stage === 'collapsedRight') {
-          if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current)
-          setStage('expandingCenter')
-          transitionTimeoutRef.current = setTimeout(() => {
-            setStage('expanded')
-          }, 300)
-        } else if (stage === 'collapsingCenter') {
-          if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current)
-          setStage('expanded')
-        }
+          ticking = false
+        })
+        ticking = true
       }
     }
 
@@ -110,7 +131,6 @@ const Navbar = () => {
     }
 
     if (stage === 'collapsedRight' || stage === 'collapsingCenter') {
-      // Un-collapse: move to center first, then expand
       setIsManuallyExpanded(true)
       expandScrollY.current = window.scrollY
       if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current)
@@ -119,7 +139,6 @@ const Navbar = () => {
         setStage('expanded')
       }, 300)
     } else if (stage === 'expanded' && window.scrollY > 60) {
-      // Collapse back: center collapse then slide right
       setIsManuallyExpanded(false)
       setMenuOpen(false)
       if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current)
@@ -128,13 +147,11 @@ const Navbar = () => {
         setStage('collapsedRight')
       }, 250)
     } else {
-      // Toggle dropdown menu
       setMenuOpen(prev => !prev)
     }
   }
 
   const handleLogout = () => {
-
     setMenuOpen(false)
     logout()
   }
@@ -149,9 +166,9 @@ const Navbar = () => {
         animate={{ x: targetX }}
         transition={{
           type: 'spring',
-          stiffness: 260,
-          damping: 26,
-          mass: 0.8
+          stiffness: 300,
+          damping: 30,
+          mass: 0.6
         }}
       >
         <ul className="nav-list">

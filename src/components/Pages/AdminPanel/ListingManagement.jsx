@@ -1,14 +1,30 @@
-import React, { useState } from 'react'
-import { MdSearch, MdEdit, MdDelete, MdAddCircleOutline } from 'react-icons/md'
+import React, { useState, useEffect } from 'react'
+import { MdSearch, MdEdit, MdDelete, MdAddCircleOutline, MdChevronLeft, MdChevronRight } from 'react-icons/md'
+import { getSellListing } from '../../../services/sellingServices/getSellListings/getSellListings'
+import { FaCheckCircle } from "react-icons/fa";
 
-const listings = [
-  { id: 1, title: 'Patek Philippe Nautilus 5711', category: 'Watches', seller: 'Maison d\'Or', price: '$145,000', status: 'Live', views: 2840, created: 'Jul 1, 2024' },
-  { id: 2, title: 'Glenfarclas 1953 Single Cask', category: 'Whisky', seller: 'Spirits & Casks', price: '$28,500', status: 'Live', views: 1240, created: 'Jul 3, 2024' },
-  { id: 3, title: 'Monte Cristo No.2 Humidor Set', category: 'Cigars', seller: 'Le Petit Fumoir', price: '$3,200', status: 'Pending', views: 310, created: 'Jul 10, 2024' },
-  { id: 4, title: 'Sunseeker Predator 74 Yacht', category: 'Yachts', seller: 'Ocean & Sail', price: '$1,800,000', status: 'Live', views: 5820, created: 'Jun 20, 2024' },
-  { id: 5, title: 'Montblanc 149 Meisterstück Set', category: 'Pens', seller: 'Inkwell Prestige', price: '$12,400', status: 'Removed', views: 430, created: 'Jun 28, 2024' },
-  { id: 6, title: 'Audemars Piguet Royal Oak 15500', category: 'Watches', seller: 'Maison d\'Or', price: '$88,000', status: 'Live', views: 3110, created: 'Jul 12, 2024' },
-]
+
+
+// const CATEGORIES = ['All', 'Watches', 'Whisky', 'Cigars', 'Pens', 'Yachts']
+const CATEGORIES = [{
+  id: 0,
+  name: 'All'
+}, {
+  id: 1,
+  name: 'Watches'
+}, {
+  id: 2,
+  name: 'Whisky'
+}, {
+  id: 3,
+  name: 'Cigars'
+}, {
+  id: 4,
+  name: 'Pens'
+}, {
+  id: 5,
+  name: 'Yachts'
+}]
 
 const statusColor = {
   Live: { bg: '#dcfce7', color: '#15803d' },
@@ -16,23 +32,91 @@ const statusColor = {
   Removed: { bg: '#fee2e2', color: '#b91c1c' },
 }
 
+const PAGE_SIZE = 6
+
 const ListingManagement = () => {
   const [search, setSearch] = useState('')
-  const filtered = listings.filter(l =>
-    l.title.toLowerCase().includes(search.toLowerCase()) ||
-    l.seller.toLowerCase().includes(search.toLowerCase())
-  )
+  const [selectedCat, setSelectedCat] = useState(0)   // pending selection
+  const [appliedCat, setAppliedCat] = useState('All')   // applied filter
+  const [currentPage, setCurrentPage] = useState(1)
+  const [dataResult, setDataResult] = useState([])
+
+  
+
+
+
+  // Apply filter
+  const handleApply = () => {
+
+    getSellListing({selectedCat, currentPage}).then((res) => {
+      
+      setDataResult(res.data.data);
+    }).catch((err) => {
+      console.log(err);
+    })
+  }
+
+  // console.log("the current page is", currentPage);
+
+
+
+
+
+
+  // Filter by applied category + search
+  const filtered = (dataResult ?? []).filter(l => {
+    const matchesCat    = appliedCat === 'All' || l.category === appliedCat
+    const matchesSearch = search.trim() === ''
+      ? true
+      : Object.values(l).some(v =>
+          String(v ?? '').toLowerCase().includes(search.toLowerCase())
+        )
+    return matchesCat && matchesSearch
+  })
+
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const safePage = Math.min(currentPage, totalPages)
+  const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+
+  const goToPage = (p) => setCurrentPage(Math.min(Math.max(1, p), totalPages))
+
+  // console.log('paginated', paginated)
+
+  // Reset page on search change
+  const handleSearch = (e) => {
+    setSearch(e.target.value)
+    setCurrentPage(1)
+  }
+
+
+
+
+  useEffect(() => {
+    handleApply();
+  }, [])
+
+  const handleApproval = (key) => {
+    
+  }
+
+
+
 
   return (
     <div className="ap-page">
+      {/* Header */}
       <div className="ap-page-header">
         <div>
           <h1 className="ap-page-title">Listing Management</h1>
           <p className="ap-page-subtitle">Browse, approve, and moderate all marketplace listings.</p>
         </div>
-        <button className="ap-btn ap-btn--primary"><MdAddCircleOutline size={16} /> New Listing</button>
+        <button className="ap-btn ap-btn--primary">
+          <MdAddCircleOutline size={16} /> New Listing
+        </button>
       </div>
 
+      {/* Stats */}
       <div className="ap-stat-row">
         {[
           { label: 'Total Listings', value: '8,402', color: '#3b5bdb' },
@@ -47,38 +131,116 @@ const ListingManagement = () => {
         ))}
       </div>
 
+      {/* Category Filter */}
+      <div className="ap-category-filter">
+        <span className="ap-category-filter__label">Category</span>
+        <div className="ap-category-filter__chips">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat.id}
+              className={`ap-category-chip${selectedCat === cat.id ? ' ap-category-chip--active' : ''}`}
+              onClick={() => setSelectedCat(cat.id)}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
+        <button
+          className="ap-btn ap-btn--primary ap-category-filter__apply"
+          onClick={handleApply}
+        >
+          Apply
+        </button>
+      </div>
+
+      {/* Toolbar */}
       <div className="ap-toolbar">
         <div className="ap-search">
           <MdSearch size={16} className="ap-search__icon" />
-          <input className="ap-search__input" placeholder="Search listings…" value={search} onChange={e => setSearch(e.target.value)} />
+          <input
+            className="ap-search__input"
+            placeholder="Search listings…"
+            value={search}
+            onChange={handleSearch}
+          />
         </div>
+        {appliedCat !== 'All' && (
+          <span className="ap-active-filter-tag">
+            {appliedCat}
+            <button className="ap-active-filter-tag__clear" onClick={() => { setSelectedCat('All'); setAppliedCat('All'); setCurrentPage(1) }}>×</button>
+          </span>
+        )}
       </div>
 
+      {/* Table */}
       <div className="ap-table-card">
         <table className="ap-table">
           <thead>
-            <tr><th>Listing</th><th>Category</th><th>Seller</th><th>Price</th><th>Views</th><th>Created</th><th>Status</th><th>Actions</th></tr>
+            <tr>
+              {
+                dataResult?.length > 0 && Object.keys(dataResult[0])?.map((item, id) => (
+                  <th key={id}>{item}</th>
+                ))
+              }
+              <th>Action</th>
+            </tr>
           </thead>
-          <tbody>
-            {filtered.map(l => (
-              <tr key={l.id}>
-                <td className="ap-user-cell__name" style={{ maxWidth: 220, whiteSpace: 'normal', lineHeight: 1.4 }}>{l.title}</td>
-                <td className="ap-table__muted">{l.category}</td>
-                <td className="ap-table__muted">{l.seller}</td>
-                <td className="ap-table__value">{l.price}</td>
-                <td className="ap-table__muted">{l.views.toLocaleString()}</td>
-                <td className="ap-table__muted">{l.created}</td>
-                <td><span className="ap-badge" style={statusColor[l.status]}>{l.status}</span></td>
+          <tbody data-lenis-prevent="true">
+            {paginated.length > 0 ? paginated.map((l, key) => (
+              <tr key={key}>
+                {
+                  Object.keys(l).map((item, id) => (
+                    <td key={id}>{l[item]}</td>
+                  ))
+                }
                 <td>
                   <div className="ap-action-group">
-                    <button className="ap-icon-btn"><MdEdit size={15} /></button>
+                    <button className="ap-icon-btn" onClick={(key)=>handleApproval(key)}><FaCheckCircle size={15} /></button>
                     <button className="ap-icon-btn ap-icon-btn--danger"><MdDelete size={15} /></button>
                   </div>
                 </td>
               </tr>
-            ))}
+            )) : (
+              <tr>
+                <td colSpan={9} className="ap-empty">No listings found.</td>
+              </tr>
+            )}
           </tbody>
         </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="ap-pagination">
+        <span className="ap-pagination__info">
+          Showing {filtered.length === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} of {filtered.length} listings
+        </span>
+        <div className="ap-pagination__controls">
+          <button
+            className="ap-pagination__btn"
+            onClick={() => goToPage(safePage - 1)}
+            disabled={safePage === 1}
+          >
+            <MdChevronLeft size={16} />
+          </button>
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+            <button
+              key={p}
+              className={`ap-pagination__btn${safePage === p ? ' ap-pagination__btn--active' : ''}`}
+              onClick={() => goToPage(p)}
+            >
+              {p}
+            </button>
+          ))}
+
+          <button
+            className="ap-pagination__btn"
+            onClick={() => goToPage(safePage + 1)}
+            disabled={safePage === totalPages}
+          >
+            <MdChevronRight size={16} />
+          </button>
+        </div>
       </div>
     </div>
   )

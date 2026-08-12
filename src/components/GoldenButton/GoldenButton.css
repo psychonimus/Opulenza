@@ -16,6 +16,9 @@
     text-decoration: none;
     position: relative;
     overflow: hidden;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    will-change: transform;
 }
 
 /* Shine sweep layer */
@@ -23,7 +26,7 @@
     content: '';
     position: absolute;
     top: 0;
-    left: -75%;
+    left: 0;
     width: 50%;
     height: 100%;
     background: linear-gradient(
@@ -34,8 +37,9 @@
         rgba(255, 245, 180, 0.15) 60%,
         transparent 100%
     );
-    transform: skewX(-15deg);
+    transform: translateX(-150%) skewX(-15deg);
     transition: none;
+    will-change: transform;
 }
 
 .golden-button:hover::before {
@@ -43,12 +47,12 @@
 }
 
 @keyframes gold-shine {
-    0%   { left: -75%; }
-    100% { left: 130%; }
+    0%   { transform: translateX(-150%) skewX(-15deg); }
+    100% { transform: translateX(350%) skewX(-15deg); }
 }
 
 .golden-button:hover {
-    transform: scale(1.03);
+    transform: scale(1.03) translateZ(0);
     filter: brightness(1.12);
     box-shadow: 0 6px 28px rgba(200, 150, 20, 0.45);
 }

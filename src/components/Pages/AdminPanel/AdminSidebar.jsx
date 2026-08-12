@@ -52,12 +52,6 @@ const navGroups = [
         roles: ["SuperAdmin", 'SellerManager']
       },
       {
-        id: 'listing-management',
-        label: 'Listing Management',
-        icon: MdListAlt,
-        roles: ['ListingManager']
-      },
-      {
         id: 'authentication',
         label: 'Authentication',
         icon: MdVerifiedUser,
@@ -103,6 +97,12 @@ const navGroups = [
         label: 'Vault Management',
         icon: MdLock,
         roles: ['SuperAdmin', 'VaultManager']
+      },
+      {
+        id: 'listing-management',
+        label: 'Listing Management',
+        icon: MdListAlt,
+        roles: ['SuperAdmin', 'ListingManager']
       },
     ],
   },

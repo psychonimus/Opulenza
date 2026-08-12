@@ -9,25 +9,21 @@
     font-family: 'inter', serif;
     text-transform: uppercase;
     cursor: pointer;
-    transition: all 0.35s ease, color 0.35s ease, box-shadow 0.35s ease, transform 0.25s ease;
+    transition: background 0.35s ease, color 0.35s ease, box-shadow 0.35s ease, transform 0.25s ease;
     width: fit-content;
     position: relative;
     overflow: hidden;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    will-change: transform;
 }
-/* .golden-button-two:hover{
-    background: linear-gradient(135deg, #D4AF37 0%, #F5D87A 50%, #C9A227 100%);
-    color: #1a1208;
-    border-color: #F5D87A;
-    box-shadow: 0 0 18px rgba(212, 175, 55, 0.55), 0 6px 20px rgba(212, 175, 55, 0.25);
-} */
-
 
 /* Shine sweep layer */
 .golden-button-two::before {
     content: '';
     position: absolute;
     top: 0;
-    left: -75%;
+    left: 0;
     width: 50%;
     height: 100%;
     background: linear-gradient(
@@ -38,21 +34,22 @@
         rgba(255, 245, 180, 0.15) 60%,
         transparent 100%
     );
-    transform: skewX(-15deg);
-    transition: all 0.35s ease;
+    transform: translateX(-150%) skewX(-15deg);
+    transition: none;
+    will-change: transform;
 }
 
 .golden-button-two:hover::before {
-    animation: gold-shine 0.65s ease forwards;
+    animation: gold-shine-two 0.65s ease forwards;
 }
 
-@keyframes gold-shine {
-    0%   { left: -75%; }
-    100% { left: 130%; }
+@keyframes gold-shine-two {
+    0%   { transform: translateX(-150%) skewX(-15deg); }
+    100% { transform: translateX(350%) skewX(-15deg); }
 }
 
 .golden-button-two:hover {
-    transform: scale(1.01);
+    transform: scale(1.01) translateZ(0);
     filter: brightness(1.12);
     box-shadow: 0 6px 28px rgba(200, 150, 20, 0.45);
     background: linear-gradient(135deg, #D4AF37 0%, #F5D87A 50%, #C9A227 100%);

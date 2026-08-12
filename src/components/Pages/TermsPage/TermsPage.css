@@ -51,17 +51,10 @@
 /* ── Gold Text Shimmer ───────────────────────────────────────── */
 .terms-gold-text {
   background: linear-gradient(110deg, #d6a54d, #f2c86c 40%, #e1af4a 60%, #b17000);
-  background-size: 200% 100%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: termsGoldShimmer 6s ease infinite;
-}
-
-@keyframes termsGoldShimmer {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  display: inline-block;
 }
 
 /* ── Hero Section ───────────────────────────────────────────── */

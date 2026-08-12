@@ -7,14 +7,15 @@
 .about-stats,
 .about-cta-section {
     opacity: 0;
-    transform: translateY(40px);
+    transform: translateY(40px) translateZ(0);
     transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
         transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
 }
 
 .about-visible {
     opacity: 1 !important;
-    transform: translateY(0) !important;
+    transform: translateY(0) translateZ(0) !important;
 }
 
 /* ── Page wrapper ────────────────────────────────────────────── */
@@ -40,17 +41,10 @@
 /* ── Gold text ───────────────────────────────────────────────── */
 .about-gold-text {
     background: var(--gold-gradient, linear-gradient(110deg, #d6a54d, #f2c86c 40%, #d6a54d 60%, #b17000));
-    background-size: 200% 100%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    animation: goldShimmer 5s ease infinite;
-}
-
-@keyframes goldShimmer {
-    0%   { background-position: 0% 50%; }
-    50%  { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    display: inline-block;
 }
 
 /* ── Eyebrow tag ─────────────────────────────────────────────── */

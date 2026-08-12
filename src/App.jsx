@@ -3,7 +3,13 @@ import Navbar from "./components/Navbar/Navbar";
 import Home from "./components/Pages/Home/Home";
 import Footer from "./components/Footer/Footer";
 import Concierge from "./components/Pages/concierge/Concierge";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import BidPage from "./components/Pages/BidPage/BidPage";
 import WatchListing from "./components/Pages/WatchListings/WatchListing";
 import DetailedPage from "./components/Pages/WatchListings/DetailedPage/DetailedPage";
@@ -56,45 +62,157 @@ const AdminRoute = ({ children }) => {
 };
 
 const AppLayout = () => {
-  const location = useLocation()
-
   return (
     <>
       <Navbar />
       <Routes>
-        <Route path='/' element={<Home />} />
-        <Route path='/about' element={<About />} />
-        <Route path='/terms' element={<TermsPage />} />
-        <Route path='/terms-and-conditions' element={<TermsPage />} />
-        <Route path='/concierge' element={<ProtectedRoute><Concierge /></ProtectedRoute>} />
-        <Route path='/bidPage' element={<ProtectedRoute><BidPage /></ProtectedRoute>} />
-        <Route path='/watchListing' element={<ProtectedRoute><WatchListing /></ProtectedRoute>} />
-        <Route path='/watch/:id' element={<ProtectedRoute><DetailedPage /></ProtectedRoute>} />
-        <Route path='/sell' element={<ProtectedRoute><SellPage /></ProtectedRoute>} />
-        <Route path='/whiskyListings' element={<ProtectedRoute><WhiskyListings /></ProtectedRoute>} />
-        <Route path='/whisky/:id' element={<ProtectedRoute><DetailedWhiskyPage /></ProtectedRoute>} />
-        <Route path='/profile' element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-        <Route path='/cigarsListings' element={<ProtectedRoute><CigarListings /></ProtectedRoute>} />
-        <Route path='/cigar/:id' element={<ProtectedRoute><DetailedCigarPage /></ProtectedRoute>} />
-        <Route path='/penListings' element={<ProtectedRoute><PenListings /></ProtectedRoute>} />
-        <Route path='/pen/:id' element={<ProtectedRoute><DetailedPenPage /></ProtectedRoute>} />
-        <Route path='/yachtListings' element={<ProtectedRoute><YachtListings /></ProtectedRoute>} />
-        <Route path='/yacht/:id' element={<ProtectedRoute><DetailedYachtPage /></ProtectedRoute>} />
-        <Route path='/explore' element={<ProtectedRoute><Explore /></ProtectedRoute>} />
-        <Route path='/vault' element={<ProtectedRoute><VaultPage /></ProtectedRoute>} />
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/terms-and-conditions" element={<TermsPage />} />
+        <Route
+          path="/concierge"
+          element={
+            <ProtectedRoute>
+              <Concierge />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/bidPage"
+          element={
+            <ProtectedRoute>
+              <BidPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/watchListing"
+          element={
+            <ProtectedRoute>
+              <WatchListing />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/watch/:id"
+          element={
+            <ProtectedRoute>
+              <DetailedPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sell"
+          element={
+            <ProtectedRoute>
+              <SellPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/whiskyListings"
+          element={
+            <ProtectedRoute>
+              <WhiskyListings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/whisky/:id"
+          element={
+            <ProtectedRoute>
+              <DetailedWhiskyPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/cigarsListings"
+          element={
+            <ProtectedRoute>
+              <CigarListings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/cigar/:id"
+          element={
+            <ProtectedRoute>
+              <DetailedCigarPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/penListings"
+          element={
+            <ProtectedRoute>
+              <PenListings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/pen/:id"
+          element={
+            <ProtectedRoute>
+              <DetailedPenPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/yachtListings"
+          element={
+            <ProtectedRoute>
+              <YachtListings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/yacht/:id"
+          element={
+            <ProtectedRoute>
+              <DetailedYachtPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/explore"
+          element={
+            <ProtectedRoute>
+              <Explore />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/vault"
+          element={
+            <ProtectedRoute>
+              <VaultPage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
       <Footer />
     </>
   );
 };
 
+
 const App = () => {
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.2,
+      duration: 1.0,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
-      syncTouch: false,
+      wheelMultiplier: 1,
+      touchMultiplier: 1.5,
     });
 
     let rafId;
@@ -115,11 +233,12 @@ const App = () => {
 
   return (
     <>
-      {status === AUTH_STATUS.INITIALIZING && <CommonBackdrop label="Authenticating" />}
+      {status === AUTH_STATUS.INITIALIZING && (
+        <CommonBackdrop label="Authenticating" />
+      )}
       {visible && <CommonBackdrop label={label} />}
       <ScrollToTop />
       <Routes>
-        {/* Admin panel — no Navbar or Footer */}
         <Route
           path="/admin"
           element={
@@ -128,7 +247,6 @@ const App = () => {
             </AdminRoute>
           }
         />
-        {/* All other pages — with Navbar and Footer */}
         <Route path="/*" element={<AppLayout />} />
       </Routes>
     </>
