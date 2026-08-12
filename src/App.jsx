@@ -25,6 +25,7 @@ import VaultPage from "./components/Pages/VaultPage/VaultPage";
 import Explore from "./components/Pages/Explore/Explore";
 import AdminPanel from "./components/Pages/AdminPanel/AdminPanel";
 import TermsPage from "./components/Pages/TermsPage/TermsPage";
+import Contact from "./components/Pages/ContactPage/Contact";
 import { useAuth, AUTH_STATUS } from "./services/showUserInfo/ShowUserInfo";
 import { useBackdrop } from "./components/CommonBackdrop/BackdropContext";
 import CommonBackdrop from "./components/CommonBackdrop/CommonBackdrop";
@@ -66,6 +67,7 @@ const AppLayout = () => {
         <Route path='/about' element={<About />} />
         <Route path='/terms' element={<TermsPage />} />
         <Route path='/terms-and-conditions' element={<TermsPage />} />
+        <Route path='/contact' element={<Contact />} />
         <Route path='/concierge' element={<ProtectedRoute><Concierge /></ProtectedRoute>} />
         <Route path='/bidPage' element={<ProtectedRoute><BidPage /></ProtectedRoute>} />
         <Route path='/watchListing' element={<ProtectedRoute><WatchListing /></ProtectedRoute>} />

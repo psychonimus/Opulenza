@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { MdSearch, MdEdit, MdDelete, MdAddCircleOutline, MdChevronLeft, MdChevronRight } from 'react-icons/md'
-import { getSellListing } from '../../../services/sellingServices/getSellListings/getSellListings'
+import { getSellListing, approveSellListing  } from '../../../services/sellingServices/getSellListings/getSellListings'
 import { FaCheckCircle } from "react-icons/fa";
 
 
@@ -32,7 +32,7 @@ const statusColor = {
   Removed: { bg: '#fee2e2', color: '#b91c1c' },
 }
 
-const PAGE_SIZE = 6
+const PAGE_SIZE = 10
 
 const ListingManagement = () => {
   const [search, setSearch] = useState('')
@@ -40,6 +40,7 @@ const ListingManagement = () => {
   const [appliedCat, setAppliedCat] = useState('All')   // applied filter
   const [currentPage, setCurrentPage] = useState(1)
   const [dataResult, setDataResult] = useState([])
+  const [IsApproved, setIsApproved]  = useState(false)
 
   
 
@@ -96,8 +97,30 @@ const ListingManagement = () => {
     handleApply();
   }, [])
 
-  const handleApproval = (key) => {
-    
+  const handleApproval = (l) => {
+      setIsApproved(true);
+      const app = IsApproved;
+      // console.log("app", app)
+      const dataObj = {
+        itemId : l?.itemId,
+        IsApproved : true,
+        Reason : "Test"
+      }
+
+      approveSellListing(dataObj)
+      .then((res)=> {
+        console.log(res);
+        console.log("Listing approved successfully");
+        setIsApproved(false);
+        handleApply();
+        
+      })
+      .catch((error)=> {
+        console.log(error);
+        console.log("Failed to approve listing");
+        throw error;
+      })
+      
   }
 
 
@@ -177,28 +200,31 @@ const ListingManagement = () => {
         <table className="ap-table">
           <thead>
             <tr>
+              <th>Action</th>
               {
                 dataResult?.length > 0 && Object.keys(dataResult[0])?.map((item, id) => (
                   <th key={id}>{item}</th>
                 ))
               }
-              <th>Action</th>
+              
             </tr>
           </thead>
           <tbody data-lenis-prevent="true">
             {paginated.length > 0 ? paginated.map((l, key) => (
               <tr key={key}>
+                <td>
+                  <div className="ap-action-group">
+                    <button className="ap-icon-btn" onClick={() => {handleApproval(l)}}><FaCheckCircle size={15} /></button>
+                    <button className="ap-icon-btn ap-icon-btn--danger"><MdDelete size={15} /></button>
+                  </div>
+                </td>
                 {
                   Object.keys(l).map((item, id) => (
                     <td key={id}>{l[item]}</td>
                   ))
+
                 }
-                <td>
-                  <div className="ap-action-group">
-                    <button className="ap-icon-btn" onClick={(key)=>handleApproval(key)}><FaCheckCircle size={15} /></button>
-                    <button className="ap-icon-btn ap-icon-btn--danger"><MdDelete size={15} /></button>
-                  </div>
-                </td>
+                
               </tr>
             )) : (
               <tr>

@@ -49,6 +49,18 @@ const AllYachts = () => {
     return (
         <div className="yacht-listing-page">
             <div className="container">
+
+                {/* Back to listings link */}
+                <div className="detailed-page__breadcrumb">
+                    <Link to="/bidPage" className="breadcrumb-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="breadcrumb-arrow">
+                            <path d="M19 12H5M12 19l-7-7 7-7" />
+                        </svg>
+                        Back to Categories
+                    </Link>
+                </div>
+
+
                 <div className="yacht-grid">
                     {yachtData.map(yacht => (
                         <div className="yacht-card" key={yacht.id}>
