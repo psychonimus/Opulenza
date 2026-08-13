@@ -191,7 +191,8 @@ const Contact = () => {
                                         type="email"
                                         name="email"
                                         value={formData.email}
-                                        onChange={handleChange}
+                                        style={{ textTransform: 'lowercase' }}
+                                        onChange={(e) => handleChange({ ...e, target: { ...e.target, value: e.target.value.toLowerCase() } })}
                                         onFocus={() => setFocused('email')}
                                         onBlur={() => setFocused('')}
                                         required

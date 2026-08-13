@@ -80,7 +80,7 @@ const InviteModal = ({ show, onClose, onSuccessCallback }) => {
   };
 
   return (
-    <div className="prof-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) handleCloseModal() }}>
+    <div className="prof-modal-overlay">
       <div className="prof-modal-card">
         <button type="button" className="prof-modal-close" onClick={handleCloseModal}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -106,6 +106,7 @@ const InviteModal = ({ show, onClose, onSuccessCallback }) => {
                 required
                 placeholder="e.g., Baroness Von Stein"
                 value={inviteName}
+                style={{textTransform:"capitalize"}}
                 onChange={(e) => setInviteName(e.target.value)}
               />
             </div>
@@ -117,7 +118,7 @@ const InviteModal = ({ show, onClose, onSuccessCallback }) => {
                 required
                 placeholder="e.g., v.stein@private.court"
                 value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
+                onChange={(e) => setInviteEmail(e.target.value.toLowerCase())}
               />
             </div>
 
@@ -125,7 +126,7 @@ const InviteModal = ({ show, onClose, onSuccessCallback }) => {
               <label>Remarks</label>
               <input
                 type="text"
-                required
+                
                 placeholder="Some Remarks"
                 value={inviteRemark}
                 onChange={(e) => setInviteRemark(e.target.value)}

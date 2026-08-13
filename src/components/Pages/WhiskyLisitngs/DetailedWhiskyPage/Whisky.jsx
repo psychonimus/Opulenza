@@ -341,7 +341,7 @@ const DetailedWhiskyPage = () => {
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="breadcrumb-arrow">
                                 <path d="M19 12H5M12 19l-7-7 7-7" />
                             </svg>
-                            Back to Cellar
+                            Back to Listings
                         </Link>
                     </div>
 
@@ -667,7 +667,7 @@ const DetailedWhiskyPage = () => {
 
                 {/* ── Bid Modal ───────────────────────────────────────────── */}
                 {showBidModal && (
-                    <div className="bid-modal-overlay fade-in-animation" onClick={(e) => { if (e.target === e.currentTarget) setShowBidModal(false) }}>
+                    <div className="bid-modal-overlay fade-in-animation">
                         <div className="bid-modal-card">
 
                             <button className="close-modal-btn" onClick={() => setShowBidModal(false)}>

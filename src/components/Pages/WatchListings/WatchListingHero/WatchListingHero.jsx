@@ -12,6 +12,7 @@ const WatchListingHero = () => {
                         mainText="Curated Selection of"
                         highlight="Luxury Timepieces"
                         center={false}
+                        eyebrow={true}
                     />
                     <p className='buy-page-para text-start'>Timeless precision. Modern mastery. A curated auction house for horological excellence, where every tick tells a story of heritage and innovation.</p>
                 </div>

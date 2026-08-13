@@ -4,8 +4,12 @@ import { FaLinkedin } from "react-icons/fa";
 import { TiSocialYoutube } from "react-icons/ti";
 import { RiInstagramFill } from "react-icons/ri";
 import { Link } from 'react-router';
+import { useUser } from '../../services/showUserInfo/ShowUserInfo';
+
 
 const Footer = () => {
+
+    const {userInfo} = useUser();
   return (
     <>
         <footer className="footer">
@@ -19,10 +23,17 @@ const Footer = () => {
                     <div className="col-md-6">
                         <div className="footer-links d-flex justify-content-end">
                             <ul>
-                                <Link to="/terms">Terms & Conditions</Link>
+                                {
+                                    userInfo? <> 
+                                    <Link to="/concierge">Concierge</Link>
+                                    </> : <>
+                                    
+                                    </>
+                                }
                                 <Link to="/about">About Us</Link>
-                                <Link to="/concierge">Concierge</Link>
                                 <Link to="/contact">Contact</Link>
+                                <Link to="/terms">Terms & Conditions</Link>
+                                <Link to="/policy">Privacy Policy</Link>
                             </ul>
 
 
@@ -36,7 +47,7 @@ const Footer = () => {
                 <div className="row mt-4">
                     <div className="col-md-12">
                         <div className="footer-copyright text-center">
-                            <p>Copyright © 2026 Opluenza. All rights reserved.</p>
+                            <p>Copyright © 2026 Opulenzareserve</p>
                         </div>
                     </div>
                     {/* <div className="col-md-6">

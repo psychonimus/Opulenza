@@ -12,9 +12,12 @@ const isInviteCodeFilled = (code) => code.join('').trim().length === 10
 
 
 const RegistrationModal = ({ inviteCode, onSuccess, onClose, loginData, setLoginData }) => {
+
+  
+
   const [form, setForm] = useState({
     membershipTypeID: 1,
-    oP_MemberInvitations_Id: loginData?.invitationId,
+    oP_MemberInvitations_Id: loginData?.details?.invitationID,
     firstName: '',
     middleName: '',
     lastName: '',
@@ -87,7 +90,7 @@ const RegistrationModal = ({ inviteCode, onSuccess, onClose, loginData, setLogin
   return (
     <>
       {loading && <CommonBackdrop label="Creating account" />}
-      <div className="pa-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
+      <div className="pa-modal-overlay">
         <div className="pa-modal-card pa-reg-card" data-lenis-prevent="scroll">
 
           <button className="pa-modal-close" onClick={onClose} aria-label="Close">
@@ -166,7 +169,7 @@ const RegistrationModal = ({ inviteCode, onSuccess, onClose, loginData, setLogin
                   className="pa-field-input"
                   placeholder="member@private"
                   value={form.primaryEmail}
-                  onChange={set('primaryEmail')}
+                  onChange={(e) => setForm(prev => ({ ...prev, primaryEmail: e.target.value.toLowerCase() }))}
                   required
                 />
               </div>
@@ -177,7 +180,7 @@ const RegistrationModal = ({ inviteCode, onSuccess, onClose, loginData, setLogin
                   className="pa-field-input"
                   placeholder="member@private"
                   value={form.secondaryEmail}
-                  onChange={set('secondaryEmail')}
+                  onChange={(e) => setForm(prev => ({ ...prev, secondaryEmail: e.target.value.toLowerCase() }))}
 
                 />
               </div>
@@ -362,7 +365,7 @@ const PrivateAccessSection = () => {
   const [pendingInviteCode, setPending] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [code, setCode] = useState(Array(10).fill(''))
+  const [code, setCode] = useState(['O','P','I','-','','','','','',''])
   const [loading, setLoading] = useState(false)
   const [proceedLoading, setProceedLoading] = useState(false)
   const [error, setError] = useState('')
@@ -372,13 +375,13 @@ const PrivateAccessSection = () => {
   const codeRefs = Array.from({ length: 10 }, () => useRef(null))
 
   useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') setShowModal(false) }
-    if (showModal) window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    // Escape key intentionally disabled — modal closes via the close button only
   }, [showModal])
 
   const handleCodeChange = (idx, val) => {
+    if (idx < 4) return
     if (val.length > 1) return
+    if (val && !/^\d$/.test(val)) return
     const next = [...code]
     next[idx] = val
     setCode(next)
@@ -386,7 +389,7 @@ const PrivateAccessSection = () => {
   }
 
   const handleCodeKeyDown = (idx, e) => {
-    if (e.key === 'Backspace' && !code[idx] && idx > 0) {
+    if (e.key === 'Backspace' && !code[idx] && idx > 4) {
       codeRefs[idx - 1].current?.focus()
     }
   }
@@ -460,7 +463,7 @@ const PrivateAccessSection = () => {
     setLoginStep('email')
     setEmail('')
     setPassword('')
-    setCode(Array(10).fill(''))
+    setCode(['O','P','I','-','','','','','',''])
     setError('')
   }
 
@@ -475,15 +478,18 @@ const PrivateAccessSection = () => {
       )}
       <section className='private-access-section'>
         <div className="container">
-          <Header
+          <div className='text-center'>
+            <Header
             topText="Private Access"
             mainText="Not everything exceptional is"
             highlight="meant to be seen"
             center={true}
+            eyebrow={true}
           />
+          </div>
           <div className="text-center">
             <div onClick={(e) => { e.preventDefault(); setShowModal(true) }}>
-              <GoldenButton text="Enter Private Access" link="#" />
+              <GoldenButton text="Login" link="#" />
             </div>
           </div>
         </div>
@@ -493,7 +499,6 @@ const PrivateAccessSection = () => {
       {showModal && (
         <div
           className="pa-modal-overlay"
-          onClick={(e) => { if (e.target === e.currentTarget) handleCloseLoginModal() }}
         >
           <div className="pa-modal-card">
 
@@ -503,11 +508,11 @@ const PrivateAccessSection = () => {
               </svg>
             </button>
 
-            <div className="pa-modal-header">
+            {/* <div className="pa-modal-header">
               <span className="pa-modal-eyebrow">— THE THRESHOLD —</span>
               <h2 className="pa-modal-title">Identify <em>yourself.</em></h2>
               <p className="pa-modal-sub">Members proceed in silence.</p>
-            </div>
+            </div> */}
 
             <div className="pa-modal-divider" />
 
@@ -521,7 +526,7 @@ const PrivateAccessSection = () => {
                     className="pa-field-input"
                     placeholder="member@private"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => setEmail(e.target.value.toLowerCase())}
                     required
                     autoFocus
                   />
@@ -594,7 +599,7 @@ const PrivateAccessSection = () => {
                 <button
                   type="button"
                   className="pa-back-btn"
-                  onClick={() => { setError(''); setCode(Array(10).fill('')); setLoginStep('email') }}
+                  onClick={() => { setError(''); setCode(['O','P','I','-','','','','','','']); setLoginStep('email') }}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="15 18 9 12 15 6" />
@@ -617,10 +622,12 @@ const PrivateAccessSection = () => {
                         type="text"
                         inputMode="text"
                         maxLength={1}
-                        className="pa-code-input"
+                        className={`pa-code-input${idx < 4 ? ' pa-code-input--prefix' : ''}`}
                         value={digit}
+                        readOnly={idx < 4}
                         onChange={(e) => handleCodeChange(idx, e.target.value)}
                         onKeyDown={(e) => handleCodeKeyDown(idx, e)}
+                        onFocus={idx < 4 ? () => codeRefs[4].current?.focus() : undefined}
                       />
                     ))}
                   </div>
@@ -646,11 +653,11 @@ const PrivateAccessSection = () => {
               </form>
             )}
 
-            <div className="pa-modal-footer">
+            {/* <div className="pa-modal-footer">
               <span className="pa-footer-line" />
               <span className="pa-footer-text">END-TO-END ENCRYPTED</span>
               <span className="pa-footer-line" />
-            </div>
+            </div> */}
 
           </div>
         </div>

@@ -24,6 +24,7 @@ import {
 import './AdminPanel.css'
 
 import { useUser } from '../../../services/showUserInfo/ShowUserInfo'
+import { useAuth } from '../../../services/showUserInfo/ShowUserInfo'
 
 
 const Unauthorized = () => (
@@ -118,6 +119,7 @@ const AdminPanel = () => {
   // const user = JSON.parse(localStorage.getItem('user'));
 
   const { userInfo } = useUser()
+  const { logout } = useAuth()
   const role = userInfo?.role
 
 
@@ -184,9 +186,17 @@ const AdminPanel = () => {
                 <div className="admin-topbar__avatar">
                   <span className="admin-topbar__avatar-initials">{userInfo?.firstName?.slice(0,1) + userInfo?.lastName?.slice(0,1)}</span>
                   <div className="admin-topbar__avatar-info">
-                    <span className="admin-topbar__avatar-name">{userInfo.firstrName}</span>
-                    <span className="admin-topbar__avatar-role">{userInfo.role}</span>
+                    <span className="admin-topbar__avatar-name">{userInfo?.firstName + ' ' + userInfo?.lastName}</span>
+                    <span className="admin-topbar__avatar-role">{userInfo?.role}</span>
                   </div>
+                  <button className="admin-topbar__logout-btn" onClick={logout} title="Sign out">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      <polyline points="16 17 21 12 16 7" />
+                      <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                    Logout
+                  </button>
                 </div>
               </div>
             </header>

@@ -12,6 +12,7 @@ const YachtListingHero = () => {
                         mainText="Curated Selection of"
                         highlight="Luxury Mega Yachts"
                         center={false}
+                        eyebrow={true}
                     />
                     <p className="buy-page-para text-start">
                         Command the seas. Engineering excellence meets naval mastery. Discover the world's most prestigious yachts, representing the zenith of nautical design, craftsmanship, and freedom.

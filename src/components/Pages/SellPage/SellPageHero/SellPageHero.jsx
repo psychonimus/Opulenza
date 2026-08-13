@@ -12,7 +12,7 @@ const SellPageHero = () => {
                         mainText="What are you"
                         highlight="Offering?"
                         center={false}
-                        
+                        eyebrow={true}
                     />
                 </div>
             </section>

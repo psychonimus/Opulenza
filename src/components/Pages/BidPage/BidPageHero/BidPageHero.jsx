@@ -9,12 +9,13 @@ const BidPageHero = () => {
                 <div className="container" style={{ marginTop: "6rem" }}>
                     <Header
                         topText="RESERVES"
-                        mainText="Five Circles."
-                        highlight=" One Society"
+                        mainText=""
+                        highlight=" Reserves"
                         center={false}
+                        eyebrow={false}
 
                     />
-                    <p className='buy-page-para text-start'>Each room opens a door to a different world of discovery, craftsmanship, and exceptional finds.</p>
+                    <p className='buy-page-para text-start'>Each reserve opens a door to a different world of discovery, craftsmanship, and exceptional finds.</p>
 
 
                 </div>

@@ -6,7 +6,7 @@ const cards = [
   {
     numeral: 'I',
     title: 'Private Access',
-    description: 'A door without a sign.',
+    
   },
   {
     numeral: 'II',
@@ -16,19 +16,15 @@ const cards = [
   {
     numeral: 'III',
     title: 'Prestige',
-    description: 'An address whispered,never spoken.',
-    active: true,
+    
+    // active: true,
   },
   {
     numeral: 'IV',
     title: 'Legacy',
-    description: 'Bequeathed, not bought.',
+    
   },
-  {
-    numeral: 'V',
-    title: 'Curated Membership',
-    description: 'Selected by hand.Refused by many.',
-  },
+  
 ]
 
 const CardsSection = () => {
@@ -36,12 +32,15 @@ const CardsSection = () => {
     <>
       <section className='cards-container'>
         <div className="container">
-          <Header
-            topText="The five tenets"
+          <div className="text-center">
+            <Header
+            topText="The four tenets"
             mainText="A circle defined by"
             highlight="what it withholds"
             center={true}
+            eyebrow={true}
           />
+          </div>
 
           <div className="tenet-cards-row">
             {cards.map((card, i) => (
@@ -58,11 +57,7 @@ const CardsSection = () => {
                 {/* Bottom row: title + description */}
                 <div className="tenet-card__bottom">
                   <h3 className="tenet-card__title">{card.title}</h3>
-                  <p className="tenet-card__desc">
-                    {card.description.split('\n').map((line, j) => (
-                      <React.Fragment key={j}>{line}{j < card.description.split('\n').length - 1 && <br />}</React.Fragment>
-                    ))}
-                  </p>
+                  
                 </div>
               </div>
             ))}

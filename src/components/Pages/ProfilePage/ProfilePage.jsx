@@ -90,9 +90,9 @@ const ProfilePage = () => {
             </div>
           </div>
           <div className="prof-hero__actions">
-            <Link to="/sell" className="prof-btn prof-btn--gold">+ Submit Asset</Link>
+            {/* <Link to="/sell" className="prof-btn prof-btn--gold">+ Submit Asset</Link> */}
             <button className="prof-btn prof-btn--ghost" onClick={() => setShowInviteModal(true)}>Invite a Friend</button>
-            <button className="prof-btn prof-btn--ghost">Edit Profile</button>
+            {/* <button className="prof-btn prof-btn--ghost">Edit Profile</button> */}
             {
               userInfo?.role === "SuperAdmin" && <button className="prof-btn prof-btn--ghost" onClick={() => navigate('/admin')}>Dashboard</button>
             }

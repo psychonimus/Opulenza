@@ -561,7 +561,7 @@ const DetailedPage = () => {
 
                 {/* Custom Interactive Bidding Modal overlay */}
                 {showBidModal && (
-                    <div className="bid-modal-overlay fade-in-animation" onClick={(e) => { if (e.target === e.currentTarget) setShowBidModal(false) }}>
+                    <div className="bid-modal-overlay fade-in-animation">
                         <div className="bid-modal-card">
 
                             {/* Close */}

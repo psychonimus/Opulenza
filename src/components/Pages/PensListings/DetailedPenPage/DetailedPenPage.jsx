@@ -466,7 +466,7 @@ const DetailedPenPage = () => {
 
                 {/* Bid Modal */}
                 {showBidModal && (
-                    <div className="pen-bid-modal-overlay pen-fade-in" onClick={(e) => { if (e.target === e.currentTarget) setShowBidModal(false) }}>
+                    <div className="pen-bid-modal-overlay pen-fade-in">
                         <div className="pen-bid-modal-card">
                             <button className="pen-close-modal-btn" onClick={() => setShowBidModal(false)}>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

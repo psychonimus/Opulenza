@@ -31,3 +31,11 @@ export const approveInvitation = async (invitationId) => {
         throw error;
     }
 }
+
+export const getAdminInvitations = () => {
+    return api.get(`api/member/MyInvitations?pageNumber=1&pageSize=10`);
+};
+
+export const getMemberInvitations = () => {
+    return api.get(`api/invitation/InvitationApprovalList?pageSize=10&pageNumber=1`);
+};

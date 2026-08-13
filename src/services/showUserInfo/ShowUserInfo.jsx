@@ -140,7 +140,12 @@ export const UserProvider = ({ children }) => {
       const userData = await fetchAndSetUser();
 
       if (userData) {
-        navigateRef.current("/concierge", { replace: true });
+        const role = userData?.role;
+        if (role === 'Admin' || role === 'SuperAdmin') {
+          navigateRef.current('/admin', { replace: true });
+        } else {
+          navigateRef.current('/concierge', { replace: true });
+        }
       }
 
       return { tokenData, userData };

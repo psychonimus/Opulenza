@@ -5,10 +5,10 @@ import { number } from 'framer-motion'
 
 const categories = [
   {
-    id: 'watches',
+    id: 'cigars',
     number : '1',
-    label: 'Watches',
-    subtitle: 'Patek Philippe, Audemars Piguet, Rolex',
+    label: 'Cigars',
+    subtitle: 'Cohiba, Montecristo, Pre-1980 Curated',
   },
   {
     id: 'whisky',
@@ -17,11 +17,13 @@ const categories = [
     subtitle: 'Bordeaux, Burgundy, Rare Cognac',
   },
   {
-    id: 'cigars',
+    id: 'watches',
     number : '3',
-    label: 'Cigars',
-    subtitle: 'Cohiba, Montecristo, Pre-1980 Curated',
+    label: 'Watches',
+    subtitle: 'Patek Philippe, Audemars Piguet, Rolex',
   },
+  
+  
   {
     id: 'pens',
     number : '4',
@@ -212,7 +214,7 @@ const formFields = {
 }
 
 const SellPageForm = () => {
-  const [activeCategory, setActiveCategory] = useState('watches')
+  const [activeCategory, setActiveCategory] = useState('cigars')
   // const [activeCategoryId, setActiveCategoryId] = useState('1')
   const [formData, setFormData] = useState({
     categoryId : "1",
