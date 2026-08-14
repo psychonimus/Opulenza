@@ -5,12 +5,12 @@ import { link } from 'framer-motion/client'
 
 const categories = [
     {
-        id: 'watches',
-        image: '/images/bid-watches.png',
-        badge: '124 EXCLUSIVE LISTINGS',
-        title: 'Watches',
+        id: 'cigars',
+        image: '/images/bid-cigars.png',
+        badge: '42 LIMITED BATCHES',
+        title: 'Cigars',
         arrow: '→',
-        link: "/watchListing",
+        link : "/cigarsListings"
     },
     {
         id: 'whiskey',
@@ -21,13 +21,15 @@ const categories = [
         link: "/whiskyListings",
     },
     {
-        id: 'cigars',
-        image: '/images/bid-cigars.png',
-        badge: '42 LIMITED BATCHES',
-        title: 'Cigars',
+        id: 'watches',
+        image: '/images/bid-watches.png',
+        badge: '124 EXCLUSIVE LISTINGS',
+        title: 'Watches',
         arrow: '→',
-        link : "/cigarsListings"
+        link: "/watchListing",
     },
+    
+    
     {
         id: 'pens',
         image: '/images/luxury-pen-card.png',

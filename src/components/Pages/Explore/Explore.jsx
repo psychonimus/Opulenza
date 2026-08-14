@@ -104,6 +104,7 @@ const Explore = () => {
             mainText="Curated Selection of"
             highlight="Global Rarities"
             center={false}
+            eyebrow={true}
           />
           <p className="explore-hero-para text-start">
             Discover a handpicked collection of the world's most coveted assets. From high-complication horology and legendary vintages to artisan writing instruments and magnificent yachts.

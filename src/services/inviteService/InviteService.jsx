@@ -21,13 +21,22 @@ export const getInvitationApprovalList = async () => {
     }
 }
 
-export const approveInvitation = async (invitationId) => {
+export const approveInvitation = async (invitationId, isApproved) => {
     try {
         const { data } = await api.post("api/invitation/InvitationApprove", {
-            InvitationID: invitationId
+            InvitationID: invitationId,
+            IsApproved : isApproved
         });
         return data;
     } catch (error) {
         throw error;
     }
 }
+
+export const getAdminInvitations = () => {
+    return api.get(`api/member/MyInvitations?pageNumber=1&pageSize=10`);
+};
+
+export const getMemberInvitations = () => {
+    return api.get(`api/invitation/InvitationApprovalList?pageSize=10&pageNumber=1`);
+};

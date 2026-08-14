@@ -21,6 +21,7 @@ const ConciergeHero = () => {
                         mainText="Hey"
                         highlight={userInfo?.firstName}
                         center={false}
+                        eyebrow = {false}
 
                     />
                     {/* <p className='hero-para text-start'>A quiet evening within. The fire is lit, your usual seat is held.</p> */}

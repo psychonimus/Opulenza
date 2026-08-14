@@ -40,13 +40,14 @@ const services = [
 const ConciergeServices = () => {
     return (
         <>  
-            <div className="container">
+            <div className="container mt-5">
                 <Header
                 topText="DISCOVER"
                 mainText="Where Will Your Journey "
                 highlight="Take You Today?"
                 center={false}
                 margin="6rem"
+                eyebrow={true}
             />
             </div>
             <section className="concierge-services">

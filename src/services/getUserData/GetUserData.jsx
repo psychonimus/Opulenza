@@ -20,6 +20,11 @@ export const checkUserEmail = (email) => {
 
 
 export const userData = () => {
-  return api.get("/api/member/listForApproval");
+  return api.get("/api/member/listForApproval?pageNumber=1&pageSize=10");
 };
+
+export const GetAddress = () => {
+  return api.get("/api/member/MyAddress");
+};
+
 

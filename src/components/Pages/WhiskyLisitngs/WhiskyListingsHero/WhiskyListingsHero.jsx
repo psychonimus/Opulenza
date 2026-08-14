@@ -12,7 +12,7 @@ const WhiskyListingsHero = () => {
                         mainText="Discover rare and vintage"
                         highlight="Whisky"
                         center={false}
-
+                        eyebrow={true}
                     />
                 </div>
             </section>

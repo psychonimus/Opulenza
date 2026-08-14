@@ -177,6 +177,13 @@ background: radial-gradient(0.12% 0.12% at 20% 30%, rgba(251, 210, 107, 0.6) 0%,
     border-bottom-color: #d6a54d;
 }
 
+.pa-code-input--prefix {
+    color: rgba(214, 165, 77, 0.45);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+    cursor: default;
+    user-select: none;
+}
+
 .pa-code-underline {
     height: 1px;
     background: rgba(255,255,255,0.08);
@@ -310,7 +317,6 @@ background: radial-gradient(0.12% 0.12% at 20% 30%, rgba(251, 210, 107, 0.6) 0%,
     text-align: center;
     animation: pa-fade-in 0.3s ease;
 }
-
 
 /* -- Locked field (email shown as read-only after step 1) --------- */
 .pa-field--locked {

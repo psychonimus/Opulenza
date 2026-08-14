@@ -12,6 +12,7 @@ const PenListingHero = () => {
                         mainText="The Art of the"
                         highlight="Exceptional Pen"
                         center={false}
+                        eyebrow={true}
                     />
                     <p className="buy-page-para text-start">
                         Where ink meets legacy. A curated vault of the world's rarest writing instruments — each nib a testament to craft, heritage, and the enduring power of the written word.

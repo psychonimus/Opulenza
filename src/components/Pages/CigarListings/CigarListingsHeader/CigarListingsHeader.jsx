@@ -12,6 +12,7 @@ const CigarListingsHeader = () => {
                     mainText="Discover rare and"
                     highlight="handcrafted Cigars"
                     center={false}
+                    eyebrow={true}
                 />
             </div>
         </section>

@@ -2,7 +2,7 @@ import axios from "axios";
 
 const BASE_URL = "https://ayurmitra.in/opulenza_reserve";
 
-const REFRESH_BUFFER_MS = 5 * 60 * 1000;
+const REFRESH_BUFFER_MS = 10 * 60 * 1000;
 const WEB_LOCK_NAME = "auth-refresh-lock";
 const FALLBACK_CLAIM_KEY = "authRefreshFallbackClaim";
 const FALLBACK_CLAIM_TTL_MS = 10 * 1000;
@@ -50,6 +50,7 @@ const TAB_ID = generateTabId();
 
 const ACCESS_TOKEN_FIELDS = ["accessToken", "token", "access_token", "jwt"];
 const REFRESH_TOKEN_FIELDS = ["refreshToken", "refresh_token"];
+
 const EXPIRY_FIELD_CANDIDATES = [
   "expiresIn",
   "expires_in",

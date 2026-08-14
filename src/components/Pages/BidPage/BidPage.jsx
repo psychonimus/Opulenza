@@ -11,4 +11,4 @@ const BidPage = () => {
   )
 }
 
-export default BidPage
+export default BidPage  

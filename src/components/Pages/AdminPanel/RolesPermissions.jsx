@@ -204,7 +204,7 @@ const RolesPermissions = () => {
 
                 <div>
                   <label style={labelStyle}>Email</label>
-                  <input style={inputStyle} type="email" placeholder="tejas@gmail.com" value={form.Email} onChange={set('Email')} required />
+                  <input style={inputStyle} type="email" placeholder="tejas@gmail.com" value={form.Email} onChange={(e) => set('Email')({ ...e, target: { ...e.target, value: e.target.value.toLowerCase() } })} required />
                 </div>
 
                 <div>

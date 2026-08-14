@@ -156,7 +156,7 @@ const DetailedYachtPage = () => {
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="yacht-breadcrumb-arrow">
                                 <path d="M19 12H5M12 19l-7-7 7-7" />
                             </svg>
-                            Back to Yachts & Vessels
+                            Back to Listings
                         </Link>
                     </div>
 
@@ -466,7 +466,7 @@ const DetailedYachtPage = () => {
 
                 {/* Bid Modal */}
                 {showBidModal && (
-                    <div className="yacht-bid-modal-overlay yacht-fade-in" onClick={(e) => { if (e.target === e.currentTarget) setShowBidModal(false) }}>
+                    <div className="yacht-bid-modal-overlay yacht-fade-in">
                         <div className="yacht-bid-modal-card">
                             <button className="yacht-close-modal-btn" onClick={() => setShowBidModal(false)}>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
