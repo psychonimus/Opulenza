@@ -32,7 +32,7 @@ const HeroSection = () => {
       {/* Content */}
       <div className="hero-content d-flex flex-column align-items-center">
         <h1 className="hero-title">Access <span>Reserved</span> <br /> for the <span>Exceptional</span></h1>
-        <p className='hero-para'>A private digital sanctuary for a selected circle.</p>
+        <p className='hero-para'>The Private Reserve for Affluent Collectors</p>
         {/* <p className='hero-decor-para'>PRIVATE <span></span>DISCREET <span></span>SOVEREIGN</p> */}
       </div>
 

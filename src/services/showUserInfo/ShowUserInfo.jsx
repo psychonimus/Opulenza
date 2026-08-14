@@ -58,6 +58,11 @@ export const UserProvider = ({ children }) => {
       return;
     }
 
+    const expiresAt = localStorage.getItem("expiresAt");
+    if (!expiresAt) {
+      saveTokens({ accessToken: token, refreshToken: localStorage.getItem("refreshToken") });
+    }
+
     startTokenAutoRefresh();
     fetchAndSetUser();
   }, []);
@@ -71,8 +76,9 @@ export const UserProvider = ({ children }) => {
     }
 
     setAuthUpdater((newTokenData) => {
-      if (newTokenData?.expiresAt) {
-        scheduleAutoRefresh(newTokenData.expiresAt);
+      const updatedExpiresAt = localStorage.getItem("expiresAt") || newTokenData?.expiresAt;
+      if (updatedExpiresAt) {
+        scheduleAutoRefresh(updatedExpiresAt);
       }
     });
 
@@ -114,7 +120,20 @@ export const UserProvider = ({ children }) => {
   const login = useCallback(
     async (credentials) => {
       const data = await customerLoginApi(credentials);
-      const tokenData = data?.data ?? data;
+
+      // --- Invite-code flow: API returns { data: { invitationId }, success: true }
+      //     There is NO accessToken in this response — just return the invite data.
+      if (credentials._inviteMode) {
+        const inviteData = data?.data ?? data;
+        return { tokenData: inviteData, userData: null };
+      }
+
+      // --- Normal password login: API must return an accessToken ---
+      const tokenData =
+        data?.data?.accessToken ? data.data :
+        data?.accessToken       ? data      :
+        data?.data              ? data.data :
+        data;
 
       const accessToken =
         tokenData?.accessToken ||
@@ -128,9 +147,11 @@ export const UserProvider = ({ children }) => {
 
       saveTokens(tokenData);
 
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
       const userData = await fetchAndSetUser();
 
-      if (userData && !credentials._inviteMode) {
+      if (userData) {
         navigateRef.current("/concierge", { replace: true });
       }
 

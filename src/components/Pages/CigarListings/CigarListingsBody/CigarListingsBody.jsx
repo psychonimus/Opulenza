@@ -7,11 +7,22 @@ const CigarListingsBody = () => {
     return (
         <section className="all-cigar-section">
             <div className="container">
+
+                {/* Back to listings link */}
+                <div className="detailed-page__breadcrumb">
+                    <Link to="/bidPage" className="breadcrumb-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="breadcrumb-arrow">
+                            <path d="M19 12H5M12 19l-7-7 7-7" />
+                        </svg>
+                        Back to Categories
+                    </Link>
+                </div>
+
                 <div className="all-cigar-grid">
                     {cigarData.map((item) => {
-                        const brand  = item.details?.find(d => d.label === 'BRAND')?.value  || item.title
+                        const brand = item.details?.find(d => d.label === 'BRAND')?.value || item.title
                         const origin = item.details?.find(d => d.label === 'ORIGIN')?.value || '—'
-                        const size   = item.details?.find(d => d.label === 'SIZE')?.value   || '—'
+                        const size = item.details?.find(d => d.label === 'SIZE')?.value || '—'
                         const rarity = item.details?.find(d => d.label === 'RARITY')?.value || '—'
 
                         return (

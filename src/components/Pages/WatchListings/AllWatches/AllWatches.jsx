@@ -66,14 +66,14 @@ const CountdownTimer = ({ days, hours, minutes, seconds }) => {
           m = 59
           h -= 1
         }
-        if(h < 0 ){
+        if (h < 0) {
           h = 23
           d -= 1
         }
-        if(d<0){
+        if (d < 0) {
           d = 0
         }
-        return { days : d , hours: h, minutes: m, seconds: s }
+        return { days: d, hours: h, minutes: m, seconds: s }
       })
     }, 1000)
 
@@ -108,6 +108,16 @@ const AllWatches = () => {
   return (
     <div className="watch-listing-page">
       <div className="container">
+        {/* Back to listings link */}
+        <div className="detailed-page__breadcrumb">
+          <Link to="/bidPage" className="breadcrumb-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="breadcrumb-arrow">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            Back to Categories
+          </Link>
+        </div>
+
         <div className="watch-grid">
           {watchData.map(watch => (
             <div className="watch-card" key={watch.id}>
@@ -175,7 +185,7 @@ const AllWatches = () => {
                       seconds={watch.initialTime.seconds}
                     />
                   </div>
-                  <Link to={`/watch/${watch.id}`} style={{textDecoration:"none"}}><button className="watch-card__bid-btn" >
+                  <Link to={`/watch/${watch.id}`} style={{ textDecoration: "none" }}><button className="watch-card__bid-btn" >
                     PLACE A BID
                   </button></Link>
                 </div>

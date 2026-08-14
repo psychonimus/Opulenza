@@ -1,13 +1,34 @@
-import React, { useState } from 'react'
-import { MdSearch, MdGavel, MdEdit } from 'react-icons/md'
+import React, { useState, useEffect } from 'react'
+import { MdSearch, MdEdit, MdDelete, MdAddCircleOutline, MdChevronLeft, MdChevronRight, MdGavel } from 'react-icons/md'
 
-const auctions = [
-  { id: 1, title: 'Patek Philippe Nautilus 5711', seller: 'Maison d\'Or', startBid: '$120,000', currentBid: '$145,000', bids: 24, ends: 'Jul 20, 2024', status: 'Live' },
-  { id: 2, title: 'Glenfarclas 1953 Single Cask', seller: 'Spirits & Casks', startBid: '$22,000', currentBid: '$28,500', bids: 11, ends: 'Jul 22, 2024', status: 'Live' },
-  { id: 3, title: 'Audemars Piguet Royal Oak', seller: 'Maison d\'Or', startBid: '$75,000', currentBid: '$88,000', bids: 18, ends: 'Jul 18, 2024', status: 'Ended' },
-  { id: 4, title: 'Sunseeker Predator 74', seller: 'Ocean & Sail', startBid: '$1,600,000', currentBid: '$1,800,000', bids: 6, ends: 'Jul 25, 2024', status: 'Scheduled' },
-  { id: 5, title: 'Montblanc Heritage Pen Set', seller: 'Inkwell Prestige', startBid: '$9,000', currentBid: '$12,400', bids: 9, ends: 'Jul 21, 2024', status: 'Live' },
-]
+import { getApprovedListing } from '../../../services/sellingServices/getSellListings/getSellListings'
+import { FaCheckCircle } from "react-icons/fa";
+
+
+
+
+
+
+
+const CATEGORIES = [{
+  id: 0,
+  name: 'All'
+}, {
+  id: 1,
+  name: 'Watches'
+}, {
+  id: 2,
+  name: 'Whisky'
+}, {
+  id: 3,
+  name: 'Cigars'
+}, {
+  id: 4,
+  name: 'Pens'
+}, {
+  id: 5,
+  name: 'Yachts'
+}]
 
 const statusColor = {
   Live: { bg: '#dcfce7', color: '#15803d' },
@@ -17,9 +38,67 @@ const statusColor = {
 
 const AuctionManagement = () => {
   const [search, setSearch] = useState('')
-  const filtered = auctions.filter(a =>
-    a.title.toLowerCase().includes(search.toLowerCase())
-  )
+  // const filtered = auctions.filter(a =>
+  //   a.title.toLowerCase().includes(search.toLowerCase())
+  // )
+
+  const [selectedCat, setSelectedCat] = useState(0)   // pending selection
+  const [appliedCat, setAppliedCat] = useState('All')   // applied filter
+  const [currentPage, setCurrentPage] = useState(1)
+  const [dataResult, setDataResult] = useState([])
+  const [IsApproved, setIsApproved] = useState(false)
+
+  const PAGE_SIZE = 10;
+
+
+  const handleApply = () => {
+    getApprovedListing(selectedCat)
+      .then((res) => {
+
+        setDataResult(res?.data?.data);
+      })
+      .catch((error) => {
+        console.log(error);
+        throw error;
+      })
+
+  }
+
+
+  // Filter by applied category + search
+  const filtered = (dataResult ?? []).filter(l => {
+    const matchesCat = appliedCat === 'All' || l.category === appliedCat
+    const matchesSearch = search.trim() === ''
+      ? true
+      : Object.values(l).some(v =>
+        String(v ?? '').toLowerCase().includes(search.toLowerCase())
+      )
+    return matchesCat && matchesSearch
+  })
+
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const safePage = Math.min(currentPage, totalPages)
+  const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+
+  const goToPage = (p) => setCurrentPage(Math.min(Math.max(1, p), totalPages))
+
+
+  // console.log('paginated', paginated)
+
+  // Reset page on search change
+  const handleSearch = (e) => {
+    setSearch(e.target.value)
+    setCurrentPage(1)
+  }
+
+
+
+
+  useEffect(() => {
+    handleApply();
+  }, [])
+
 
   return (
     <div className="ap-page">
@@ -45,6 +124,27 @@ const AuctionManagement = () => {
         ))}
       </div>
 
+      <div className="ap-category-filter">
+        <span className="ap-category-filter__label">Category</span>
+        <div className="ap-category-filter__chips">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat.id}
+              className={`ap-category-chip${selectedCat === cat.id ? ' ap-category-chip--active' : ''}`}
+              onClick={() => setSelectedCat(cat.id)}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
+        <button
+          className="ap-btn ap-btn--primary ap-category-filter__apply"
+          onClick={handleApply}
+        >
+          Apply
+        </button>
+      </div>
+
       <div className="ap-toolbar">
         <div className="ap-search">
           <MdSearch size={16} className="ap-search__icon" />
@@ -55,23 +155,103 @@ const AuctionManagement = () => {
       <div className="ap-table-card">
         <table className="ap-table">
           <thead>
-            <tr><th>Item</th><th>Seller</th><th>Start Bid</th><th>Current Bid</th><th>Bids</th><th>Ends</th><th>Status</th><th>Actions</th></tr>
+            <tr>
+              <th>Action</th>
+              {
+                dataResult?.length > 0 && (
+                  <>
+                    {Object.keys(dataResult[0])
+                      .filter((item) => item !== "details")
+                      .map((item, id) => (
+                        <th key={id}>{item}</th>
+                      ))}
+
+                    {Object.keys(dataResult[0]?.details || {}).map((item, id) => (
+                      <th key={`details-${id}`}>{item}</th>
+                    ))}
+                  </>
+                )
+              }
+
+            </tr>
           </thead>
-          <tbody>
-            {filtered.map(a => (
-              <tr key={a.id}>
-                <td className="ap-user-cell__name" style={{ maxWidth: 200, whiteSpace: 'normal' }}>{a.title}</td>
-                <td className="ap-table__muted">{a.seller}</td>
-                <td className="ap-table__muted">{a.startBid}</td>
-                <td className="ap-table__value">{a.currentBid}</td>
-                <td className="ap-table__muted">{a.bids}</td>
-                <td className="ap-table__muted">{a.ends}</td>
-                <td><span className="ap-badge" style={statusColor[a.status]}>{a.status}</span></td>
-                <td><button className="ap-icon-btn"><MdEdit size={15} /></button></td>
+          <tbody data-lenis-prevent="true">
+            {dataResult?.length > 0 ? dataResult.map((l, key) => (
+              <tr key={key}>
+                <td>
+                  <div className="ap-action-group">
+                    <button className="ap-icon-btn" onClick={() => { setIsApproved(true), handleApproval(l) }}><FaCheckCircle size={15} /></button>
+                    <button className="ap-icon-btn ap-icon-btn--danger"><MdDelete size={15} /></button>
+                  </div>
+                </td>
+
+                {/* {
+                  Object.keys(l).map((item, id) => (
+                    <td key={id}>{l[item]||JSON.stringify(l[item?.details])}</td>
+                  ))
+
+                } */}
+
+                {Object.keys(l)
+        .filter((item) => item !== "details")
+        .map((item, id) => (
+          <td key={id}>
+            {l[item] || "-"}
+          </td>
+        ))}
+
+      {/* Details fields */}
+      {Object.keys(l.details || {}).map((item, id) => (
+        <td key={`details-${id}`}>
+          {l.details[item] || "-"}
+        </td>
+      ))}
+
+
               </tr>
-            ))}
+            )) : (
+              <tr>
+                <td colSpan={9} className="ap-empty">No listings found.</td>
+              </tr>
+            )}
           </tbody>
         </table>
+
+
+      </div>
+
+      {/* Pagination */}
+      <div className="ap-pagination">
+        <span className="ap-pagination__info">
+          Showing {filtered.length === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} of {filtered.length} listings
+        </span>
+        <div className="ap-pagination__controls">
+          <button
+            className="ap-pagination__btn"
+            onClick={() => goToPage(safePage - 1)}
+            disabled={safePage === 1}
+          >
+            <MdChevronLeft size={16} />
+          </button>
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+            <button
+              key={p}
+              className={`ap-pagination__btn${safePage === p ? ' ap-pagination__btn--active' : ''}`}
+              onClick={() => goToPage(p)}
+            >
+              {p}
+            </button>
+          ))}
+
+          <button
+            className="ap-pagination__btn"
+            onClick={() => goToPage(safePage + 1)}
+            disabled={safePage === totalPages}
+          >
+            <MdChevronRight size={16} />
+          </button>
+        </div>
       </div>
     </div>
   )

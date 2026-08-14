@@ -7,12 +7,22 @@ const AllWhisky = () => {
     return (
         <section className="all-whisky-section">
             <div className="container">
+                {/* Back to listings link */}
+                <div className="detailed-page__breadcrumb">
+                    <Link to="/bidPage" className="breadcrumb-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="breadcrumb-arrow">
+                            <path d="M19 12H5M12 19l-7-7 7-7" />
+                        </svg>
+                        Back to Categories
+                    </Link>
+                </div>
+
                 <div className="all-whisky-grid">
                     {whiskyData.map((item) => {
                         const distillery = item.details?.find(d => d.label === 'DISTILLERY')?.value || item.title
-                        const distilled  = item.details?.find(d => d.label === 'DISTILLED')?.value  || '—'
-                        const cask       = item.details?.find(d => d.label === 'CASK')?.value        || '—'
-                        const rarity     = item.details?.find(d => d.label === 'RARITY')?.value      || '—'
+                        const distilled = item.details?.find(d => d.label === 'DISTILLED')?.value || '—'
+                        const cask = item.details?.find(d => d.label === 'CASK')?.value || '—'
+                        const rarity = item.details?.find(d => d.label === 'RARITY')?.value || '—'
 
                         return (
                             <Link

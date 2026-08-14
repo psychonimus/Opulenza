@@ -1,39 +1,36 @@
-import React from "react";
-import Navbar from "./components/Navbar/Navbar";
-import Home from "./components/Pages/Home/Home";
-import Footer from "./components/Footer/Footer";
-import Concierge from "./components/Pages/concierge/Concierge";
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  Navigate,
-  useLocation,
-} from "react-router-dom";
-import BidPage from "./components/Pages/BidPage/BidPage";
-import WatchListing from "./components/Pages/WatchListings/WatchListing";
-import DetailedPage from "./components/Pages/WatchListings/DetailedPage/DetailedPage";
-import SellPage from "./components/Pages/SellPage/SellPage";
-import WhiskyListings from "./components/Pages/WhiskyLisitngs/WhiskyListings";
-import ProfilePage from "./components/Pages/ProfilePage/ProfilePage";
-import About from "./components/Pages/AboutPage/About";
-import DetailedWhiskyPage from "./components/Pages/WhiskyLisitngs/DetailedWhiskyPage/Whisky";
-import ScrollToTop from "./components/ScrollToTop/ScrollToTop";
-import { useEffect } from "react";
 import Lenis from "lenis";
-import CigarListings from "./components/Pages/CigarListings/CigarListings";
-import DetailedCigarPage from "./components/Pages/CigarListings/DetailedCigarPage/DetailedCigarPage";
-import PenListings from "./components/Pages/PensListings/PenListings";
-import DetailedPenPage from "./components/Pages/PensListings/DetailedPenPage/DetailedPenPage";
-import YachtListings from "./components/Pages/YachtListings/YachtListings";
-import DetailedYachtPage from "./components/Pages/YachtListings/DetailedYachtPage/DetailedYachtPage";
-import VaultPage from "./components/Pages/VaultPage/VaultPage";
-import Explore from "./components/Pages/Explore/Explore";
-import AdminPanel from "./components/Pages/AdminPanel/AdminPanel";
-import TermsPage from "./components/Pages/TermsPage/TermsPage";
-import { useAuth, AUTH_STATUS } from "./services/showUserInfo/ShowUserInfo";
+import { useEffect } from "react";
+import {
+  Navigate,
+  Route,
+  Routes
+} from "react-router-dom";
 import { useBackdrop } from "./components/CommonBackdrop/BackdropContext";
 import CommonBackdrop from "./components/CommonBackdrop/CommonBackdrop";
+import Footer from "./components/Footer/Footer";
+import Navbar from "./components/Navbar/Navbar";
+import About from "./components/Pages/AboutPage/About";
+import AdminPanel from "./components/Pages/AdminPanel/AdminPanel";
+import BidPage from "./components/Pages/BidPage/BidPage";
+import CigarListings from "./components/Pages/CigarListings/CigarListings";
+import DetailedCigarPage from "./components/Pages/CigarListings/DetailedCigarPage/DetailedCigarPage";
+import Concierge from "./components/Pages/concierge/Concierge";
+import Explore from "./components/Pages/Explore/Explore";
+import Home from "./components/Pages/Home/Home";
+import DetailedPenPage from "./components/Pages/PensListings/DetailedPenPage/DetailedPenPage";
+import PenListings from "./components/Pages/PensListings/PenListings";
+import ProfilePage from "./components/Pages/ProfilePage/ProfilePage";
+import SellPage from "./components/Pages/SellPage/SellPage";
+import TermsPage from "./components/Pages/TermsPage/TermsPage";
+import VaultPage from "./components/Pages/VaultPage/VaultPage";
+import DetailedPage from "./components/Pages/WatchListings/DetailedPage/DetailedPage";
+import WatchListing from "./components/Pages/WatchListings/WatchListing";
+import DetailedWhiskyPage from "./components/Pages/WhiskyLisitngs/DetailedWhiskyPage/Whisky";
+import WhiskyListings from "./components/Pages/WhiskyLisitngs/WhiskyListings";
+import DetailedYachtPage from "./components/Pages/YachtListings/DetailedYachtPage/DetailedYachtPage";
+import YachtListings from "./components/Pages/YachtListings/YachtListings";
+import ScrollToTop from "./components/ScrollToTop/ScrollToTop";
+import { AUTH_STATUS, useAuth } from "./services/showUserInfo/ShowUserInfo";
 
 const ProtectedRoute = ({ children }) => {
   const { status } = useAuth();

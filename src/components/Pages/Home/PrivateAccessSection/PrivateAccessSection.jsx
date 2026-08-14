@@ -11,7 +11,7 @@ const isInviteCodeFilled = (code) => code.join('').trim().length === 10
 
 
 
-const RegistrationModal = ({ inviteCode, onSuccess, onClose , loginData, setLoginData}) => {
+const RegistrationModal = ({ inviteCode, onSuccess, onClose, loginData, setLoginData }) => {
   const [form, setForm] = useState({
     membershipTypeID: 1,
     oP_MemberInvitations_Id: loginData?.invitationId,
@@ -51,288 +51,306 @@ const RegistrationModal = ({ inviteCode, onSuccess, onClose , loginData, setLogi
     }
 
     setLoading(true)
-    try {
-      await registerUser({ ...form, invitationCode: inviteCode })
-      onSuccess()
-      setLoginData(null);
-    } catch (err) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        'Registration failed. Please try again.'
-      setError(msg)
-    } finally {
-      setLoading(false)
-    }
+    // try {
+    //   await registerUser({ ...form, invitationCode: inviteCode })
+    //   onSuccess()
+    //   setLoginData(null);
+    // } catch (err) {
+    //   const msg =
+    //     err?.response?.data?.message ||
+    //     err?.response?.data?.error ||
+    //     'Registration failed. Please try again.'
+    //   setError(msg)
+    // } finally {
+    //   setLoading(false)
+    // }
+
+    registerUser({ ...form, invitationCode: inviteCode })
+      .then(() => {
+        onSuccess();
+        setLoginData(null);
+      })
+      .catch((err) => {
+        const msg =
+          err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          'Registration failed. Please try again.';
+
+        setError(msg);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+
   }
 
   return (
     <>
       {loading && <CommonBackdrop label="Creating account" />}
       <div className="pa-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
-      <div className="pa-modal-card pa-reg-card" data-lenis-prevent="scroll">
+        <div className="pa-modal-card pa-reg-card" data-lenis-prevent="scroll">
 
-        <button className="pa-modal-close" onClick={onClose} aria-label="Close">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
-
-        <div className="pa-modal-header">
-          <span className="pa-modal-eyebrow">— INVITATION ACCEPTED —</span>
-          <h2 className="pa-modal-title">Complete your <em>profile.</em></h2>
-          <p className="pa-modal-sub">You have been granted exclusive access. Introduce yourself.</p>
-        </div>
-
-        <div className="pa-modal-divider" />
-
-        <form className="pa-modal-form" onSubmit={handleRegister}>
-
-          <div className="pa-reg-row">
-            <div className="pa-field">
-              <label className="pa-field-label">FIRST NAME</label>
-              <input
-                type="text"
-                className="pa-field-input"
-                placeholder="Jonathan"
-                value={form.firstName}
-                onChange={set('firstName')}
-                required
-                autoFocus
-              />
-            </div>
-            <div className="pa-field">
-              <label className="pa-field-label">MIDDLE NAME(optional)</label>
-              <input
-                type="text"
-                className="pa-field-input"
-                placeholder="Ashford"
-                value={form.middleName}
-                onChange={set('middleName')}
-                
-                autoFocus
-              />
-            </div>
-            <div className="pa-field">
-              <label className="pa-field-label">LAST NAME</label>
-              <input
-                type="text"
-                className="pa-field-input"
-                placeholder="Smith"
-                value={form.lastName}
-                onChange={set('lastName')}
-                required
-                autoFocus
-              />
-            </div>
-
-          </div>
-
-          <div className="pa-reg-row">
-            <div className="pa-field">
-              <label className="pa-field-label">USERNAME / DISPLAY NAME</label>
-              <input
-                type="text"
-                className="pa-field-input"
-                placeholder="j.ashford"
-                value={form.displayName}
-                onChange={set('displayName')}
-                required
-              />
-            </div>
-
-            <div className="pa-field">
-              <label className="pa-field-label">PRIMARY EMAIL</label>
-              <input
-                type="email"
-                className="pa-field-input"
-                placeholder="member@private"
-                value={form.primaryEmail}
-                onChange={set('primaryEmail')}
-                required
-              />
-            </div>
-            <div className="pa-field">
-              <label className="pa-field-label">SECONDARY EMAIL(OPTIONAL)</label>
-              <input
-                type="email"
-                className="pa-field-input"
-                placeholder="member@private"
-                value={form.secondaryEmail}
-                onChange={set('secondaryEmail')}
-
-              />
-            </div>
-
-          </div>
-
-          <div className="pa-reg-row">
-            <div className="pa-field">
-              <label className="pa-field-label">PRIMARY PHONE</label>
-              <input
-                type="tel"
-                className="pa-field-input"
-                placeholder="+1 (000) 000-0000"
-                value={form.primaryMobile}
-                onChange={set('primaryMobile')}
-                required
-              />
-            </div>
-            <div className="pa-field">
-              <label className="pa-field-label">SECONDARY PHONE (OPTIONAL)</label>
-              <input
-                type="tel"
-                className="pa-field-input"
-                placeholder="+1 (000) 000-0000"
-                value={form.secondaryMobile}
-                onChange={set('secondaryMobile')}
-              />
-            </div>
-
-            <div className="pa-field">
-              <label className="pa-field-label">DATE OF BIRTH</label>
-              <input
-                type="date"
-                className="pa-field-input"
-                value={form.dateOfBirth}
-                onChange={set('dateOfBirth')}
-                required
-              />
-            </div>
-            <div className="pa-field">
-              <label className="pa-field-label">GENDER (OPTIONAL)</label>
-              <select
-                className="pa-field-input"
-                value={form.gender}
-                onChange={set('gender')}
-              >
-                <option value="">Select gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-
-            <div className="pa-field">
-              <label className="pa-field-label">FAMILY OFFICE NAME (OPTIONAL)</label>
-              <input
-                type="text"
-                className="pa-field-input"
-                placeholder="Enter family office name"
-                value={form.familyOfficeName}
-                onChange={set('familyOfficeName')}
-              />
-            </div>
-
-            <div className="pa-field">
-              <label className="pa-field-label">OCCUPATION (OPTIONAL)</label>
-              <input
-                type="text"
-                className="pa-field-input"
-                placeholder="Enter occupation"
-                value={form.occupation}
-                onChange={set('occupation')}
-              />
-            </div>
-
-            <div className="pa-field">
-              <label className="pa-field-label">COMPANY NAME</label>
-              <input
-                type="text"
-                className="pa-field-input"
-                placeholder="Enter company name"
-                value={form.companyName}
-                onChange={set('companyName')}
-                required
-              />
-            </div>
-
-            <div className="pa-field">
-              <label className="pa-field-label">WEBSITE (OPTIONAL)</label>
-              <input
-                type="text"
-                className="pa-field-input"
-                placeholder="Enter website"
-                value={form.website}
-                onChange={set('website')}
-              />
-            </div>
-
-            <div className="pa-field">
-              <label className="pa-field-label">Title</label>
-              <input
-                type="text"
-                className="pa-field-input"
-                placeholder="Enter title"
-                value={form.title}
-                onChange={set('title')}
-              />
-            </div>
-
-
-          </div>
-
-          <div className="pa-reg-row" style={{ gridTemplateColumns: "1fr" }}>
-            <div className="pa-field">
-              <label className="pa-field-label">BIO</label>
-              <textarea
-                className="pa-field-input"
-                placeholder="Tell us about yourself..."
-                rows={4}
-                value={form.bio}
-                onChange={set('bio')}
-              />
-            </div>
-          </div>
-
-          <div className="pa-reg-row">
-            <div className="pa-field">
-              <label className="pa-field-label">PASSWORD</label>
-              <input
-                type="password"
-                className="pa-field-input"
-                placeholder="••••••••••"
-                value={form.password}
-                onChange={set('password')}
-                required
-              />
-            </div>
-            <div className="pa-field">
-              <label className="pa-field-label">CONFIRM PASSWORD</label>
-              <input
-                type="password"
-                className="pa-field-input"
-                placeholder="••••••••••"
-                value={form.confirmPassword}
-                onChange={set('confirmPassword')}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="pa-invite-badge">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+          <button className="pa-modal-close" onClick={onClose} aria-label="Close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
             </svg>
-            <span>INVITE CODE: <strong>{inviteCode}</strong></span>
-          </div>
-
-          {error && <p className="pa-error-msg">{error}</p>}
-
-          <button type="submit" className="pa-submit-btn" disabled={loading}>
-            {loading ? 'REGISTERING...' : 'CREATE MY ACCOUNT'}
           </button>
 
-        </form>
+          <div className="pa-modal-header">
+            <span className="pa-modal-eyebrow">— INVITATION ACCEPTED —</span>
+            <h2 className="pa-modal-title">Complete your <em>profile.</em></h2>
+            <p className="pa-modal-sub">You have been granted exclusive access. Introduce yourself.</p>
+          </div>
 
-        <div className="pa-modal-footer">
-          <span className="pa-footer-line" />
-          <span className="pa-footer-text">END-TO-END ENCRYPTED</span>
-          <span className="pa-footer-line" />
+          <div className="pa-modal-divider" />
+
+          <form className="pa-modal-form" onSubmit={handleRegister}>
+
+            <div className="pa-reg-row">
+              <div className="pa-field">
+                <label className="pa-field-label">FIRST NAME</label>
+                <input
+                  type="text"
+                  className="pa-field-input"
+                  placeholder="Jonathan"
+                  value={form.firstName}
+                  onChange={set('firstName')}
+                  required
+                  autoFocus
+                />
+              </div>
+              <div className="pa-field">
+                <label className="pa-field-label">MIDDLE NAME(optional)</label>
+                <input
+                  type="text"
+                  className="pa-field-input"
+                  placeholder="Ashford"
+                  value={form.middleName}
+                  onChange={set('middleName')}
+
+                  autoFocus
+                />
+              </div>
+              <div className="pa-field">
+                <label className="pa-field-label">LAST NAME</label>
+                <input
+                  type="text"
+                  className="pa-field-input"
+                  placeholder="Smith"
+                  value={form.lastName}
+                  onChange={set('lastName')}
+                  required
+                  autoFocus
+                />
+              </div>
+
+            </div>
+
+            <div className="pa-reg-row">
+              <div className="pa-field">
+                <label className="pa-field-label">USERNAME / DISPLAY NAME</label>
+                <input
+                  type="text"
+                  className="pa-field-input"
+                  placeholder="j.ashford"
+                  value={form.displayName}
+                  onChange={set('displayName')}
+                  required
+                />
+              </div>
+
+              <div className="pa-field">
+                <label className="pa-field-label">PRIMARY EMAIL</label>
+                <input
+                  type="email"
+                  className="pa-field-input"
+                  placeholder="member@private"
+                  value={form.primaryEmail}
+                  onChange={set('primaryEmail')}
+                  required
+                />
+              </div>
+              <div className="pa-field">
+                <label className="pa-field-label">SECONDARY EMAIL(OPTIONAL)</label>
+                <input
+                  type="email"
+                  className="pa-field-input"
+                  placeholder="member@private"
+                  value={form.secondaryEmail}
+                  onChange={set('secondaryEmail')}
+
+                />
+              </div>
+
+            </div>
+
+            <div className="pa-reg-row">
+              <div className="pa-field">
+                <label className="pa-field-label">PRIMARY PHONE</label>
+                <input
+                  type="tel"
+                  className="pa-field-input"
+                  placeholder="+1 (000) 000-0000"
+                  value={form.primaryMobile}
+                  onChange={set('primaryMobile')}
+                  required
+                />
+              </div>
+              <div className="pa-field">
+                <label className="pa-field-label">SECONDARY PHONE (OPTIONAL)</label>
+                <input
+                  type="tel"
+                  className="pa-field-input"
+                  placeholder="+1 (000) 000-0000"
+                  value={form.secondaryMobile}
+                  onChange={set('secondaryMobile')}
+                />
+              </div>
+
+              <div className="pa-field">
+                <label className="pa-field-label">DATE OF BIRTH</label>
+                <input
+                  type="date"
+                  className="pa-field-input"
+                  value={form.dateOfBirth}
+                  onChange={set('dateOfBirth')}
+                  required
+                />
+              </div>
+              <div className="pa-field">
+                <label className="pa-field-label">GENDER (OPTIONAL)</label>
+                <select
+                  className="pa-field-input"
+                  value={form.gender}
+                  onChange={set('gender')}
+                >
+                  <option value="">Select gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div className="pa-field">
+                <label className="pa-field-label">FAMILY OFFICE NAME (OPTIONAL)</label>
+                <input
+                  type="text"
+                  className="pa-field-input"
+                  placeholder="Enter family office name"
+                  value={form.familyOfficeName}
+                  onChange={set('familyOfficeName')}
+                />
+              </div>
+
+              <div className="pa-field">
+                <label className="pa-field-label">OCCUPATION (OPTIONAL)</label>
+                <input
+                  type="text"
+                  className="pa-field-input"
+                  placeholder="Enter occupation"
+                  value={form.occupation}
+                  onChange={set('occupation')}
+                />
+              </div>
+
+              <div className="pa-field">
+                <label className="pa-field-label">COMPANY NAME</label>
+                <input
+                  type="text"
+                  className="pa-field-input"
+                  placeholder="Enter company name"
+                  value={form.companyName}
+                  onChange={set('companyName')}
+                  required
+                />
+              </div>
+
+              <div className="pa-field">
+                <label className="pa-field-label">WEBSITE (OPTIONAL)</label>
+                <input
+                  type="text"
+                  className="pa-field-input"
+                  placeholder="Enter website"
+                  value={form.website}
+                  onChange={set('website')}
+                />
+              </div>
+
+              <div className="pa-field">
+                <label className="pa-field-label">Title</label>
+                <input
+                  type="text"
+                  className="pa-field-input"
+                  placeholder="Enter title"
+                  value={form.title}
+                  onChange={set('title')}
+                />
+              </div>
+
+
+            </div>
+
+            <div className="pa-reg-row" style={{ gridTemplateColumns: "1fr" }}>
+              <div className="pa-field">
+                <label className="pa-field-label">BIO</label>
+                <textarea
+                  className="pa-field-input"
+                  placeholder="Tell us about yourself..."
+                  rows={4}
+                  value={form.bio}
+                  onChange={set('bio')}
+                />
+              </div>
+            </div>
+
+            <div className="pa-reg-row">
+              <div className="pa-field">
+                <label className="pa-field-label">PASSWORD</label>
+                <input
+                  type="password"
+                  className="pa-field-input"
+                  placeholder="••••••••••"
+                  value={form.password}
+                  onChange={set('password')}
+                  required
+                />
+              </div>
+              <div className="pa-field">
+                <label className="pa-field-label">CONFIRM PASSWORD</label>
+                <input
+                  type="password"
+                  className="pa-field-input"
+                  placeholder="••••••••••"
+                  value={form.confirmPassword}
+                  onChange={set('confirmPassword')}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="pa-invite-badge">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+              </svg>
+              <span>INVITE CODE: <strong>{inviteCode}</strong></span>
+            </div>
+
+            {error && <p className="pa-error-msg">{error}</p>}
+
+            <button type="submit" className="pa-submit-btn" disabled={loading}>
+              {loading ? 'REGISTERING...' : 'CREATE MY ACCOUNT'}
+            </button>
+
+          </form>
+
+          <div className="pa-modal-footer">
+            <span className="pa-footer-line" />
+            <span className="pa-footer-text">END-TO-END ENCRYPTED</span>
+            <span className="pa-footer-line" />
+          </div>
+
         </div>
-
       </div>
-    </div>
     </>
   )
 }
@@ -413,7 +431,7 @@ const PrivateAccessSection = () => {
 
     login(credentials)
       .then(({ tokenData }) => {
-        setLoginData(tokenData?.data ?? tokenData)
+        setLoginData(tokenData)
         setShowModal(false)
 
         if (usingInvite) {
@@ -425,6 +443,7 @@ const PrivateAccessSection = () => {
         const msg =
           err?.response?.data?.message ||
           err?.response?.data?.error ||
+          err?.message ||
           'Invalid credentials. Please try again.'
         setError(msg)
       })
@@ -434,7 +453,7 @@ const PrivateAccessSection = () => {
   }
 
 
-  
+
 
   const handleCloseLoginModal = () => {
     setShowModal(false)
@@ -523,7 +542,7 @@ const PrivateAccessSection = () => {
                 <button
                   type="button"
                   className="pa-back-btn"
-                  onClick={() => { setError(''); setPassword(''); setLoginStep('email');}}
+                  onClick={() => { setError(''); setPassword(''); setLoginStep('email'); }}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="15 18 9 12 15 6" />
@@ -643,8 +662,8 @@ const PrivateAccessSection = () => {
           inviteCode={pendingInviteCode}
           onSuccess={handleRegistrationSuccess}
           onClose={() => setShowRegModal(false)}
-          loginData = {loginData}
-          setLoginData = {setLoginData}
+          loginData={loginData}
+          setLoginData={setLoginData}
         />
       )}
     </>
