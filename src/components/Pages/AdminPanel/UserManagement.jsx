@@ -47,6 +47,7 @@ const UserManagement = () => {
   const [approvalList, setApprovalList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [processingId, setProcessingId] = useState(null); // tracks which row is actioning
   const { showBackdrop, hideBackdrop } = useBackdrop();
 
   const fetchUserData = () => {
@@ -69,19 +70,21 @@ const UserManagement = () => {
   }, []);
 
   const handleApprove = (rowData) => {
-    showBackdrop('Processing');
+    if (processingId) return;
+    setProcessingId(`approve-${rowData.memberID}`);
     VerifyUser({ MemberId: rowData.memberID })
       .then(() => fetchUserData())
       .catch((err) => console.error("Approve failed:", err))
-      .finally(() => hideBackdrop());
+      .finally(() => setProcessingId(null));
   };
 
   const handleReject = (rowData) => {
-    showBackdrop('Processing');
+    if (processingId) return;
+    setProcessingId(`reject-${rowData.memberID}`);
     VerifyUser({ MemberId: rowData.memberID })
       .then(() => fetchUserData())
       .catch((err) => console.error("Reject failed:", err))
-      .finally(() => hideBackdrop());
+      .finally(() => setProcessingId(null));
   };
 
   const filteredList = useMemo(() => {
@@ -162,6 +165,7 @@ const UserManagement = () => {
         <table className="ap-table">
           <thead>
             <tr>
+              <th>Actions</th>
               <th>Sr.</th>
               <th>Member Id</th>
               <th>Member No.</th>
@@ -184,7 +188,7 @@ const UserManagement = () => {
               <th>Website</th>
               <th>Bio</th>
               <th>Created On</th>
-              <th>Actions</th>
+              
             </tr>
           </thead>
           <tbody>
@@ -216,6 +220,36 @@ const UserManagement = () => {
             ) : filteredList.length > 0 ? (
               filteredList.map((u, idx) => (
                 <tr key={u.memberID ?? idx}>
+                  <td>
+                    <div className="ap-action-group">
+                      <button
+                        onClick={() => handleApprove(u)}
+                        className="ap-icon-btn cursor-pointer"
+                        title="Approve"
+                        disabled={!!processingId}
+                        style={{ opacity: processingId && processingId !== `approve-${u.memberID}` ? 0.4 : 1 }}
+                      >
+                        {processingId === `approve-${u.memberID}` ? (
+                          <span style={btnSpinnerStyle} />
+                        ) : (
+                          <FaCheckCircle size={15} />
+                        )}
+                      </button>
+                      <button
+                        onClick={() => handleReject(u)}
+                        className="ap-icon-btn cursor-pointer ap-icon-btn--danger"
+                        title="Reject"
+                        disabled={!!processingId}
+                        style={{ opacity: processingId && processingId !== `reject-${u.memberID}` ? 0.4 : 1 }}
+                      >
+                        {processingId === `reject-${u.memberID}` ? (
+                          <span style={btnSpinnerStyle} />
+                        ) : (
+                          <RiCloseCircleFill size={15} />
+                        )}
+                      </button>
+                    </div>
+                  </td>
                   <td>
                     <div className="ap-user-cell">
                       <div className="ap-avatar">{getInitials(u)}</div>
@@ -256,24 +290,7 @@ const UserManagement = () => {
                   <td className="ap-table__value">{u.website}</td>
                   <td className="ap-table__value">{u.bio}</td>
                   <td className="ap-table__value">{u.createdOn}</td>
-                  <td>
-                    <div className="ap-action-group">
-                      <button
-                        onClick={() => handleApprove(u)}
-                        className="ap-icon-btn cursor-pointer"
-                        title="Approve"
-                      >
-                        <FaCheckCircle size={15} />
-                      </button>
-                      <button
-                        onClick={() => handleReject(u)}
-                        className="ap-icon-btn cursor-pointer ap-icon-btn--danger"
-                        title="Reject"
-                      >
-                        <RiCloseCircleFill size={15} />
-                      </button>
-                    </div>
-                  </td>
+                  
                 </tr>
               ))
             ) : (
@@ -321,6 +338,18 @@ const spinnerStyle = {
   borderTopColor: "#3b5bdb",
   borderRadius: "50%",
   animation: "ap-spin 0.8s linear infinite",
+};
+
+// Smaller spinner used inside action buttons
+const btnSpinnerStyle = {
+  display: "inline-block",
+  width: "13px",
+  height: "13px",
+  border: "2px solid #d1d5db",
+  borderTopColor: "#3b5bdb",
+  borderRadius: "50%",
+  animation: "ap-spin 0.7s linear infinite",
+  flexShrink: 0,
 };
 
 export default UserManagement;

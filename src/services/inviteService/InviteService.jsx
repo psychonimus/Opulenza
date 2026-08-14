@@ -21,10 +21,11 @@ export const getInvitationApprovalList = async () => {
     }
 }
 
-export const approveInvitation = async (invitationId) => {
+export const approveInvitation = async (invitationId, isApproved) => {
     try {
         const { data } = await api.post("api/invitation/InvitationApprove", {
-            InvitationID: invitationId
+            InvitationID: invitationId,
+            IsApproved : isApproved
         });
         return data;
     } catch (error) {

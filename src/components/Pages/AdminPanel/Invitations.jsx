@@ -24,8 +24,10 @@ const Invitations = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [processingId, setProcessingId] = useState(null); // tracks which invitation is actioning
 
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [isApproved, setIsApproved] = useState(false);
 
   const { showBackdrop, hideBackdrop } = useBackdrop();
 
@@ -63,24 +65,35 @@ const Invitations = () => {
 
   // ── Load both on mount ────────────────────────────────────────────────────
   useEffect(() => {
-    fetchAdminInvitations();
-    fetchMemberInvitations();
-  }, []);
+    if (activeTab === "admin") {
+
+      fetchAdminInvitations();
+    } else {
+
+      fetchMemberInvitations();
+    }
+  }, [activeTab]);
 
   // ── Approve ───────────────────────────────────────────────────────────────
-  const handleApprove = (invitationId) => {
-    showBackdrop("Approving Invitation");
-    approveInvitation(invitationId)
+  const handleApprove = (invitationId, isInvitationApproved) => {
+    // console.log("isInvitationApproved",isInvitationApproved)
+
+    setProcessingId(`approve-${invitationId}`);
+    approveInvitation(invitationId, isInvitationApproved)
       .then(() => {
+
         fetchAdminInvitations();
         fetchMemberInvitations();
       })
       .catch((err) => console.error("Approve failed:", err))
-      .finally(() => hideBackdrop());
+      .finally(() => setProcessingId(null));
   };
 
   const handleReject = (invitationId) => {
-    console.log("Reject invitation:", invitationId);
+    if (processingId) return;
+    setProcessingId(`reject-${invitationId}`);
+    // TODO: wire up reject API
+    setTimeout(() => setProcessingId(null), 1000);
   };
 
   // ── Derived list based on active tab + search ─────────────────────────────
@@ -211,18 +224,32 @@ const Invitations = () => {
                 <>
                   <button
                     className="ap-icon-btn"
-                    style={{ color: "#15803d" }}
+                    style={{
+                      color: "#15803d",
+                      opacity: processingId && processingId !== `approve-${inv.invitationID}` ? 0.4 : 1,
+                    }}
                     title="Approve"
-                    onClick={() => handleApprove(inv.invitationID)}
+                    disabled={!!processingId}
+                    onClick={() => { handleApprove(inv.invitationID, inv.isInvitationApproved === null ? true : false) }}
                   >
-                    <MdCheckCircle size={18} />
+                    {processingId === `approve-${inv.invitationID}` ? (
+                      <span style={btnSpinnerStyle} />
+                    ) : (
+                      <MdCheckCircle size={18} />
+                    )}
                   </button>
                   <button
                     className="ap-icon-btn ap-icon-btn--danger"
                     title="Reject"
-                    onClick={() => handleReject(inv.invitationID)}
+                    disabled={!!processingId}
+                    style={{ opacity: processingId && processingId !== `reject-${inv.invitationID}` ? 0.4 : 1 }}
+                    onClick={() => { setIsApproved(false); handleReject(inv.invitationID) }}
                   >
-                    <MdCancel size={18} />
+                    {processingId === `reject-${inv.invitationID}` ? (
+                      <span style={{ ...btnSpinnerStyle, borderTopColor: "#b91c1c" }} />
+                    ) : (
+                      <MdCancel size={18} />
+                    )}
                   </button>
                 </>
               )}
@@ -342,3 +369,14 @@ const Invitations = () => {
 };
 
 export default Invitations;
+
+const btnSpinnerStyle = {
+  display: "inline-block",
+  width: "13px",
+  height: "13px",
+  border: "2px solid #d1d5db",
+  borderTopColor: "#3b5bdb",
+  borderRadius: "50%",
+  animation: "ap-spin 0.7s linear infinite",
+  flexShrink: 0,
+};

@@ -1,49 +1,68 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './GiftClaimModal.css';
-import {GiftForm} from '../../../../services/giftForm/GiftForm'
+import { GiftForm } from '../../../../services/giftForm/GiftForm';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../../../services/showUserInfo/ShowUserInfo';
+import { GetAddress } from '../../../../services/getUserData/GetUserData';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+
+const schema = yup.object().shape({
+    FullName: yup.string().required('Full Name is required'),
+    OP_MemberAddressesId: yup.string().nullable(),
+    Address: yup.string().required('Delivery address is required'),
+    PhoneNumber: yup.string().required('Phone number is required'),
+    Country: yup.string().required('Country is required'),
+    State: yup.string().required('State/Province is required'),
+    City: yup.string().required('City is required'),
+    PostalCode: yup.string().required('Postal code is required'),
+});
 
 const GiftClaimModal = ({ isOpen, onClose }) => {
-    const [formData, setFormData] = useState({
-        FullName: '',
-        Address: '',
-        PhoneNumber: '',
-        Country: 'FRANCE',
-        State: '',
-        City: '',
-        PostalCode: ''
-    });
-    const navigate = useNavigate()
-
+    const navigate = useNavigate();
     const { userInfo } = useUser();
-    
-
-    
-
     const [isLocating, setIsLocating] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
-    const [formErrors, setFormErrors] = useState({});
+
+    const { register, handleSubmit, setValue, formState: { errors } } = useForm({
+        resolver: yupResolver(schema),
+        mode:"onChange",
+        defaultValues: {
+            FullName: '',
+            OP_MemberAddressesId: '',
+            Address: '',
+            PhoneNumber: '',
+            Country: 'FRANCE',
+            State: '',
+            City: '',
+            PostalCode: ''
+        }
+    });
+
+    useEffect(() => {
+        GetAddress()
+            .then((response) => {
+                const addressID = response?.data?.data[0]?.addressID;
+                if (addressID) {
+                    setValue('OP_MemberAddressesId', addressID);
+                }
+            })
+            .catch((error) => {
+                console.log("ADDRESS ERROR", error);
+            });
+    }, [setValue]);
+
+    useEffect(() => {
+        if (userInfo) {
+            const fullName = `${userInfo.firstName || ''} ${userInfo.lastName || ''}`.trim();
+            if (fullName) {
+                setValue('FullName', fullName);
+            }
+        }
+    }, [userInfo, setValue]);
 
     if (!isOpen) return null;
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-        if (formErrors[name]) {
-            setFormErrors(prev => ({
-                ...prev,
-                [name]: ''
-            }));
-        }
-    };
-
-
-
-   
 
     const handleUseLocation = () => {
         setIsLocating(true);
@@ -52,14 +71,11 @@ const GiftClaimModal = ({ isOpen, onClose }) => {
                 (position) => {
                     // Simulate a delay for reverse-geocoding of a high-end luxury property based on coords
                     setTimeout(() => {
-                        setFormData(prev => ({
-                            ...prev,
-                            deliveryAddress: '742 Evergreen Terrace',
-                            stateProvince: 'California',
-                            city: 'Beverly Hills',
-                            postalCode: '90210',
-                            country: 'UNITED STATES'
-                        }));
+                        setValue('Address', '742 Evergreen Terrace');
+                        setValue('State', 'California');
+                        setValue('City', 'Beverly Hills');
+                        setValue('PostalCode', '90210');
+                        setValue('Country', 'UNITED STATES');
                         setIsLocating(false);
                     }, 1200);
                 },
@@ -67,14 +83,11 @@ const GiftClaimModal = ({ isOpen, onClose }) => {
                     console.error("Error retrieving location:", error);
                     // Fallback simulated success if blocked for demo, or show warning
                     setTimeout(() => {
-                        setFormData(prev => ({
-                            ...prev,
-                            deliveryAddress: '15, Avenue des Champs-Élysées',
-                            stateProvince: 'Île-de-France',
-                            city: 'Paris',
-                            postalCode: '75008',
-                            country: 'FRANCE'
-                        }));
+                        setValue('Address', '15, Avenue des Champs-Élysées');
+                        setValue('State', 'Île-de-France');
+                        setValue('City', 'Paris');
+                        setValue('PostalCode', '75008');
+                        setValue('Country', 'FRANCE');
                         setIsLocating(false);
                     }, 1000);
                 }
@@ -85,37 +98,19 @@ const GiftClaimModal = ({ isOpen, onClose }) => {
         }
     };
 
-    const validateForm = () => {
-        const errors = {};
-        if (!formData.FullName.trim()) errors.FullName = 'Full Name is required';
-        if (!formData.Address.trim()) errors.Address = 'Delivery address is required';
-        if (!formData.PhoneNumber.trim()) errors.PhoneNumber = 'Phone number is required';
-        if (!formData.State.trim()) errors.State = 'State/Province is required';
-        if (!formData.City.trim()) errors.City = 'City is required';
-        if (!formData.PostalCode.trim()) errors.PostalCode = 'Postal code is required';
-        return errors;
-    };
-
-    
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        const errors = validateForm();
-        if (Object.keys(errors).length > 0) {
-            setFormErrors(errors);
-            return;
-        }
-
-        GiftForm(formData)
+    const onSubmit = (data) => {
+        GiftForm(data)
             .then((response) => {
                 console.log(response);
                 setIsSubmitted(true);
-                navigate('/concierge')
+                navigate('/concierge');
             })
             .catch((error) => {
                 console.error(error);
             });
     };
+
+    console.log("errors",errors?.FullName?.message)
 
     return (
         <div className="gift-modal-overlay">
@@ -141,24 +136,19 @@ const GiftClaimModal = ({ isOpen, onClose }) => {
                                 onClick={handleUseLocation}
                                 disabled={isLocating}
                             >
-                                
-                               
                             </button>
                         </div>
 
-                        <form className="gift-modal-form" onSubmit={handleSubmit}>
+                        <form className="gift-modal-form" onSubmit={handleSubmit(onSubmit)}>
                             <div className="gift-form-group">
                                 <label htmlFor="FullName">FULL NAME</label>
                                 <input 
                                     type="text" 
-                                    id="FullName" 
-                                    name="FullName" 
-                                    value={userInfo?.firstName + " " + userInfo?.lastName} 
-                                    onChange={handleChange} 
                                     placeholder="GABRIEL VALENTINE"
                                     autoComplete="name"
+                                    {...register('FullName')}
                                 />
-                                {formErrors.fullName && <span className="gift-form-error">{formErrors.fullName}</span>}
+                                {errors.FullName && <span className="gift-form-error">{errors.FullName.message}</span>}
                             </div>
 
                             <div className="gift-form-group">
@@ -166,13 +156,11 @@ const GiftClaimModal = ({ isOpen, onClose }) => {
                                 <input 
                                     type="text" 
                                     id="Address" 
-                                    name="Address" 
-                                    value={formData.Address} 
-                                    onChange={handleChange} 
                                     placeholder="AVENUE DES CHAMPS-ÉLYSÉES"
                                     autoComplete="street-address"
+                                    {...register('Address')}
                                 />
-                                {formErrors.Address && <span className="gift-form-error">{formErrors.Address}</span>}
+                                {errors.Address && <span className="gift-form-error">{errors.Address.message}</span>}
                             </div>
 
                             <div className="gift-form-row">
@@ -181,13 +169,11 @@ const GiftClaimModal = ({ isOpen, onClose }) => {
                                     <input 
                                         type="tel" 
                                         id="PhoneNumber" 
-                                        name="PhoneNumber" 
-                                        value={formData.PhoneNumber} 
-                                        onChange={handleChange} 
                                         placeholder="+1 (000) 000-0000"
                                         autoComplete="tel"
+                                        {...register('PhoneNumber')}
                                     />
-                                    {formErrors.PhoneNumber && <span className="gift-form-error">{formErrors.PhoneNumber}</span>}
+                                    {errors.PhoneNumber && <span className="gift-form-error">{errors.PhoneNumber.message}</span>}
                                 </div>
 
                                 <div className="gift-form-group half-width">
@@ -195,9 +181,7 @@ const GiftClaimModal = ({ isOpen, onClose }) => {
                                     <div className="select-wrapper">
                                         <select 
                                             id="Country" 
-                                            name="Country" 
-                                            value={formData.Country} 
-                                            onChange={handleChange}
+                                            {...register('Country')}
                                         >
                                             <option value="FRANCE">FRANCE</option>
                                             <option value="SINGAPORE">SINGAPORE</option>
@@ -222,12 +206,10 @@ const GiftClaimModal = ({ isOpen, onClose }) => {
                                     <input 
                                         type="text" 
                                         id="State" 
-                                        name="State" 
-                                        value={formData.State} 
-                                        onChange={handleChange} 
                                         placeholder="CALIFORNIA"
+                                        {...register('State')}
                                     />
-                                    {formErrors.State && <span className="gift-form-error">{formErrors.State}</span>}
+                                    {errors.State && <span className="gift-form-error">{errors.State.message}</span>}
                                 </div>
 
                                 <div className="gift-form-group half-width">
@@ -235,13 +217,11 @@ const GiftClaimModal = ({ isOpen, onClose }) => {
                                     <input 
                                         type="text" 
                                         id="City" 
-                                        name="City" 
-                                        value={formData.City} 
-                                        onChange={handleChange} 
                                         placeholder="LOS ANGELES"
                                         autoComplete="address-level2"
+                                        {...register('City')}
                                     />
-                                    {formErrors.City && <span className="gift-form-error">{formErrors.City}</span>}
+                                    {errors.City && <span className="gift-form-error">{errors.City.message}</span>}
                                 </div>
                             </div>
 
@@ -251,13 +231,11 @@ const GiftClaimModal = ({ isOpen, onClose }) => {
                                     <input 
                                         type="text" 
                                         id="PostalCode" 
-                                        name="PostalCode" 
-                                        value={formData.PostalCode} 
-                                        onChange={handleChange} 
                                         placeholder="90210"
                                         autoComplete="postal-code"
+                                        {...register('PostalCode')}
                                     />
-                                    {formErrors.PostalCode && <span className="gift-form-error">{formErrors.PostalCode}</span>}
+                                    {errors.PostalCode && <span className="gift-form-error">{errors.PostalCode.message}</span>}
                                 </div>
                                 <div className="gift-form-group half-width empty-slot"></div>
                             </div>
