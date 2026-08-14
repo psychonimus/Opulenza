@@ -1,13 +1,11 @@
-import React from 'react'
-import ConciergeHero from './ConciergeHero/ConciergeHero'
-import GoodiesCard from './GoodiesCard/GoodiesCard'
-import ConciergeServices from './ConciergeServices/ConciergeServices'
-import { useUser } from '../../../services/showUserInfo/ShowUserInfo'
-
+import React from "react";
+import ConciergeHero from "./ConciergeHero/ConciergeHero";
+import GoodiesCard from "./GoodiesCard/GoodiesCard";
+import ConciergeServices from "./ConciergeServices/ConciergeServices";
+import { useUser } from "../../../services/showUserInfo/ShowUserInfo";
 
 const Concierge = () => {
-
-  const { userInfo } = useUser()
+  const { userInfo } = useUser();
 
   // console.log("USER INFO", userInfo)
 
@@ -15,16 +13,11 @@ const Concierge = () => {
     <>
       <ConciergeHero />
 
-      {
-        userInfo?.isWelcomeGiftSent === true && <GoodiesCard />
-
-      }
-
-      
+      {userInfo?.isWelcomeGiftSent === false && <GoodiesCard />}
 
       <ConciergeServices />
     </>
-  )
-}
+  );
+};
 
-export default Concierge
+export default Concierge;
