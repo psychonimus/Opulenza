@@ -4,39 +4,90 @@ import { inviteUser } from '../../../services/inviteService/InviteService'
 import './ProfilePage.css'
 import { useUser } from '../../../services/showUserInfo/ShowUserInfo'
 import InviteModal from '../../InviteModal/InviteModal'
+import { GetAddress, AddAddress } from '../../../services/getUserData/GetUserData'
 
 // ── Helpers ──────────────────────────────────────────────
 const getInitials = (name = '') =>
   name.split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase().slice(0, 2)
 
-const bids = [
-  { id: 1, title: 'Patek Philippe Ref. 2499', image: '/images/pattek/pattek-phillipe.png', currentBid: '$2,840,000', yourBid: '$2,800,000', status: 'outbid', closes: '2d 4h', link: '/watch/1' },
-  { id: 2, title: 'Vacheron Constantin 222', image: '/images/vacheron.jpg', currentBid: '$485,000', yourBid: '$485,000', status: 'leading', closes: '1d 12h', link: '/watch/4' },
-  { id: 3, title: 'The Macallan 1926', image: '/images/whisky/macallan/macallan-main.png', currentBid: '$2,310,000', yourBid: '$2,200,000', status: 'outbid', closes: '6h 42m', link: '/whiskyListings' },
-]
+const dummyAddresses = [
+  { id: 1, address: '15, Avenue des Champs-Élysées', city: 'Paris', postalCode: '75008', country: 'FRANCE', type: 'Primary Delivery' },
+  { id: 2, address: '742 Evergreen Terrace', city: 'Beverly Hills', postalCode: '90210', country: 'UNITED STATES', type: 'Secondary Residence' },
+];
 
-const watchlist = [
-  { id: 4, title: 'Rolex Daytona 6239', image: '/images/rolex.jpg', estimate: '$240K – $280K', badge: 'LIVE', link: '/watch/2' },
-  { id: 5, title: 'AP Royal Oak 15500OR', image: '/images/audemars.jpg', estimate: '$210K – $260K', badge: 'LIVE', link: '/watch/3' },
-  { id: 6, title: 'The Dalmore 62-Year', image: '/images/whisky/dalmore/dalmore.png', estimate: '$1.2M – $1.6M', badge: 'UPCOMING', link: '/whiskyListings' },
-]
+const dummyDocuments = [
+  { id: 1, name: 'Passport_Copy.pdf', type: 'Identification', date: 'Jul 14, 2026', status: 'Verified' },
+  { id: 2, name: 'Proof_of_Address_Utility.pdf', type: 'Utility Bill', date: 'Jul 15, 2026', status: 'Pending Review' },
+];
 
-const listings = [
-  { id: 7, title: 'IWC Portugieser 7Day', status: 'Under Review', submittedOn: 'Jun 12, 2026', value: '$62,000' },
-  { id: 8, title: 'Cohiba Behike Collection', status: 'Live', submittedOn: 'Jun 3, 2026', value: '$38,500' },
-]
+const dummyFamilyOffice = [
+  { id: 1, name: 'Jean-Luc Valentine', role: 'Wealth Manager', email: 'jeanluc@valentine-holdings.com', status: 'Active' },
+  { id: 2, name: 'Audrey Valentine', role: 'Spouse / Beneficiary', email: 'audrey@valentin.com', status: 'Authorized' },
+];
 
-const TABS = ['My Bids', 'Watchlist', 'My Listings', 'Settings']
+const dummyKYC = [
+  { id: 1, step: 'Identity Verification (Passport)', status: 'Approved', verifiedAt: 'Jun 01, 2026' },
+  { id: 2, step: 'Proof of Address (Utility Bill)', status: 'Pending Approval', verifiedAt: '—' },
+  { id: 3, step: 'Source of Wealth Declaration', status: 'Required', verifiedAt: '—' },
+];
+
+const dummyPreferences = [
+  { id: 1, category: 'Preferred Assets', value: 'High-end Watches, Rare Whiskeys, Fine Art' },
+  { id: 2, category: 'Preferred Currency', value: 'EUR (€)' },
+  { id: 3, category: 'Primary Language', value: 'English (US), French' },
+  { id: 4, category: 'Notification Frequency', value: 'Instant alerts for Watchlist' },
+];
+
+const dummyInvitations = [
+  { id: 1, name: 'Julianne Bisset', email: 'julianne.b@example.com', date: 'Aug 02, 2026', status: 'Joined' },
+  { id: 2, name: 'Charles Montgomery', email: 'charles.m@monty-corp.ch', date: 'Aug 10, 2026', status: 'Pending' },
+];
+
+const TABS = ['My Addresses', 'My Documents', 'Family Office', 'KYC', 'My Preferences', 'My Invitations'];
 
 const StatusBadge = ({ status }) => {
-  const map = { leading: 'Leading', outbid: 'Outbid', won: 'Won', expired: 'Expired' }
-  return <span className={`prof-badge prof-badge--${status}`}>{map[status] || status}</span>
-}
+  const map = {
+    Approved: 'Approved',
+    'Pending Approval': 'Pending Approval',
+    Required: 'Required',
+    Verified: 'Verified',
+    'Pending Review': 'Pending Review',
+    Active: 'Active',
+    Authorized: 'Authorized',
+    Joined: 'Joined',
+    Pending: 'Pending',
+    Expired: 'Expired',
+    'Pending Verification': 'Pending Verification'
+  };
+
+  let className = 'prof-badge';
+  if (['Approved', 'Verified', 'Active', 'Authorized', 'Joined'].includes(status)) {
+    className += ' prof-badge--leading';
+  } else if (['Pending Approval', 'Pending Review', 'Pending', 'Pending Verification'].includes(status)) {
+    className += ' prof-badge--won';
+  } else if (['Required', 'Expired'].includes(status)) {
+    className += ' prof-badge--outbid';
+  } else {
+    className += ' prof-badge--expired';
+  }
+
+  return <span className={className}>{map[status] || status}</span>;
+};
 
 // ── Component ────────────────────────────────────────────
 const ProfilePage = () => {
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState('My Bids')
+  const [activeTab, setActiveTab] = useState('My Addresses')
+
+  const [addresses, setAddresses] = useState([]);
+  const [documents, setDocuments] = useState(dummyDocuments);
+  const [familyOffice, setFamilyOffice] = useState(dummyFamilyOffice);
+  const [kycList, setKycList] = useState(dummyKYC);
+  const [preferences, setPreferences] = useState(dummyPreferences);
+  const [invitations, setInvitations] = useState(dummyInvitations);
+
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [modalType, setModalType] = useState('');
 
   const [member, setMember] = useState({
     name: '',
@@ -60,7 +111,73 @@ const ProfilePage = () => {
   const [showInviteModal, setShowInviteModal] = useState(false)
 
 
-// console.log("AdminPanel: userInfo:", userInfo);
+
+  const openAddModal = (type) => {
+    if (type === 'address') {
+      setModalType(type);
+      setIsAddModalOpen(true);
+    }
+  };
+
+  const GetAddressDetails = () => {
+    GetAddress()
+      .then((res) => {
+        setAddresses(res?.data?.data)
+      })
+      .catch((err) => {
+        console.log(err);
+        // throw err;
+      })
+  }
+
+  useEffect(() => {
+    GetAddressDetails()
+  }, [])
+
+
+
+  const [newAddress, setNewAddress] = useState({
+    AddressType: "",
+    AddressLine1: "",
+    AddressLine2: "",
+    City: "",
+    StateProvince: "",
+    Country: "",
+    PostalCode: ""
+  });
+
+
+  const handleAddSubmit = (e) => {
+    e.preventDefault();
+
+    AddAddress(newAddress)
+      .then((res) => {
+        console.log(res);
+        if (res?.data?.status === 200) {
+          console.log("Address added successfully")
+          setIsAddModalOpen(false);
+          GetAddressDetails();
+          console.log("function finished")
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        // throw err;
+      })
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   return (
@@ -90,9 +207,7 @@ const ProfilePage = () => {
             </div>
           </div>
           <div className="prof-hero__actions">
-            {/* <Link to="/sell" className="prof-btn prof-btn--gold">+ Submit Asset</Link> */}
             <button className="prof-btn prof-btn--ghost" onClick={() => setShowInviteModal(true)}>Invite a Friend</button>
-            {/* <button className="prof-btn prof-btn--ghost">Edit Profile</button> */}
             {
               userInfo?.role === "SuperAdmin" && <button className="prof-btn prof-btn--ghost" onClick={() => navigate('/admin')}>Dashboard</button>
             }
@@ -119,7 +234,7 @@ const ProfilePage = () => {
 
           {/* Tabs + Content */}
           <div className="prof-main">
-            <div className="prof-tabs">
+            <div className="prof-tabs" style={{ flexWrap: 'wrap' }}>
               {TABS.map(tab => (
                 <button
                   key={tab}
@@ -129,113 +244,142 @@ const ProfilePage = () => {
               ))}
             </div>
 
-            {/* My Bids */}
-            {activeTab === 'My Bids' && (
-              <div className="prof-panel">
-                {bids.map(b => (
-                  <Link to={b.link} key={b.id} className="prof-bid-row" style={{ textDecoration: 'none' }}>
-                    <div className="prof-bid-img">
-                      <img src={b.image} alt={b.title} />
-                    </div>
-                    <div className="prof-bid-info">
-                      <p className="prof-bid-title">{b.title}</p>
-                      <p className="prof-bid-meta">Closes in <span>{b.closes}</span></p>
-                    </div>
-                    <div className="prof-bid-amounts">
-                      <div>
-                        <span className="prof-small-label">YOUR BID</span>
-                        <p className="prof-bid-num">{b.yourBid}</p>
-                      </div>
-                      <div>
-                        <span className="prof-small-label">CURRENT</span>
-                        <p className="prof-bid-num prof-bid-num--gold">{b.currentBid}</p>
-                      </div>
-                    </div>
-                    <StatusBadge status={b.status} />
-                  </Link>
-                ))}
-              </div>
-            )}
-
-            {/* Watchlist */}
-            {activeTab === 'Watchlist' && (
-              <div className="prof-panel">
-                <div className="prof-grid">
-                  {watchlist.map(w => (
-                    <Link to={w.link} key={w.id} className="prof-watch-card" style={{ textDecoration: 'none' }}>
-                      <div className="prof-watch-card__img">
-                        <img src={w.image} alt={w.title} />
-                        <span className={`prof-watch-card__live${w.badge === 'LIVE' ? ' live' : ''}`}>{w.badge}</span>
-                      </div>
-                      <div className="prof-watch-card__body">
-                        <p className="prof-watch-card__title">{w.title}</p>
-                        <p className="prof-watch-card__est">{w.estimate}</p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* My Listings */}
-            {activeTab === 'My Listings' && (
+            {/* My Addresses */}
+            {activeTab === 'My Addresses' && (
               <div className="prof-panel">
                 <div className="prof-listings-header">
-                  <span>You have {listings.length} submitted asset{listings.length !== 1 ? 's' : ''}.</span>
-                  <Link to="/sell" className="prof-btn prof-btn--gold" style={{ textDecoration: 'none', padding: '8px 20px', fontSize: '0.7rem' }}>+ Submit New</Link>
+                  <span>Registered Addresses ({addresses.length})</span>
+                  <button onClick={() => openAddModal('address')} className="prof-btn prof-btn--gold" style={{ padding: '8px 20px', fontSize: '0.7rem' }}>+ Add Address</button>
                 </div>
-                {listings.map(l => (
-                  <div className="prof-listing-row" key={l.id}>
-                    <div className="prof-listing-dot" data-status={l.status === 'Live' ? 'live' : 'review'} />
+                {
+                  addresses.length > 0 ? <>
+                    {addresses?.map(addr => (
+                      <div className="prof-listing-row" key={addr.id}>
+                        <div className="prof-listing-dot" data-status="live" />
+                        <div className="prof-listing-info">
+                          <p className="prof-listing-title">{addr.addressLine1}, {addr.addressLine2}</p>
+                          <p className="prof-listing-date">{addr.city}, {addr.stateProvince}, {addr.postalCode} · {addr.country}</p>
+                        </div>
+                        <div className="prof-listing-right">
+                          <span className="prof-listing-status live">{addr.addressType}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </> :
+                    <div className="prof-listing-row">
+                      <div className="prof-listing-dot" data-status="live" />
+                      <div className="prof-listing-info">
+                        <p className="prof-listing-title">No addresses found</p>
+                      </div>
+                    </div>
+                }
+              </div>
+            )}
+
+            {/* My Documents */}
+            {activeTab === 'My Documents' && (
+              <div className="prof-panel">
+                <div className="prof-listings-header">
+                  <span>Vault Documents ({documents.length})</span>
+                  <button onClick={() => openAddModal('document')} className="prof-btn prof-btn--gold" style={{ padding: '8px 20px', fontSize: '0.7rem' }}>+ Add Document</button>
+                </div>
+                {documents.map(doc => (
+                  <div className="prof-listing-row" key={doc.id}>
+                    <div className="prof-listing-dot" data-status={doc.status === 'Verified' ? 'live' : 'review'} />
                     <div className="prof-listing-info">
-                      <p className="prof-listing-title">{l.title}</p>
-                      <p className="prof-listing-date">Submitted {l.submittedOn}</p>
+                      <p className="prof-listing-title">{doc.name}</p>
+                      <p className="prof-listing-date">{doc.type} · Uploaded {doc.date}</p>
                     </div>
                     <div className="prof-listing-right">
-                      <span className={`prof-listing-status${l.status === 'Live' ? ' live' : ''}`}>{l.status}</span>
-                      <span className="prof-listing-value">{l.value}</span>
+                      <StatusBadge status={doc.status} />
                     </div>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* Settings */}
-            {activeTab === 'Settings' && (
+            {/* Family Office */}
+            {activeTab === 'Family Office' && (
               <div className="prof-panel">
-                <form className="prof-settings-form" onSubmit={e => e.preventDefault()}>
-                  <div className="prof-settings-section">
-                    <h3 className="prof-settings-heading">Account Details</h3>
-                    <div className="prof-settings-grid">
-                      <div className="prof-settings-field">
-                        <label>Full Name</label>
-                        <input type="text" defaultValue={member.name} />
-                      </div>
-                      <div className="prof-settings-field">
-                        <label>Email</label>
-                        <input type="email" defaultValue={member.email} />
-                      </div>
-                      <div className="prof-settings-field">
-                        <label>Location</label>
-                        <input type="text" defaultValue={member.location} />
-                      </div>
-                      <div className="prof-settings-field">
-                        <label>Member ID</label>
-                        <input type="text" defaultValue={member.memberId} readOnly />
-                      </div>
+                <div className="prof-listings-header">
+                  <span>Authorized Members ({familyOffice.length})</span>
+                  <button onClick={() => openAddModal('family')} className="prof-btn prof-btn--gold" style={{ padding: '8px 20px', fontSize: '0.7rem' }}>+ Add Member</button>
+                </div>
+                {familyOffice.map(fam => (
+                  <div className="prof-listing-row" key={fam.id}>
+                    <div className="prof-listing-dot" data-status="live" />
+                    <div className="prof-listing-info">
+                      <p className="prof-listing-title">{fam.name}</p>
+                      <p className="prof-listing-date">{fam.role} · {fam.email}</p>
+                    </div>
+                    <div className="prof-listing-right">
+                      <StatusBadge status={fam.status} />
                     </div>
                   </div>
-                  <div className="prof-settings-section">
-                    <h3 className="prof-settings-heading">Notifications</h3>
-                    {['Outbid alerts', 'Auction closing reminders', 'New listings in watchlist', 'Weekly vault report'].map(n => (
-                      <label className="prof-toggle-row" key={n}>
-                        <span>{n}</span>
-                        <input type="checkbox" defaultChecked className="prof-toggle-check" />
-                      </label>
-                    ))}
+                ))}
+              </div>
+            )}
+
+            {/* KYC */}
+            {activeTab === 'KYC' && (
+              <div className="prof-panel">
+                <div className="prof-listings-header">
+                  <span>KYC Compliance Checks ({kycList.length})</span>
+                  <button onClick={() => openAddModal('kyc')} className="prof-btn prof-btn--gold" style={{ padding: '8px 20px', fontSize: '0.7rem' }}>+ Add KYC Requirement</button>
+                </div>
+                {kycList.map(kyc => (
+                  <div className="prof-listing-row" key={kyc.id}>
+                    <div className="prof-listing-dot" data-status={kyc.status === 'Approved' ? 'live' : 'review'} />
+                    <div className="prof-listing-info">
+                      <p className="prof-listing-title">{kyc.step}</p>
+                      <p className="prof-listing-date">Verified: {kyc.verifiedAt}</p>
+                    </div>
+                    <div className="prof-listing-right">
+                      <StatusBadge status={kyc.status} />
+                    </div>
                   </div>
-                  <button type="submit" className="prof-btn prof-btn--gold" style={{ marginTop: '0.5rem' }}>Save Changes</button>
-                </form>
+                ))}
+              </div>
+            )}
+
+            {/* My Preferences */}
+            {activeTab === 'My Preferences' && (
+              <div className="prof-panel">
+                <div className="prof-listings-header">
+                  <span>Membership Preferences ({preferences.length})</span>
+                  <button onClick={() => openAddModal('preference')} className="prof-btn prof-btn--gold" style={{ padding: '8px 20px', fontSize: '0.7rem' }}>+ Add Preference</button>
+                </div>
+                {preferences.map(pref => (
+                  <div className="prof-listing-row" key={pref.id}>
+                    <div className="prof-listing-dot" data-status="live" />
+                    <div className="prof-listing-info">
+                      <p className="prof-listing-title">{pref.category}</p>
+                      <p className="prof-listing-date">{pref.value}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* My Invitations */}
+            {activeTab === 'My Invitations' && (
+              <div className="prof-panel">
+                <div className="prof-listings-header">
+                  <span>Sent Invitations ({invitations.length})</span>
+                  <button onClick={() => openAddModal('invitation')} className="prof-btn prof-btn--gold" style={{ padding: '8px 20px', fontSize: '0.7rem' }}>+ Invite Friend</button>
+                </div>
+                {invitations.map(invite => (
+                  <div className="prof-listing-row" key={invite.id}>
+                    <div className="prof-listing-dot" data-status={invite.status === 'Joined' ? 'live' : 'review'} />
+                    <div className="prof-listing-info">
+                      <p className="prof-listing-title">{invite.name}</p>
+                      <p className="prof-listing-date">{invite.email} · Invited on {invite.date}</p>
+                    </div>
+                    <div className="prof-listing-right">
+                      <StatusBadge status={invite.status} />
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -277,10 +421,73 @@ const ProfilePage = () => {
 
       </div>
 
+      {/* ── Add Data Modal ────────────────────────────── */}
+      {isAddModalOpen && (
+        <div className="prof-modal-overlay">
+          <div className="prof-modal-card" style={{ maxWidth: '640px' }} onClick={(e) => e.stopPropagation()}>
+            <button className="prof-modal-close" onClick={() => setIsAddModalOpen(false)}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+            <h3 className="prof-modal-title" style={{ fontFamily: 'var(--font-serif)', color: 'var(--gold)', marginBottom: '1.5rem', fontSize: '1.4rem' }}>
+              Add New Address
+            </h3>
+
+            <form onSubmit={handleAddSubmit} className="prof-settings-form">
+              <div className="prof-settings-grid">
+                <div className="prof-settings-field">
+                  <label>Address Type</label>
+                  <select name="AddressType" required value={newAddress.AddressType} onChange={(e) => setNewAddress({ ...newAddress, AddressType: e.target.value })}>
+                    <option value="">Select Address Type</option>
+                    <option value="Personal Address">Personal Address</option>
+                    <option value="Office Address">Office Address</option>
+                    <option value="Family Office Address">Family Office Address</option>
+                    <option value="Corporate Address">Corporate Address</option>
+                    <option value="Billing Address">Billing Address</option>
+                    <option value="Shipping Address">Shipping Address</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div className="prof-settings-field">
+                  <label>Address Line 1</label>
+                  <input type="text" name="AddressLine1" value={newAddress.AddressLine1} onChange={(e) => setNewAddress({ ...newAddress, AddressLine1: e.target.value })} required placeholder="e.g. 10 Marina Boulevard" />
+                </div>
+                <div className="prof-settings-field">
+                  <label>Address Line 2</label>
+                  <input type="text" name="AddressLine2" placeholder="e.g. Apt 2B" value={newAddress.AddressLine2} onChange={(e) => setNewAddress({ ...newAddress, AddressLine2: e.target.value })} />
+                </div>
+                <div className="prof-settings-field">
+                  <label>City</label>
+                  <input type="text" name="City" required placeholder="e.g. Singapore" value={newAddress.City} onChange={(e) => setNewAddress({ ...newAddress, City: e.target.value })} />
+                </div>
+                <div className="prof-settings-field">
+                  <label>State / Province</label>
+                  <input type="text" name="StateProvince" required placeholder="e.g. Test state" value={newAddress.StateProvince} onChange={(e) => setNewAddress({ ...newAddress, StateProvince: e.target.value })} />
+                </div>
+                <div className="prof-settings-field">
+                  <label>Country</label>
+                  <input type="text" name="Country" required placeholder="e.g. Test Country" value={newAddress.Country} onChange={(e) => setNewAddress({ ...newAddress, Country: e.target.value })} />
+                </div>
+                <div className="prof-settings-field" style={{ gridColumn: 'span 2' }}>
+                  <label>Postal Code</label>
+                  <input type="text" name="PostalCode" required placeholder="e.g. 23456" value={newAddress.PostalCode} onChange={(e) => setNewAddress({ ...newAddress, PostalCode: e.target.value })} />
+                </div>
+              </div>
+
+              <button type="submit" className="prof-btn prof-btn--gold" style={{ marginTop: '1.5rem', width: '100%' }}>
+                Confirm & Add
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* ── Invite a Friend Modal ────────────────────────────── */}
-      <InviteModal 
-        show={showInviteModal} 
-        onClose={() => setShowInviteModal(false)} 
+      <InviteModal
+        show={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
       />
 
     </div>

@@ -34,6 +34,29 @@ const statusColor = {
 
 const PAGE_SIZE = 10
 
+const renderCellValue = (val) => {
+  if (val === null || val === undefined) return '—';
+  if (typeof val === 'object') {
+    if (Array.isArray(val)) {
+      return val.map(item => (typeof item === 'object' ? JSON.stringify(item) : String(item))).join(', ');
+    }
+    return (
+      <div style={{ fontSize: '0.75rem', lineHeight: '1.2', textAlign: 'left', minWidth: '150px' }}>
+        {Object.entries(val).map(([k, v]) => {
+          if (v === null || v === undefined || v === '') return null;
+          return (
+            <div key={k}>
+              <span style={{ color: '#d6a54d', textTransform: 'capitalize' }}>{k}:</span> {typeof v === 'object' ? JSON.stringify(v) : String(v)}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+  if (typeof val === 'boolean') return val ? 'Yes' : 'No';
+  return String(val);
+};
+
 const ListingManagement = () => {
   const [search, setSearch] = useState('')
   const [selectedCat, setSelectedCat] = useState(0)   // pending selection
@@ -220,9 +243,8 @@ const ListingManagement = () => {
                 </td>
                 {
                   Object.keys(l).map((item, id) => (
-                    <td key={id}>{l[item]}</td>
+                    <td key={id}>{renderCellValue(l[item])}</td>
                   ))
-
                 }
                 
               </tr>

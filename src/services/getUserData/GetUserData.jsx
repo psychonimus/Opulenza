@@ -27,4 +27,9 @@ export const GetAddress = () => {
   return api.get("/api/member/MyAddress");
 };
 
+export const AddAddress = (dataObj) => {
+  return api.post("/api/member/AddAddress", dataObj);
+};
+
+
 

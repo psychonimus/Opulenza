@@ -16,7 +16,7 @@ const Concierge = () => {
       <ConciergeHero />
 
       {
-        userInfo?.isWelcomeGiftSent === true && <GoodiesCard />
+        userInfo?.isWelcomeGiftSent === false && <GoodiesCard />
 
       }
 

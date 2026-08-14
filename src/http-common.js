@@ -280,7 +280,7 @@ function getExpiresAtMs() {
 function logRemainingSeconds(expiresAtMs) {
   if (expiresAtMs === null || expiresAtMs === undefined) return;
   const remainingSeconds = Math.round((expiresAtMs - Date.now()) / 1000);
-  console.log("[Auth] remainingSeconds:", remainingSeconds);
+  // console.log("[Auth] remainingSeconds:", remainingSeconds);
 }
 
 export function setAuthUpdater(fn) {
@@ -405,10 +405,10 @@ export function scheduleAutoRefresh(expiresAt) {
   const safeDelay = Math.min(delay, 2147483647);
 
   const scheduledFor = new Date(now + safeDelay).toISOString();
-  console.log(
-    `[Auth] Refresh scheduled for ${scheduledFor} ` +
-      `(${Math.round(safeDelay / 1000)}s from now, ${REFRESH_BUFFER_MS / 1000}s before expiry)`,
-  );
+  // console.log(
+  //   `[Auth] Refresh scheduled for ${scheduledFor} ` +
+  //     `(${Math.round(safeDelay / 1000)}s from now, ${REFRESH_BUFFER_MS / 1000}s before expiry)`,
+  // );
 
   scheduledTimer = setTimeout(() => {
     console.log("[Auth] Scheduled refresh firing now.");

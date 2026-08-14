@@ -569,7 +569,8 @@
   color: rgba(214, 165, 77, 0.65);
 }
 
-.prof-settings-field input {
+.prof-settings-field input,
+.prof-settings-field select {
   background: transparent;
   border: none;
   border-bottom: 1px solid var(--border);
@@ -581,7 +582,13 @@
   transition: border-color 0.2s ease;
 }
 
-.prof-settings-field input:focus {
+.prof-settings-field select option {
+  background-color: var(--bg-card);
+  color: var(--text);
+}
+
+.prof-settings-field input:focus,
+.prof-settings-field select:focus {
   border-bottom-color: var(--gold);
 }
 

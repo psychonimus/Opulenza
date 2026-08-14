@@ -18,12 +18,12 @@ const schema = yup.object().shape({
     City: yup.string().required('City is required'),
     PostalCode: yup.string().required('Postal code is required'),
 });
-
 const GiftClaimModal = ({ isOpen, onClose }) => {
     const navigate = useNavigate();
     const { userInfo } = useUser();
     const [isLocating, setIsLocating] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [addresses, setAddresses] = useState([]);
 
     const { register, handleSubmit, setValue, formState: { errors } } = useForm({
         resolver: yupResolver(schema),
@@ -43,9 +43,18 @@ const GiftClaimModal = ({ isOpen, onClose }) => {
     useEffect(() => {
         GetAddress()
             .then((response) => {
-                const addressID = response?.data?.data[0]?.addressID;
-                if (addressID) {
-                    setValue('OP_MemberAddressesId', addressID);
+                const addrData = response?.data?.data || [];
+                setAddresses(addrData);
+                if (addrData.length > 0) {
+                    const firstAddr = addrData[0];
+                    setValue('OP_MemberAddressesId', firstAddr.addressID || firstAddr.id || '');
+                    setValue('Address', firstAddr.addressLine1 + ' ' + firstAddr.addressLine2 || '');
+                    setValue('State', firstAddr.stateProvince || '');
+                    setValue('City', firstAddr.city || '');
+                    setValue('PostalCode', firstAddr.postalCode || '');
+                    if (firstAddr.country) {
+                        setValue('Country', firstAddr.country.toUpperCase());
+                    }
                 }
             })
             .catch((error) => {
@@ -140,6 +149,40 @@ const GiftClaimModal = ({ isOpen, onClose }) => {
                         </div>
 
                         <form className="gift-modal-form" onSubmit={handleSubmit(onSubmit)}>
+                            {addresses.length > 0 && (
+                                <div className="gift-form-group">
+                                    <label htmlFor="addressSelect">SELECT REGISTERED ADDRESS</label>
+                                    <div className="select-wrapper">
+                                        <select 
+                                            id="addressSelect"
+                                            onChange={(e) => {
+                                                const selectedId = e.target.value;
+                                                const selectedAddr = addresses.find(addr => String(addr.addressID || addr.id) === String(selectedId));
+                                                if (selectedAddr) {
+                                                    setValue('OP_MemberAddressesId', selectedAddr.addressID || selectedAddr.id || '');
+                                                    setValue('Address', selectedAddr.addressLine1 || '');
+                                                    setValue('State', selectedAddr.stateProvince || '');
+                                                    setValue('City', selectedAddr.city || '');
+                                                    setValue('PostalCode', selectedAddr.postalCode || '');
+                                                    if (selectedAddr.country) {
+                                                        setValue('Country', selectedAddr.country.toUpperCase());
+                                                    }
+                                                }
+                                            }}
+                                        >
+                                            {addresses.map((addr) => (
+                                                <option key={addr.addressID || addr.id} value={addr.addressID || addr.id}>
+                                                    {addr.addressType || 'Address'} - {addr.addressLine1}, {addr.city}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <svg className="select-arrow" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <polyline points="6 9 12 15 18 9"></polyline>
+                                        </svg>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="gift-form-group">
                                 <label htmlFor="FullName">FULL NAME</label>
                                 <input 
@@ -173,30 +216,16 @@ const GiftClaimModal = ({ isOpen, onClose }) => {
                                         autoComplete="tel"
                                         {...register('PhoneNumber')}
                                     />
-                                    {errors.PhoneNumber && <span className="gift-form-error">{errors.PhoneNumber.message}</span>}
                                 </div>
-
                                 <div className="gift-form-group half-width">
                                     <label htmlFor="Country">COUNTRY</label>
-                                    <div className="select-wrapper">
-                                        <select 
-                                            id="Country" 
-                                            {...register('Country')}
-                                        >
-                                            <option value="FRANCE">FRANCE</option>
-                                            <option value="SINGAPORE">SINGAPORE</option>
-                                            <option value="MALAYSIA">MALAYSIA</option>
-                                            <option value="UNITED KINGDOM">UNITED KINGDOM</option>
-                                            <option value="MONACO">MONACO</option>
-                                            <option value="SWITZERLAND">SWITZERLAND</option>
-                                            <option value="ITALY">ITALY</option>
-                                            <option value="JAPAN">JAPAN</option>
-                                            <option value="UNITED ARAB EMIRATES">UNITED ARAB EMIRATES</option>
-                                        </select>
-                                        <svg className="select-arrow" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <polyline points="6 9 12 15 18 9"></polyline>
-                                        </svg>
-                                    </div>
+                                    <input 
+                                        type="text" 
+                                        id="Country" 
+                                        placeholder="FRANCE"
+                                        {...register('Country')}
+                                    />
+                                    {errors.Country && <span className="gift-form-error">{errors.Country.message}</span>}
                                 </div>
                             </div>
 
