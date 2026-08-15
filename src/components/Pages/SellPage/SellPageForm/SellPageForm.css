@@ -207,7 +207,13 @@
   border-bottom-color: var(--primary-color);
 }
 
-
+.sell-field-error {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #e05c5c;
+  letter-spacing: 0.02em;
+}
 
 /* Select */
 .sell-select-wrapper {
@@ -371,7 +377,8 @@
 .sell-form-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: end;
+  width: 100%;
 }
 
 .sell-btn-prev {

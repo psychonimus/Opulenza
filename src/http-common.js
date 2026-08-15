@@ -1,451 +1,383 @@
 import axios from "axios";
 
 const BASE_URL = "https://ayurmitra.in/opulenza_reserve";
-
-const REFRESH_BUFFER_MS = 10 * 60 * 1000;
+const STORAGE_KEY = "authState";
+const META_KEY = "authRefreshMeta";
+const BROADCAST_CHANNEL_NAME = "auth-sync";
 const WEB_LOCK_NAME = "auth-refresh-lock";
 const FALLBACK_CLAIM_KEY = "authRefreshFallbackClaim";
-const FALLBACK_CLAIM_TTL_MS = 10 * 1000;
-const FALLBACK_POLL_INTERVAL_MS = 100;
-const FALLBACK_COORDINATION_TIMEOUT_MS = FALLBACK_CLAIM_TTL_MS + 5000;
-const STORAGE_KEY = "authState";
-const BROADCAST_CHANNEL_NAME = "auth-sync";
+const FALLBACK_CLAIM_TTL_MS = 10_000;
+const FALLBACK_POLL_MS = 100;
+const FALLBACK_TIMEOUT_MS = FALLBACK_CLAIM_TTL_MS + 5_000;
+const REFRESH_BUFFER_MS = 10 * 60 * 1_000;
+const BACKOFF_MS = 30_000;
 
 const api = axios.create({
   baseURL: BASE_URL,
   headers: { "Content-Type": "application/json" },
 });
-
 const refreshApi = axios.create({
   baseURL: BASE_URL,
   headers: { "Content-Type": "application/json" },
 });
 
 let _authUpdater = null;
-let scheduledTimer = null;
-let heartbeatInterval = null;
-let refreshPromise = null;
-let broadcastChannel = null;
-let remoteRefreshInProgress = null;
+let _timer = null;
+let _heartbeat = null;
+let _refreshPromise = null;
+let _channel = null;
+let _remoteRefresh = null;
 
-function hasWindow() {
-  return typeof window !== "undefined" && typeof localStorage !== "undefined";
-}
+const TAB_ID =
+  typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `tab_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
-function dispatchAuthFailed() {
-  if (hasWindow()) window.dispatchEvent(new Event("auth-failed"));
-}
+const mask = (t) => (t ? `${t.slice(0, 8)}...${t.slice(-8)}` : null);
+const hasEnv = () =>
+  typeof window !== "undefined" && typeof localStorage !== "undefined";
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const jitter = (base, spread) => base + Math.floor(Math.random() * spread);
 
-function generateTabId() {
-  if (
-    typeof crypto !== "undefined" &&
-    typeof crypto.randomUUID === "function"
-  ) {
-    return crypto.randomUUID();
+function readMeta() {
+  if (!hasEnv()) return null;
+  try {
+    const raw = localStorage.getItem(META_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
   }
-  return `tab_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 }
 
-const TAB_ID = generateTabId();
-
-const ACCESS_TOKEN_FIELDS = ["accessToken", "token", "access_token", "jwt"];
-const REFRESH_TOKEN_FIELDS = ["refreshToken", "refresh_token"];
-
-const EXPIRY_FIELD_CANDIDATES = [
-  "expiresIn",
-  "expires_in",
-  "expiresAt",
-  "expires_at",
-];
-
-function looksLikeJwt(value) {
-  return (
-    typeof value === "string" &&
-    /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(value)
-  );
+function writeMeta(patch) {
+  if (!hasEnv()) return;
+  const current = readMeta() || {};
+  localStorage.setItem(META_KEY, JSON.stringify({ ...current, ...patch }));
 }
 
-function extractField(tokenData, candidateKeys) {
-  for (const key of candidateKeys) {
-    if (tokenData?.[key]) return tokenData[key];
-  }
-  return undefined;
+function clearMeta() {
+  if (hasEnv()) localStorage.removeItem(META_KEY);
 }
 
-function extractAccessToken(tokenData) {
-  const known = extractField(tokenData, ACCESS_TOKEN_FIELDS);
-  if (known) return known;
-
-  for (const [key, value] of Object.entries(tokenData || {})) {
-    if (!ACCESS_TOKEN_FIELDS.includes(key) && looksLikeJwt(value)) {
-      console.warn(
-        `[Auth] Access token found under unexpected field "${key}" — consider adding it to ACCESS_TOKEN_FIELDS.`,
-      );
-      return value;
-    }
-  }
-  return undefined;
+function setGlobalBackoff(backoffUntil) {
+  writeMeta({ backoffUntil, backoffTabId: TAB_ID });
+  broadcast({ type: "backoff-active", backoffUntil });
 }
 
-function extractRefreshToken(tokenData) {
-  return extractField(tokenData, REFRESH_TOKEN_FIELDS);
+function clearGlobalBackoff() {
+  writeMeta({ backoffUntil: null, backoffTabId: null });
 }
 
-function classifyNumericExpiry(num) {
-  if (Number.isNaN(num)) return NaN;
-  if (num >= 1e11) return num;
-  if (num >= 1e8) return num * 1000;
-  return Date.now() + num * 1000;
+function isBackoffActive() {
+  const meta = readMeta();
+  if (!meta?.backoffUntil) return false;
+  return Date.now() < Number(meta.backoffUntil);
+}
+
+function backoffRemainingMs() {
+  const meta = readMeta();
+  if (!meta?.backoffUntil) return 0;
+  return Math.max(0, Number(meta.backoffUntil) - Date.now());
 }
 
 function decodeJwtExp(jwt) {
   try {
     const parts = jwt.split(".");
     if (parts.length < 2) return null;
-
     let payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-    while (payload.length % 4 !== 0) payload += "=";
-
-    const binary = atob(payload);
-    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
-    const decoded = new TextDecoder("utf-8").decode(bytes);
-
-    const json = JSON.parse(decoded);
-    if (json && typeof json.exp === "number" && !Number.isNaN(json.exp)) {
-      return json.exp;
-    }
-    return null;
-  } catch (err) {
-    console.warn("[Auth] Failed to decode JWT for exp fallback:", err);
-    return null;
-  }
-}
-
-function extractRawExpiry(tokenData) {
-  for (const key of EXPIRY_FIELD_CANDIDATES) {
-    const value = tokenData?.[key];
-    if (value !== undefined && value !== null) {
-      return { key, value };
-    }
-  }
-  return null;
-}
-
-function resolveExpiry(tokenData, accessToken) {
-  const rawExpiry = extractRawExpiry(tokenData);
-  let fieldBasedExpiry = NaN;
-
-  if (rawExpiry) {
-    const numeric = Number(rawExpiry.value);
-    if (!Number.isNaN(numeric)) {
-      const resolved = classifyNumericExpiry(numeric);
-      if (!Number.isNaN(resolved)) {
-        fieldBasedExpiry = resolved;
-        console.log(
-          `[Auth] Expiry resolved from field "${rawExpiry.key}" with value`,
-          rawExpiry.value,
-          "->",
-          new Date(resolved).toISOString(),
-        );
-      }
-    } else {
-      console.warn(
-        `[Auth] Expiry field "${rawExpiry.key}" is not numeric:`,
-        rawExpiry.value,
-      );
-    }
-  }
-
-  let jwtExpiryMs = NaN;
-  if (accessToken) {
-    const expSeconds = decodeJwtExp(accessToken);
-    if (expSeconds !== null) {
-      jwtExpiryMs = expSeconds * 1000;
-    }
-  }
-
-  if (!Number.isNaN(fieldBasedExpiry) && !Number.isNaN(jwtExpiryMs)) {
-    const driftMs = fieldBasedExpiry - jwtExpiryMs;
-    if (Math.abs(driftMs) > 5000) {
-      console.warn(
-        "[Auth] EXPIRY MISMATCH: declared expiresAt field and JWT exp claim disagree by",
-        Math.round(driftMs / 1000),
-        "seconds.",
-        {
-          fieldValue: rawExpiry?.value,
-          fieldResolved: new Date(fieldBasedExpiry).toISOString(),
-          jwtExp: new Date(jwtExpiryMs).toISOString(),
-        },
-      );
-    }
-    return jwtExpiryMs < fieldBasedExpiry ? jwtExpiryMs : fieldBasedExpiry;
-  }
-
-  if (!Number.isNaN(fieldBasedExpiry)) return fieldBasedExpiry;
-
-  if (!Number.isNaN(jwtExpiryMs)) {
-    console.log(
-      "[Auth] No usable expiry field in response — using JWT `exp` claim as fallback.",
+    while (payload.length % 4) payload += "=";
+    const decoded = JSON.parse(
+      new TextDecoder().decode(
+        Uint8Array.from(atob(payload), (c) => c.charCodeAt(0)),
+      ),
     );
-    return jwtExpiryMs;
+    return typeof decoded?.exp === "number" && !Number.isNaN(decoded.exp)
+      ? decoded.exp
+      : null;
+  } catch {
+    return null;
   }
-
-  return NaN;
 }
 
-function readAuthState() {
-  if (!hasWindow()) return null;
+function classifyExpiry(num) {
+  if (num >= 1e12) return num;
+  if (num >= 1e9) return num * 1000;
+  return Date.now() + num * 1000;
+}
 
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return null;
+function resolveExpiry(data, accessToken) {
+  let fieldMs = NaN;
+  for (const key of ["expiresIn", "expires_in", "expiresAt", "expires_at"]) {
+    const val = data?.[key];
+    if (val != null) {
+      const n = Number(val);
+      if (!Number.isNaN(n)) fieldMs = classifyExpiry(n);
+      break;
+    }
+  }
+  const jwtExp = accessToken ? decodeJwtExp(accessToken) : null;
+  const jwtMs = jwtExp !== null ? jwtExp * 1000 : NaN;
+  return !Number.isNaN(jwtMs) ? jwtMs : fieldMs;
+}
 
+function extractAT(data) {
+  const AT_FIELDS = ["accessToken", "token", "access_token", "jwt"];
+  for (const k of AT_FIELDS) if (data?.[k]) return data[k];
+  for (const [k, v] of Object.entries(data || {})) {
+    if (
+      !AT_FIELDS.includes(k) &&
+      typeof v === "string" &&
+      /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(v)
+    )
+      return v;
+  }
+  return undefined;
+}
+
+function extractRT(data) {
+  for (const k of ["refreshToken", "refresh_token"])
+    if (data?.[k]) return data[k];
+  return undefined;
+}
+
+function readState() {
+  if (!hasEnv()) return null;
   try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed === "object") return parsed;
-    return null;
-  } catch (err) {
-    console.warn("[Auth] Stored authState was corrupted — clearing it.");
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
     localStorage.removeItem(STORAGE_KEY);
     return null;
   }
 }
 
-function mirrorLegacyKeys(state) {
-  if (!hasWindow()) return;
+function getAT() {
+  return readState()?.accessToken || null;
+}
+function getRT() {
+  return readState()?.refreshToken || null;
+}
+function getExpiry() {
+  const v = readState()?.expiresAt;
+  if (v == null) return null;
+  const n = Number(v);
+  return Number.isNaN(n) ? null : n;
+}
 
-  if (state?.accessToken) {
-    localStorage.setItem("token", state.accessToken);
-  } else {
-    localStorage.removeItem("token");
-  }
-
-  if (state?.refreshToken) {
+function writeLegacy(state) {
+  if (!hasEnv()) return;
+  if (state?.accessToken) localStorage.setItem("token", state.accessToken);
+  else localStorage.removeItem("token");
+  if (state?.refreshToken)
     localStorage.setItem("refreshToken", state.refreshToken);
-  } else {
-    localStorage.removeItem("refreshToken");
-  }
-
-  if (
-    state?.expiresAt !== undefined &&
-    state?.expiresAt !== null &&
-    !Number.isNaN(Number(state.expiresAt))
-  ) {
+  else localStorage.removeItem("refreshToken");
+  if (state?.expiresAt != null && !Number.isNaN(Number(state.expiresAt)))
     localStorage.setItem("expiresAt", String(state.expiresAt));
-  } else {
-    localStorage.removeItem("expiresAt");
+  else localStorage.removeItem("expiresAt");
+}
+
+function commitState(state) {
+  if (!hasEnv()) return;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  writeLegacy(state);
+}
+
+function dispatch(ev) {
+  if (hasEnv()) window.dispatchEvent(new Event(ev));
+}
+
+function clearTimers() {
+  if (_timer) {
+    clearTimeout(_timer);
+    _timer = null;
+  }
+  if (_heartbeat) {
+    clearInterval(_heartbeat);
+    _heartbeat = null;
   }
 }
 
-function writeAuthState(state) {
-  if (!hasWindow()) return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  mirrorLegacyKeys(state);
+function clearLocalState() {
+  if (hasEnv()) localStorage.removeItem(STORAGE_KEY);
+  writeLegacy(null);
+  releaseClaim();
+  clearTimers();
 }
 
-function migrateLegacyKeysIfNeeded() {
-  if (!hasWindow()) return;
-  if (localStorage.getItem(STORAGE_KEY)) return;
-
-  const legacyToken = localStorage.getItem("token");
-  const legacyRefresh = localStorage.getItem("refreshToken");
-  const legacyExpiresAt = localStorage.getItem("expiresAt");
-
-  if (!legacyToken && !legacyRefresh && !legacyExpiresAt) return;
-
-  console.log("[Auth] Migrating legacy localStorage keys into authState.");
-
-  writeAuthState({
-    accessToken: legacyToken || null,
-    refreshToken: legacyRefresh || null,
-    expiresAt: legacyExpiresAt ? Number(legacyExpiresAt) : null,
-  });
+export function clearTokens() {
+  clearLocalState();
+  clearMeta();
+  broadcast({ type: "auth-cleared" });
 }
 
-function getAccessToken() {
-  return readAuthState()?.accessToken || null;
+export function saveTokens(data) {
+  if (!data) return;
+  const at = extractAT(data);
+  const rt = extractRT(data);
+  const expiryMs = resolveExpiry(data, at);
+  const prev = readState();
+  const nextRT =
+    rt !== undefined && rt !== null && rt !== ""
+      ? rt
+      : (prev?.refreshToken ?? null);
+  const state = {
+    accessToken: at || prev?.accessToken || null,
+    refreshToken: nextRT,
+    expiresAt: !Number.isNaN(expiryMs) ? expiryMs : (prev?.expiresAt ?? null),
+  };
+  const expired = !Number.isNaN(expiryMs) && expiryMs <= Date.now();
+  if (expired) {
+    const backoffUntil = Date.now() + BACKOFF_MS;
+    setGlobalBackoff(backoffUntil);
+  } else {
+    clearGlobalBackoff();
+  }
+  commitState(state);
+  if (!expired && !Number.isNaN(expiryMs)) scheduleRefresh(expiryMs);
+  broadcast({ type: "auth-updated" });
 }
 
-function getRefreshTokenValue() {
-  return readAuthState()?.refreshToken || null;
+function storeRefreshedTokens(data, prevRT) {
+  const at = extractAT(data);
+  if (!at) throw new Error("[Auth] No access token in refresh response.");
+  const rt = extractRT(data);
+  const expiryMs = resolveExpiry(data, at);
+  const prev = readState();
+  const nextRT =
+    rt !== undefined && rt !== null && rt !== ""
+      ? rt
+      : (prev?.refreshToken ?? null);
+  const state = {
+    accessToken: at,
+    refreshToken: nextRT,
+    expiresAt: !Number.isNaN(expiryMs) ? expiryMs : (prev?.expiresAt ?? null),
+  };
+  const rotated = nextRT !== prevRT;
+  const expired = !Number.isNaN(expiryMs) && expiryMs <= Date.now();
+  console.log(
+    `[Auth] tabId:${TAB_ID} AT:${mask(at)} prevRT:${mask(prevRT)} newRT:${mask(nextRT)} rotated:${rotated} expired:${expired}`,
+  );
+  if (expired) {
+    const backoffUntil = Date.now() + BACKOFF_MS;
+    setGlobalBackoff(backoffUntil);
+    console.error(
+      `[Auth] Backend issued expired AT. Global backoff until ${new Date(backoffUntil).toISOString()}`,
+    );
+  } else {
+    clearGlobalBackoff();
+  }
+  commitState(state);
+  if (!expired && !Number.isNaN(expiryMs)) {
+    scheduleRefresh(expiryMs);
+  }
+  broadcast({ type: "auth-updated" });
+  return at;
 }
 
-function getExpiresAtMs() {
-  const state = readAuthState();
-  if (!state || state.expiresAt === undefined || state.expiresAt === null)
-    return null;
-  const numeric = Number(state.expiresAt);
-  return Number.isNaN(numeric) ? null : numeric;
+function canRefresh(tag) {
+  if (isBackoffActive()) {
+    console.warn(
+      `[Auth] Refresh suppressed (${tag}): global backoff ${Math.round(backoffRemainingMs() / 1000)}s remaining.`,
+    );
+    return false;
+  }
+  return true;
 }
 
-function logRemainingSeconds(expiresAtMs) {
-  if (expiresAtMs === null || expiresAtMs === undefined) return;
-  const remainingSeconds = Math.round((expiresAtMs - Date.now()) / 1000);
-  // console.log("[Auth] remainingSeconds:", remainingSeconds);
+function rejectExpiredRequest() {
+  return Promise.reject(
+    Object.assign(new Error("Access token expired — refresh backoff active."), {
+      _authBackoff: true,
+    }),
+  );
+}
+
+function isExpiredNow() {
+  const exp = getExpiry();
+  return exp !== null && exp <= Date.now();
+}
+
+function startHeartbeat() {
+  if (_heartbeat) return;
+  _heartbeat = setInterval(() => {
+    const state = readState();
+    if (
+      !state?.accessToken ||
+      !state?.refreshToken ||
+      state.expiresAt == null
+    ) {
+      clearInterval(_heartbeat);
+      _heartbeat = null;
+      return;
+    }
+    const exp = Number(state.expiresAt);
+    if (Number.isNaN(exp)) return;
+    if (exp - Date.now() <= REFRESH_BUFFER_MS) {
+      if (canRefresh("heartbeat")) refreshAccessToken().catch(() => {});
+    } else if (!_timer) {
+      scheduleRefresh(exp);
+    }
+  }, 60_000);
+}
+
+export function scheduleRefresh(expiresAt) {
+  if (_timer) {
+    clearTimeout(_timer);
+    _timer = null;
+  }
+  const exp = Number(expiresAt);
+  if (!exp || Number.isNaN(exp)) return;
+  const remaining = exp - Date.now();
+  if (remaining <= 0 || remaining <= REFRESH_BUFFER_MS) {
+    if (canRefresh("scheduleRefresh:immediate"))
+      refreshAccessToken().catch(() => {});
+    startHeartbeat();
+    return;
+  }
+  const delay = Math.min(remaining - REFRESH_BUFFER_MS, 2_147_483_647);
+  console.log(
+    `[Auth] Refresh scheduled in ${Math.round(delay / 1000)}s (at ${new Date(Date.now() + delay).toISOString()})`,
+  );
+  _timer = setTimeout(() => {
+    console.log("[Auth] Timer fired.");
+    refreshAccessToken().catch(() => {});
+  }, delay);
+  startHeartbeat();
+}
+
+export const scheduleAutoRefresh = scheduleRefresh;
+
+export function startTokenAutoRefresh() {
+  if (!hasEnv()) return;
+  const state = readState();
+  if (!state?.accessToken || !state?.refreshToken || state.expiresAt == null)
+    return;
+  const exp = Number(state.expiresAt);
+  if (Number.isNaN(exp)) return;
+  console.log(
+    `[Auth] Startup: ${Math.round((exp - Date.now()) / 1000)}s until expiry.`,
+  );
+  if (exp - Date.now() <= REFRESH_BUFFER_MS) {
+    if (canRefresh("startup")) refreshAccessToken().catch(() => {});
+  } else {
+    scheduleRefresh(exp);
+  }
+}
+
+export function isTokenNearExpiry() {
+  const exp = getExpiry();
+  return exp !== null && exp - Date.now() <= REFRESH_BUFFER_MS;
 }
 
 export function setAuthUpdater(fn) {
   _authUpdater = fn;
 }
 
-function clearLocalAuthState() {
-  if (hasWindow()) localStorage.removeItem(STORAGE_KEY);
-  mirrorLegacyKeys(null);
-  releaseFallbackClaim();
-  if (scheduledTimer) {
-    clearTimeout(scheduledTimer);
-    scheduledTimer = null;
-  }
-  if (heartbeatInterval) {
-    clearInterval(heartbeatInterval);
-    heartbeatInterval = null;
-  }
-}
-
-export function clearTokens() {
-  clearLocalAuthState();
-  broadcastAuthCleared();
-}
-
-export function saveTokens(tokenData) {
-  if (!tokenData) return;
-
-  const incomingAccessToken = extractAccessToken(tokenData);
-  const incomingRefreshToken = extractRefreshToken(tokenData);
-  const incomingExpiryMs = resolveExpiry(tokenData, incomingAccessToken);
-
-  const previous = readAuthState();
-
-  const nextState = {
-    accessToken: incomingAccessToken || previous?.accessToken || null,
-    refreshToken: incomingRefreshToken || previous?.refreshToken || null,
-    expiresAt: !Number.isNaN(incomingExpiryMs)
-      ? incomingExpiryMs
-      : (previous?.expiresAt ?? null),
-  };
-
-  writeAuthState(nextState);
-
-  if (!Number.isNaN(incomingExpiryMs)) {
-    scheduleAutoRefresh(incomingExpiryMs);
-  } else {
-    console.warn(
-      "[Auth] Could not determine token expiry — auto-refresh will not be scheduled.",
-    );
-  }
-
-  console.log("[Auth] accessTokenExists:", !!nextState.accessToken);
-  console.log("[Auth] refreshTokenExists:", !!nextState.refreshToken);
-  console.log("[Auth] expiresAt:", nextState.expiresAt);
-
-  broadcastAuthUpdated();
-}
-
-function startHeartbeat() {
-  if (heartbeatInterval) return;
-
-  heartbeatInterval = setInterval(() => {
-    const state = readAuthState();
-
-    if (
-      !state?.accessToken ||
-      !state?.refreshToken ||
-      state.expiresAt == null
-    ) {
-      clearInterval(heartbeatInterval);
-      heartbeatInterval = null;
-      return;
-    }
-
-    const expiryTime = Number(state.expiresAt);
-    if (Number.isNaN(expiryTime)) return;
-
-    const timeRemaining = expiryTime - Date.now();
-
-    if (timeRemaining <= 0 || timeRemaining <= REFRESH_BUFFER_MS) {
-      console.log(
-        "[Auth] Heartbeat: token expired or near expiry — refreshing now.",
-      );
-      refreshAccessToken().catch(() => {});
-    } else if (!scheduledTimer) {
-      console.log("[Auth] Heartbeat: timer missing — rescheduling.");
-      scheduleAutoRefresh(expiryTime);
-    }
-  }, 60 * 1000);
-}
-
-export function scheduleAutoRefresh(expiresAt) {
-  if (scheduledTimer) {
-    clearTimeout(scheduledTimer);
-    scheduledTimer = null;
-  }
-
-  const expiryTime = Number(expiresAt);
-  if (!expiryTime || Number.isNaN(expiryTime)) return;
-
-  const now = Date.now();
-  const timeRemaining = expiryTime - now;
-
-  if (timeRemaining <= 0) {
-    console.log("[Auth] Token already expired — refreshing immediately.");
-    refreshAccessToken().catch(() => {});
-    startHeartbeat();
-    return;
-  }
-
-  if (timeRemaining <= REFRESH_BUFFER_MS) {
-    console.log(
-      `[Auth] Less than ${REFRESH_BUFFER_MS / 1000}s remaining — refreshing immediately.`,
-    );
-    refreshAccessToken().catch(() => {});
-    startHeartbeat();
-    return;
-  }
-
-  const delay = timeRemaining - REFRESH_BUFFER_MS;
-  const safeDelay = Math.min(delay, 2147483647);
-
-  const scheduledFor = new Date(now + safeDelay).toISOString();
-  // console.log(
-  //   `[Auth] Refresh scheduled for ${scheduledFor} ` +
-  //     `(${Math.round(safeDelay / 1000)}s from now, ${REFRESH_BUFFER_MS / 1000}s before expiry)`,
-  // );
-
-  scheduledTimer = setTimeout(() => {
-    console.log("[Auth] Scheduled refresh firing now.");
-    refreshAccessToken().catch(() => {});
-  }, safeDelay);
-
-  startHeartbeat();
-}
-
-export function startTokenAutoRefresh() {
-  if (!hasWindow()) return;
-
-  const state = readAuthState();
-  if (!state?.accessToken || !state?.refreshToken || state.expiresAt == null)
-    return;
-
-  const expiresAt = Number(state.expiresAt);
-  if (Number.isNaN(expiresAt)) return;
-
-  logRemainingSeconds(expiresAt);
-
-  if (isTokenNearExpiry()) {
-    refreshAccessToken().catch(() => {});
-  } else {
-    scheduleAutoRefresh(expiresAt);
-  }
-}
-
-export function isTokenNearExpiry() {
-  const expiresAt = getExpiresAtMs();
-  if (expiresAt === null) return false;
-
-  const timeRemaining = expiresAt - Date.now();
-  return timeRemaining <= REFRESH_BUFFER_MS;
-}
-
-function hasWebLocks() {
+function hasLocks() {
   return (
     typeof navigator !== "undefined" &&
     navigator.locks &&
@@ -453,496 +385,419 @@ function hasWebLocks() {
   );
 }
 
-function acquireFallbackClaim() {
-  if (!hasWindow()) return true;
-
-  const now = Date.now();
-  const existingRaw = localStorage.getItem(FALLBACK_CLAIM_KEY);
-
-  if (existingRaw) {
-    let existing = null;
-    try {
-      existing = JSON.parse(existingRaw);
-    } catch (err) {
-      existing = null;
-    }
-
-    if (existing && existing.owner === TAB_ID) {
-      return true;
-    }
-
-    if (
-      existing &&
-      !Number.isNaN(Number(existing.ts)) &&
-      now - Number(existing.ts) < FALLBACK_CLAIM_TTL_MS
-    ) {
-      return false;
-    }
+function parseClaim(raw) {
+  try {
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
   }
+}
 
+function acquireClaim() {
+  if (!hasEnv()) return true;
+  const now = Date.now();
+  const claim = parseClaim(localStorage.getItem(FALLBACK_CLAIM_KEY));
+  if (claim?.owner === TAB_ID) return true;
+  if (
+    claim &&
+    !Number.isNaN(Number(claim.ts)) &&
+    now - Number(claim.ts) < FALLBACK_CLAIM_TTL_MS
+  )
+    return false;
   localStorage.setItem(
     FALLBACK_CLAIM_KEY,
     JSON.stringify({ owner: TAB_ID, ts: now }),
   );
-
-  const verifyRaw = localStorage.getItem(FALLBACK_CLAIM_KEY);
-  let verify = null;
-  try {
-    verify = JSON.parse(verifyRaw);
-  } catch (err) {
-    verify = null;
-  }
-
-  return !!verify && verify.owner === TAB_ID;
+  const verify = parseClaim(localStorage.getItem(FALLBACK_CLAIM_KEY));
+  return verify?.owner === TAB_ID;
 }
 
-function releaseFallbackClaim() {
-  if (!hasWindow()) return;
-
-  const existingRaw = localStorage.getItem(FALLBACK_CLAIM_KEY);
-  if (!existingRaw) return;
-
-  let existing = null;
-  try {
-    existing = JSON.parse(existingRaw);
-  } catch (err) {
-    return;
-  }
-
-  if (existing && existing.owner === TAB_ID) {
-    localStorage.removeItem(FALLBACK_CLAIM_KEY);
-  }
+function releaseClaim() {
+  if (!hasEnv()) return;
+  const claim = parseClaim(localStorage.getItem(FALLBACK_CLAIM_KEY));
+  if (claim?.owner === TAB_ID) localStorage.removeItem(FALLBACK_CLAIM_KEY);
 }
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function isRemoteRefreshActive() {
-  if (!remoteRefreshInProgress) return false;
-  if (
-    Date.now() - remoteRefreshInProgress.ts >
-    FALLBACK_COORDINATION_TIMEOUT_MS
-  ) {
-    remoteRefreshInProgress = null;
+function isRemoteActive() {
+  if (!_remoteRefresh) return false;
+  if (Date.now() - _remoteRefresh.ts > FALLBACK_TIMEOUT_MS) {
+    _remoteRefresh = null;
     return false;
   }
   return true;
 }
 
-function broadcastRefreshActive() {
-  const channel = getBroadcastChannel();
-  if (channel)
-    channel.postMessage({
-      type: "refresh-active",
-      tabId: TAB_ID,
-      ts: Date.now(),
-    });
+function broadcast(msg) {
+  const ch = getChannel();
+  if (ch) ch.postMessage({ ...msg, tabId: TAB_ID });
 }
 
-function broadcastRefreshDone() {
-  const channel = getBroadcastChannel();
-  if (channel) channel.postMessage({ type: "refresh-done", tabId: TAB_ID });
+function reconcileTimer() {
+  if (isBackoffActive()) return;
+  const state = readState();
+  if (!state?.accessToken || !state?.refreshToken || state.expiresAt == null)
+    return;
+  const exp = Number(state.expiresAt);
+  if (!Number.isNaN(exp)) scheduleRefresh(exp);
 }
 
-async function performRefreshNetworkCall(refreshTokenToSend) {
-  console.log("[Auth] refreshStarted:", true);
+function getChannel() {
+  if (!hasEnv() || typeof BroadcastChannel === "undefined") return null;
+  if (!_channel) {
+    _channel = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+    _channel.onmessage = ({ data }) => {
+      if (!data || typeof data !== "object") return;
+      if (data.type === "auth-cleared") {
+        clearLocalState();
+        dispatch("auth-failed");
+      } else if (data.type === "auth-updated") reconcileTimer();
+      else if (data.type === "backoff-active") {
+        writeMeta({
+          backoffUntil: data.backoffUntil,
+          backoffTabId: data.tabId,
+        });
+        console.warn(
+          `[Auth] Cross-tab backoff received until ${new Date(data.backoffUntil).toISOString()}`,
+        );
+      } else if (data.type === "refresh-active" && data.tabId !== TAB_ID)
+        _remoteRefresh = {
+          ts: Number(data.ts) || Date.now(),
+          tabId: data.tabId,
+        };
+      else if (data.type === "refresh-done" && data.tabId !== TAB_ID) {
+        _remoteRefresh = null;
+        reconcileTimer();
+      }
+    };
+  }
+  return _channel;
+}
 
-  console.log("[Auth] REFRESH DEBUG", {
-    endpoint: "/api/auth/refresh",
-    refreshTokenExists: !!refreshTokenToSend,
-    refreshTokenLength: refreshTokenToSend?.length,
-    authStateRefreshTokenExists: !!getRefreshTokenValue(),
-    accessTokenExists: !!getAccessToken(),
-    expiresAt: getExpiresAtMs(),
-    remainingSeconds: getExpiresAtMs()
-      ? Math.round((getExpiresAtMs() - Date.now()) / 1000)
-      : null,
-  });
+function isRotatedByOtherTab(tokenAtStart) {
+  const latestRT = getRT();
+  const latestAT = getAT();
+  const latestExp = getExpiry();
+  const atJwtExp = latestAT ? decodeJwtExp(latestAT) : null;
+  const atValid =
+    latestAT &&
+    (atJwtExp !== null
+      ? atJwtExp * 1000 > Date.now()
+      : latestExp !== null && latestExp > Date.now());
+  return latestRT !== null && latestRT !== tokenAtStart && atValid;
+}
 
-  let response;
-  try {
-    response = await refreshApi.post("/api/auth/refresh", {
-      Token: refreshTokenToSend,
-    });
-  } catch (err) {
-    console.log("[Auth] REFRESH ERROR", {
-      status: err?.response?.status,
-      statusText: err?.response?.statusText,
-      responseData: err?.response?.data,
-      requestUrl: err?.config?.url,
-    });
+function runCoordinatedRefresh(token) {
+  return hasLocks()
+    ? navigator.locks.request(WEB_LOCK_NAME, { mode: "exclusive" }, () =>
+        runOnceLockHeld(token),
+      )
+    : runFallback(token);
+}
+
+async function doRefreshRequest(tokenAtStart) {
+  if (isBackoffActive()) {
+    throw Object.assign(
+      new Error("Access token expired — refresh backoff active."),
+      { _authBackoff: true },
+    );
+  }
+  const rtToSend = getRT();
+  if (!rtToSend)
+    throw new Error("[Auth] No refresh token before network call.");
+  if (rtToSend !== tokenAtStart) {
+    console.log(
+      `[Auth] RT changed before POST. tokenAtStart:${mask(tokenAtStart)} current:${mask(rtToSend)}`,
+    );
+    if (isRotatedByOtherTab(tokenAtStart)) return getAT();
+    const err = new Error("Token changed during refresh coordination.");
+    err._tokenRotatedStale = true;
     throw err;
   }
-
-  const tokenData = response.data?.data ?? response.data;
-
-  const newAccessToken = extractAccessToken(tokenData);
-  const newRefreshToken = extractRefreshToken(tokenData);
-  const resolvedExpiry = resolveExpiry(tokenData, newAccessToken);
-
-  console.log("[Auth] REFRESH RESPONSE", {
-    status: response.status,
-    keys: Object.keys(tokenData || {}),
-    accessTokenReceived: !!newAccessToken,
-    refreshTokenReceived: !!newRefreshToken,
-    expiryReceived: Number.isNaN(resolvedExpiry) ? null : resolvedExpiry,
-  });
-
-  if (!newAccessToken) {
-    throw new Error("No access token returned from refresh endpoint.");
+  console.log(
+    `[Auth] POST /api/auth/refresh tabId:${TAB_ID} RT:${mask(rtToSend)}`,
+  );
+  let response;
+  try {
+    response = await refreshApi.post("/api/auth/refresh", { Token: rtToSend });
+  } catch (err) {
+    console.warn(
+      `[Auth] Refresh network error: ${err?.response?.status ?? "no response"} tabId:${TAB_ID}`,
+    );
+    throw err;
   }
-
-  saveTokens(tokenData);
-  console.log("[Auth] refreshSucceeded:", true);
-
-  if (typeof _authUpdater === "function") {
-    _authUpdater(tokenData);
-  }
-
-  return newAccessToken;
+  const data = response.data?.data ?? response.data;
+  const newAT = storeRefreshedTokens(data, rtToSend);
+  if (typeof _authUpdater === "function") _authUpdater(data);
+  return newAT;
 }
 
-async function runRefreshOnceLockHeld(refreshTokenAtCallTime) {
-  const currentRefreshToken = getRefreshTokenValue();
-
-  if (
-    currentRefreshToken &&
-    refreshTokenAtCallTime &&
-    currentRefreshToken !== refreshTokenAtCallTime
-  ) {
-    const currentAccessToken = getAccessToken();
-    if (currentAccessToken) {
-      console.log(
-        "[Auth] Refresh token was already rotated by another tab — reusing its result instead of refreshing again.",
-      );
-      return currentAccessToken;
-    }
-  }
-
-  if (!currentRefreshToken) {
-    throw new Error("Refresh token was cleared before refresh could run.");
-  }
-
-  return performRefreshNetworkCall(currentRefreshToken);
-}
-
-async function runCoordinatedRefresh(refreshTokenAtCallTime) {
-  if (hasWebLocks()) {
-    return navigator.locks.request(WEB_LOCK_NAME, { mode: "exclusive" }, () =>
-      runRefreshOnceLockHeld(refreshTokenAtCallTime),
+async function runOnceLockHeld(tokenAtStart) {
+  if (isBackoffActive()) {
+    console.warn("[Auth] Lock held: global backoff active — aborting refresh.");
+    throw Object.assign(
+      new Error("Access token expired — refresh backoff active."),
+      { _authBackoff: true },
     );
   }
-
-  console.warn(
-    "[Auth] Web Locks API unavailable in this browser. Falling back to a best-effort " +
-      "coordination scheme (BroadcastChannel + a localStorage claim). This is NOT a true " +
-      "mutex — the browser gives no cross-tab atomic primitive outside Web Locks — so two " +
-      "tabs can still both believe they hold the claim in a narrow window. What IS guaranteed " +
-      "is that this tab re-reads authState immediately before sending any refresh request and " +
-      "will reuse a token another tab already rotated in rather than sending a token known to " +
-      "be stale.",
-  );
-
-  return runFallbackRefresh(refreshTokenAtCallTime);
+  if (isRotatedByOtherTab(tokenAtStart)) {
+    console.log(
+      `[Auth] Lock held: another tab already rotated. RT:${mask(getRT())}`,
+    );
+    return getAT();
+  }
+  const rt = getRT();
+  if (!rt) throw new Error("[Auth] Refresh token cleared before lock.");
+  return doRefreshRequest(tokenAtStart);
 }
 
-function randomJitterMs(baseMs, spreadMs) {
-  return baseMs + Math.floor(Math.random() * spreadMs);
-}
-
-async function runFallbackRefresh(refreshTokenAtCallTime) {
-  const deadline = Date.now() + FALLBACK_COORDINATION_TIMEOUT_MS;
-
-  await sleep(randomJitterMs(0, 150));
-
+async function runFallback(tokenAtStart) {
+  const deadline = Date.now() + FALLBACK_TIMEOUT_MS;
+  await sleep(jitter(0, 150));
   while (Date.now() < deadline) {
-    const currentRefreshToken = getRefreshTokenValue();
-    if (
-      currentRefreshToken &&
-      refreshTokenAtCallTime &&
-      currentRefreshToken !== refreshTokenAtCallTime
-    ) {
-      const currentAccessToken = getAccessToken();
-      if (currentAccessToken) {
-        console.log("[Auth] fallback:", {
-          anotherTabRefreshed: true,
-          usingLatestAuthState: true,
-        });
-        return currentAccessToken;
-      }
-    }
-
-    if (isRemoteRefreshActive()) {
-      console.log("[Auth] refreshWaiting:", true);
-      await sleep(
-        randomJitterMs(FALLBACK_POLL_INTERVAL_MS, FALLBACK_POLL_INTERVAL_MS),
+    if (isBackoffActive()) {
+      console.warn(
+        "[Auth] Fallback: global backoff active — aborting refresh.",
       );
+      throw Object.assign(
+        new Error("Access token expired — refresh backoff active."),
+        { _authBackoff: true },
+      );
+    }
+    if (isRotatedByOtherTab(tokenAtStart)) {
+      console.log("[Auth] Fallback: another tab rotated — reusing.");
+      return getAT();
+    }
+    if (isRemoteActive()) {
+      await sleep(jitter(FALLBACK_POLL_MS, FALLBACK_POLL_MS));
       continue;
     }
-
-    if (acquireFallbackClaim()) {
-      broadcastRefreshActive();
+    if (acquireClaim()) {
+      broadcast({ type: "refresh-active", ts: Date.now() });
       try {
-        return await runRefreshOnceLockHeld(refreshTokenAtCallTime);
+        return await runOnceLockHeld(tokenAtStart);
       } finally {
-        releaseFallbackClaim();
-        broadcastRefreshDone();
+        releaseClaim();
+        broadcast({ type: "refresh-done" });
       }
     }
-
-    await sleep(
-      randomJitterMs(FALLBACK_POLL_INTERVAL_MS, FALLBACK_POLL_INTERVAL_MS),
-    );
+    await sleep(jitter(FALLBACK_POLL_MS, FALLBACK_POLL_MS));
   }
+  throw new Error("[Auth] Timed out on cross-tab refresh coordination.");
+}
 
-  throw new Error(
-    "Timed out waiting for cross-tab refresh coordination without Web Locks support.",
-  );
+async function executeRefreshFlow() {
+  const MAX_RETRIES = 3;
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    const tokenAtStart = getRT();
+    if (!tokenAtStart) {
+      console.warn("[Auth] No refresh token — logging out.");
+      clearTokens();
+      dispatch("auth-failed");
+      throw new Error("No refresh token.");
+    }
+    try {
+      return await runCoordinatedRefresh(tokenAtStart);
+    } catch (err) {
+      if (err?._tokenRotatedStale) {
+        if (attempt < MAX_RETRIES - 1) {
+          console.log(
+            `[Auth] State changed during refresh (attempt ${attempt + 1}/${MAX_RETRIES}) — re-entering flow.`,
+          );
+          continue;
+        }
+        throw new Error(
+          "Refresh state could not stabilize after maximum retries.",
+        );
+      }
+      err.failedRefreshToken = tokenAtStart;
+      throw err;
+    }
+  }
+  throw new Error("Refresh state could not stabilize after maximum retries.");
 }
 
 export function refreshAccessToken() {
-  if (refreshPromise) {
-    console.log(
-      "[Auth] Refresh already in progress in this tab — reusing existing request.",
-    );
-    return refreshPromise;
+  if (_refreshPromise) {
+    console.log("[Auth] Deduped refresh — reusing in-flight promise.");
+    return _refreshPromise;
   }
-
-  const storedRefreshToken = getRefreshTokenValue();
-
-  if (!storedRefreshToken) {
-    console.warn("[Auth] No refresh token available — logging out.");
-    clearTokens();
-    dispatchAuthFailed();
-    return Promise.reject(new Error("No refresh token available"));
-  }
-
-  refreshPromise = runCoordinatedRefresh(storedRefreshToken)
-    .catch((error) => {
-      console.error("[Auth] Token refresh failed:", error?.message || error);
-
-      const status = error?.response?.status;
-      const isDefinitiveRejection = status === 401 || status === 403;
-
-      if (isDefinitiveRejection) {
-        const latestRefreshToken = getRefreshTokenValue();
-        const latestAccessToken = getAccessToken();
-        const wasRotatedConcurrently =
-          latestRefreshToken &&
-          latestRefreshToken !== storedRefreshToken &&
-          !!latestAccessToken;
-
-        if (wasRotatedConcurrently) {
+  _refreshPromise = executeRefreshFlow()
+    .catch((err) => {
+      const status = err?.response?.status;
+      if (status === 401 || status === 403) {
+        const failedRefreshToken = err?.failedRefreshToken || getRT();
+        const latestRefreshToken = getRT();
+        const latestAccessToken = getAT();
+        const latestExp = getExpiry();
+        const atJwtExp = latestAccessToken
+          ? decodeJwtExp(latestAccessToken)
+          : null;
+        const atValid =
+          latestAccessToken &&
+          (atJwtExp !== null
+            ? atJwtExp * 1000 > Date.now()
+            : latestExp !== null && latestExp > Date.now());
+        const concurrentRotation =
+          latestRefreshToken !== null &&
+          latestRefreshToken !== failedRefreshToken &&
+          latestAccessToken !== null &&
+          atValid;
+        if (concurrentRotation) {
           console.log(
-            "[Auth] anotherTabRefreshed:",
-            true,
-            "usingLatestAuthState:",
-            true,
+            `[Auth] 401 concurrent rotation. failed:${mask(failedRefreshToken)} latest:${mask(latestRefreshToken)}`,
           );
-          console.log(
-            "[Auth] Refresh endpoint rejected a refresh token that another tab had already " +
-              "rotated out from under this request — another tab already refreshed the session " +
-              "successfully. Using its latest access token instead of failing this request.",
-          );
-          reconcileTimerWithStoredState();
+          reconcileTimer();
           return latestAccessToken;
         }
-
         console.warn(
-          "[Auth] Refresh endpoint explicitly rejected the refresh token — logging out.",
+          `[Auth] 401 genuine invalid RT:${mask(failedRefreshToken)} tabId:${TAB_ID}. Logging out.`,
         );
         clearTokens();
-        dispatchAuthFailed();
-      } else {
+        dispatch("auth-failed");
+      } else if (!err?._authBackoff) {
         console.warn(
-          "[Auth] Refresh failed due to a network/server error, not an invalid refresh token — keeping the existing session for retry.",
+          `[Auth] Refresh error (status:${status ?? "network"}) — session preserved.`,
         );
       }
-
-      throw error;
+      throw err;
     })
     .finally(() => {
-      refreshPromise = null;
+      _refreshPromise = null;
     });
-
-  return refreshPromise;
+  return _refreshPromise;
 }
 
-function isAuthEndpointUrl(url) {
-  const u = url || "";
-  return u.includes("/auth/login") || u.includes("/auth/refresh");
+function isAuthUrl(url) {
+  return (
+    (url || "").includes("/auth/login") || (url || "").includes("/auth/refresh")
+  );
 }
 
-function applyAuthHeader(config, token) {
+function applyBearer(config, token) {
   if (!token) return config;
-  if (config.headers && typeof config.headers.set === "function") {
+  if (typeof config.headers?.set === "function")
     config.headers.set("Authorization", `Bearer ${token}`);
-  } else {
+  else
     config.headers = {
       ...(config.headers || {}),
       Authorization: `Bearer ${token}`,
     };
-  }
   return config;
 }
 
 api.interceptors.request.use(
   async (config) => {
-    const isAuthEndpoint = isAuthEndpointUrl(config.url);
-
-    if (!config._retry && !isAuthEndpoint && isTokenNearExpiry()) {
-      try {
-        await refreshAccessToken();
-      } catch (error) {
-        return Promise.reject(error);
+    // If the request body is FormData, let the browser set Content-Type
+    // (with the correct multipart boundary) by deleting the default JSON header.
+    if (config.data instanceof FormData) {
+      if (typeof config.headers?.delete === "function") {
+        config.headers.delete("Content-Type");
+      } else {
+        delete config.headers["Content-Type"];
       }
     }
-    const token = getAccessToken();
-    return applyAuthHeader(config, token);
+
+    if (!config._retry && !isAuthUrl(config.url) && isTokenNearExpiry()) {
+      if (!canRefresh("requestInterceptor")) {
+        if (isExpiredNow()) return rejectExpiredRequest();
+        return applyBearer(config, getAT());
+      }
+      try {
+        await refreshAccessToken();
+      } catch (e) {
+        return Promise.reject(e);
+      }
+    }
+    return applyBearer(config, getAT());
   },
-  (error) => Promise.reject(error),
+  (e) => Promise.reject(e),
 );
 
 api.interceptors.response.use(
-  (response) => response,
+  (r) => r,
   async (error) => {
-    const originalRequest = error.config;
-    const isRefreshEndpoint = isAuthEndpointUrl(originalRequest?.url);
-
-    console.log("[Auth] API 401 URL:", originalRequest?.url);
-    console.log("[Auth] Refresh endpoint:", isRefreshEndpoint);
-
+    const req = error.config;
     if (
-      !originalRequest ||
+      !req ||
       error.response?.status !== 401 ||
-      originalRequest._retry ||
-      isRefreshEndpoint
-    ) {
-      if (isRefreshEndpoint && error.response?.status === 401) {
-        clearTokens();
-        dispatchAuthFailed();
-      }
+      req._retry ||
+      isAuthUrl(req.url)
+    )
       return Promise.reject(error);
+    req._retry = true;
+    if (!canRefresh("401Retry")) {
+      if (isExpiredNow()) return rejectExpiredRequest();
+      return api(applyBearer(req, getAT()));
     }
-
-    originalRequest._retry = true;
-    console.log(
-      "[Auth] Retrying original request after refresh:",
-      originalRequest.url,
-    );
     try {
-      const newAccessToken = await refreshAccessToken();
-      applyAuthHeader(originalRequest, newAccessToken);
-      return api(originalRequest);
-    } catch (refreshError) {
-      return Promise.reject(refreshError);
+      const newAT = await refreshAccessToken();
+      return api(applyBearer(req, newAT));
+    } catch (e) {
+      return Promise.reject(e);
     }
   },
 );
 
-function reconcileTimerWithStoredState() {
-  const state = readAuthState();
-  if (!state?.accessToken || !state?.refreshToken || state.expiresAt == null)
-    return;
-
-  const expiresAt = Number(state.expiresAt);
-  if (Number.isNaN(expiresAt)) return;
-
-  logRemainingSeconds(expiresAt);
-  scheduleAutoRefresh(expiresAt);
+function migrateLegacy() {
+  if (!hasEnv() || localStorage.getItem(STORAGE_KEY)) return;
+  const at = localStorage.getItem("token");
+  const rt = localStorage.getItem("refreshToken");
+  const exp = localStorage.getItem("expiresAt");
+  if (!at && !rt && !exp) return;
+  console.log("[Auth] Migrating legacy keys to authState.");
+  commitState({
+    accessToken: at || null,
+    refreshToken: rt || null,
+    expiresAt: exp ? Number(exp) : null,
+  });
 }
 
-function getBroadcastChannel() {
-  if (!hasWindow() || typeof BroadcastChannel === "undefined") return null;
-
-  if (!broadcastChannel) {
-    broadcastChannel = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
-    broadcastChannel.onmessage = (event) => {
-      const data = event.data;
-      if (!data || typeof data !== "object") return;
-
-      if (data.type === "auth-cleared") {
-        console.log("[Auth] Received auth-cleared broadcast from another tab.");
-        clearLocalAuthState();
-        dispatchAuthFailed();
-      } else if (data.type === "auth-updated") {
-        console.log("[Auth] Received auth-updated broadcast from another tab.");
-        reconcileTimerWithStoredState();
-      } else if (data.type === "refresh-active" && data.tabId !== TAB_ID) {
-        console.log(
-          "[Auth] Received refresh-active broadcast — another tab is refreshing.",
-        );
-        remoteRefreshInProgress = {
-          ts: Number(data.ts) || Date.now(),
-          tabId: data.tabId,
-        };
-      } else if (data.type === "refresh-done" && data.tabId !== TAB_ID) {
-        console.log("[Auth] Received refresh-done broadcast from another tab.");
-        remoteRefreshInProgress = null;
-        reconcileTimerWithStoredState();
-      }
-    };
-  }
-
-  return broadcastChannel;
-}
-
-function broadcastAuthUpdated() {
-  const channel = getBroadcastChannel();
-  if (channel) channel.postMessage({ type: "auth-updated" });
-}
-
-function broadcastAuthCleared() {
-  const channel = getBroadcastChannel();
-  if (channel) channel.postMessage({ type: "auth-cleared" });
-}
-
-if (hasWindow()) {
-  migrateLegacyKeysIfNeeded();
-  getBroadcastChannel();
+if (hasEnv()) {
+  migrateLegacy();
+  getChannel();
   startTokenAutoRefresh();
 
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState !== "visible") return;
-
-    const state = readAuthState();
+    const state = readState();
     if (!state?.accessToken || !state?.refreshToken || state.expiresAt == null)
       return;
-
-    const expiresAt = Number(state.expiresAt);
-    if (Number.isNaN(expiresAt)) return;
-
-    logRemainingSeconds(expiresAt);
-    const timeRemaining = expiresAt - Date.now();
-
-    if (timeRemaining <= 0 || timeRemaining <= REFRESH_BUFFER_MS) {
-      console.log(
-        "[Auth] Tab visible: token expired or near expiry — refreshing now.",
-      );
-      refreshAccessToken().catch(() => {});
-    } else if (!scheduledTimer) {
-      console.log("[Auth] Tab visible: no timer running — rescheduling.");
-      scheduleAutoRefresh(expiresAt);
+    const exp = Number(state.expiresAt);
+    if (Number.isNaN(exp)) return;
+    console.log(
+      `[Auth] Tab visible. Remaining: ${Math.round((exp - Date.now()) / 1000)}s`,
+    );
+    if (exp - Date.now() <= REFRESH_BUFFER_MS) {
+      if (canRefresh("visibilityChange")) refreshAccessToken().catch(() => {});
+    } else if (!_timer) {
+      scheduleRefresh(exp);
     }
   });
 
-  window.addEventListener("storage", (event) => {
-    if (event.key !== STORAGE_KEY) return;
-
-    if (event.newValue === null) {
-      clearLocalAuthState();
-      dispatchAuthFailed();
-    } else {
-      reconcileTimerWithStoredState();
+  window.addEventListener("storage", ({ key, newValue }) => {
+    if (key === STORAGE_KEY) {
+      if (newValue === null) {
+        clearLocalState();
+        dispatch("auth-failed");
+      } else reconcileTimer();
+    }
+    if (key === META_KEY && newValue !== null) {
+      try {
+        const meta = JSON.parse(newValue);
+        if (meta?.backoffUntil && meta.backoffTabId !== TAB_ID) {
+          console.warn(
+            `[Auth] Cross-tab backoff from storage until ${new Date(meta.backoffUntil).toISOString()}`,
+          );
+        }
+      } catch {}
     }
   });
 
   window.addEventListener("beforeunload", () => {
-    releaseFallbackClaim();
-    if (broadcastChannel) {
-      broadcastChannel.close();
-      broadcastChannel = null;
+    releaseClaim();
+    if (_channel) {
+      _channel.close();
+      _channel = null;
     }
   });
 }
