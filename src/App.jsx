@@ -1,10 +1,6 @@
 import Lenis from "lenis";
 import { useEffect } from "react";
-import {
-  Navigate,
-  Route,
-  Routes
-} from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { useBackdrop } from "./components/CommonBackdrop/BackdropContext";
 import CommonBackdrop from "./components/CommonBackdrop/CommonBackdrop";
 import Footer from "./components/Footer/Footer";
@@ -200,7 +196,6 @@ const AppLayout = () => {
     </>
   );
 };
-
 
 const App = () => {
   useEffect(() => {

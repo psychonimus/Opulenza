@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { SendSellingFormData } from "../../../../services/sellingServices/sendSellingFormData/SendSellingFormData";
+import { encryptFile, getEncryptionSecret } from "../../../../utils/fileEncryption";
 import "./SellPageForm.css";
 
 const categories = [
@@ -809,11 +810,16 @@ const buildSchema = (category) => {
 };
 
 const SellPageForm = () => {
+  
   const [activeCategory, setActiveCategory] = useState("cigars");
   const [activeCategoryNumber, setActiveCategoryNumber] = useState("1");
 
   const [fileNames, setFileNames] = useState({});
   const [selectedFiles, setSelectedFiles] = useState({});
+  const fileVersions = useRef({});
+  const formRef = useRef(null);
+  const [isEncrypting, setIsEncrypting] = useState(false);
+  
   const fields = formFields[activeCategory] || [];
 
   const {
@@ -838,29 +844,129 @@ const SellPageForm = () => {
     reset({});
   };
 
-  const handleFileChange = (e) => {
-    const { id, files } = e.target;
-    const names =
-      files.length > 1
-        ? `${files.length} files selected`
-        : files[0]?.name || "";
-    setFileNames((prev) => ({ ...prev, [id]: names }));
+  const validateFile = (file, id) => {
+    if (!file) return "File does not exist.";
+    
+    const maxBytes = 10 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      return "File size exceeds 10MB limit.";
+    }
+    
+    const ext = file.name.split('.').pop().toLowerCase();
+    const isDocument = id.toLowerCase().includes("document");
+    const isImage = id.toLowerCase().includes("image") || id.startsWith("photo");
+    
+    if (isDocument) {
+      const allowedExtensions = ["pdf", "jpg", "jpeg", "png"];
+      if (!allowedExtensions.includes(ext)) {
+        return "Invalid file extension. Allowed: .pdf, .jpg, .jpeg, .png";
+      }
+    } else if (isImage) {
+      const allowedExtensions = ["jpg", "jpeg", "png", "gif", "webp"];
+      if (!allowedExtensions.includes(ext) && !file.type.startsWith("image/")) {
+        return "Invalid image file. Allowed image formats only.";
+      }
+    }
+    
+    return null;
+  };
 
-    if (files.length > 0) {
-      const fileList = files.length > 1 ? Array.from(files) : files[0];
-      setSelectedFiles((prev) => ({ ...prev, [id]: fileList }));
-    } else {
-      setSelectedFiles((prev) => {
-        const newState = { ...prev };
-        delete newState[id];
-        return newState;
+  const recalculateLogicalNames = (filesObj) => {
+    const docKeys = Object.keys(filesObj)
+      .filter((k) => k.toLowerCase().includes("document"))
+      .sort();
+    docKeys.forEach((key, index) => {
+      filesObj[key].logicalName = `Document${index + 1}`;
+    });
+
+    const imgKeys = Object.keys(filesObj)
+      .filter((k) => k.toLowerCase().includes("image"))
+      .sort();
+    imgKeys.forEach((key, index) => {
+      filesObj[key].logicalName = `Image${index + 1}`;
+    });
+  };
+
+  const handleFileChange = async (e) => {
+    const { id, files } = e.target;
+    const version = (fileVersions.current[id] || 0) + 1;
+    fileVersions.current[id] = version;
+
+    if (!files || files.length === 0) {
+      setFileNames((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
       });
+      setSelectedFiles((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        recalculateLogicalNames(next);
+        return next;
+      });
+      return;
+    }
+
+    const file = files[0];
+    const validationError = validateFile(file, id);
+    if (validationError) {
+      alert(validationError);
+      e.target.value = "";
+      return;
+    }
+
+    setFileNames((prev) => ({ ...prev, [id]: file.name }));
+    setIsEncrypting(true);
+
+    try {
+      const secret = getEncryptionSecret();
+      const encryptedData = await encryptFile(file, secret);
+
+      if (fileVersions.current[id] !== version) {
+        return; // Stale selection
+      }
+
+      setSelectedFiles((prev) => {
+        const next = {
+          ...prev,
+          [id]: {
+            encryptedBlob: encryptedData.encryptedBlob,
+            originalFileName: encryptedData.originalFileName,
+            contentType: encryptedData.contentType,
+            salt: encryptedData.salt,
+            iv: encryptedData.iv,
+            encryptionAlgorithm: "AES-256-GCM",
+            encryptionVersion: 1,
+            logicalName: ""
+          }
+        };
+        recalculateLogicalNames(next);
+        return next;
+      });
+    } catch (err) {
+      console.error("Encryption failed:", err);
+      setFileNames((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      setSelectedFiles((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        recalculateLogicalNames(next);
+        return next;
+      });
+      alert("Security Error: Failed to encrypt the selected file. Details: " + err.message);
+    } finally {
+      setIsEncrypting(false);
     }
   };
 
-  // console.log(data)
-
   const onSubmit = (data) => {
+    if (isEncrypting) {
+      alert("Encryption is in progress. Please wait.");
+      return;
+    }
     const formData = new FormData();
     
     // Append standard fields
@@ -874,22 +980,31 @@ const SellPageForm = () => {
 
     formData.append("categoryId", activeCategoryNumber);
 
-    // Append files
+    // Append encrypted files and metadata
     Object.keys(selectedFiles).forEach((key) => {
-      const fileOrFiles = selectedFiles[key];
-      if (Array.isArray(fileOrFiles)) {
-        fileOrFiles.forEach((file) => formData.append(key, file));
-      } else {
-        formData.append(key, fileOrFiles);
+      const fileData = selectedFiles[key];
+      if (fileData && fileData.encryptedBlob) {
+        const logicalName = fileData.logicalName;
+        formData.append(logicalName, fileData.encryptedBlob, `${logicalName}.enc`);
+        formData.append(`${logicalName}_originalFileName`, fileData.originalFileName);
+        formData.append(`${logicalName}_contentType`, fileData.contentType);
+        formData.append(`${logicalName}_salt`, fileData.salt);
+        formData.append(`${logicalName}_iv`, fileData.iv);
+        formData.append(`${logicalName}_encryptionAlgorithm`, fileData.encryptionAlgorithm);
+        formData.append(`${logicalName}_encryptionVersion`, String(fileData.encryptionVersion));
       }
     });
 
     SendSellingFormData(formData)
       .then((res) => {
         console.log(res);
-        reset({});
+        reset();
         setFileNames({});
         setSelectedFiles({});
+        fileVersions.current = {};
+        if (formRef.current) {
+          formRef.current.reset();
+        }
       })
       .catch((err) => {
         console.log(err);
@@ -945,6 +1060,7 @@ const SellPageForm = () => {
 
         <div className="sell-form-panel">
           <form
+            ref={formRef}
             className="sell-form-fields"
             key={activeCategory}
             onSubmit={handleSubmit(onSubmit)}
@@ -1141,8 +1257,8 @@ const SellPageForm = () => {
               className="sell-form-footer"
               style={{ display: "flex", justifyContent: "end" }}
             >
-              <button type="submit" className="sell-btn-next">
-                Submit
+              <button type="submit" className="sell-btn-next" disabled={isEncrypting}>
+                {isEncrypting ? "Encrypting..." : "Submit"}
                 <svg
                   width="16"
                   height="16"
