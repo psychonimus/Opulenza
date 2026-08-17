@@ -4,7 +4,7 @@ import api from "../../http-common";
 // export const userData = async () => {
 //     try {
 //         // const { data } = await api.get("/api/invitation/listForApproval");
-//         // console.log("login api hit", data)        
+//         // console.log("login api hit", data)
 //         // // localStorage.setItem("token", data.data.accessToken);
 //         // // localStorage.setItem("user", JSON.stringify(data.data))
 //         // return data;
@@ -15,9 +15,8 @@ import api from "../../http-common";
 //     }
 // };
 export const checkUserEmail = (email) => {
-    return api.get(`/api/auth/IsPasswordExists?Email=${email}`);
-  };
-
+  return api.get(`/api/auth/IsPasswordExists?Email=${email}`);
+};
 
 export const userData = () => {
   return api.get("/api/member/listForApproval?pageNumber=1&pageSize=10");
@@ -30,6 +29,25 @@ export const GetAddress = () => {
 export const AddAddress = (dataObj) => {
   return api.post("/api/member/AddAddress", dataObj);
 };
+
+// api/member/AddDocument
+export const AddDocument = (dataObj) => {
+  return api.post("/api/member/AddDocument", dataObj);
+};
+
+export const AddPreferences = (dataObj) => {
+  return api.post("/api/member/AddPreferences", dataObj);
+};
+
+export const GetPreferences = () => {
+  return api.get("/api/member/GetPreferences");
+};
+
+
+
+
+
+
 
 
 

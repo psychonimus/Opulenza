@@ -101,7 +101,7 @@ const AuctionManagement = () => {
 
 
   return (
-    <div className="ap-page">
+    <div className="ap-page" data-lenis-prevent="true">
       <div className="ap-page-header">
         <div>
           <h1 className="ap-page-title">Auction Management</h1>
