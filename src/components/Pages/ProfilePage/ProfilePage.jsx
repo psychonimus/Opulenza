@@ -131,7 +131,7 @@ const TABS = [
   "My Addresses",
   "My Documents",
   "Family Office",
-  "KYC",
+  
   "My Preferences",
   "My Invitations",
 ];
