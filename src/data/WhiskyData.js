@@ -1,129 +1,153 @@
 const WhiskyData = [
   {
     id: 1,
-    image: '/images/whisky/macallan/macallan-main.png',
-    angles: ['/images/whisky/macallan/macallan-2.png', '/images/whisky/macallan/macallan-3.png', '/images/whisky/macallan/macallan-4.png'],
-    title: 'The Macallan',
-    reference: '1926 Fine & Rare',
-    description: 'One of the rarest bottles ever released by The Macallan.',
-    // badge: 'ICONIC LOT',
-    currentBid: '$2.31M',
-    detailedpage: '/whisky/1',
-    details: [
-      { label: 'DISTILLERY', value: 'The Macallan' },
-      { label: 'DISTILLED', value: '1926' },
-      { label: 'CASK', value: 'Sherry Oak' },
-    //   { label: 'VIEWING', value: '31 Members' },
-      { label: 'RARITY', value: '1 of 40 Bottles' },
-    //   { label: 'RETURN', value: '+418%', isGold: true }
+    image: "/images/whisky/macallan/macallan-main.png",
+    angles: [
+      "/images/whisky/macallan/macallan-2.png",
+      "/images/whisky/macallan/macallan-3.png",
+      "/images/whisky/macallan/macallan-4.png",
     ],
-    initialTime: { days: 1, hours: 8, minutes: 42, seconds: 15 }
+    title: "The Macallan",
+    reference: "1926 Fine & Rare",
+    description: "One of the rarest bottles ever released by The Macallan.",
+    currentBid: "$2.31M",
+    detailedpage: "/whisky/1",
+    details: [
+      { label: "DISTILLERY", value: "The Macallan" },
+      { label: "DISTILLED", value: "1926" },
+      { label: "CASK", value: "Sherry Oak" },
+      { label: "RARITY", value: "1 of 40 Bottles" },
+    ],
+    initialTime: { days: 1, hours: 8, minutes: 42, seconds: 15 },
   },
-
   {
     id: 2,
-    image: '/images/whisky/dalmore/dalmore.png',
-    angles: ['/images/whisky/dalmore/dalmore-2.png', '/images/whisky/dalmore/dalmore-3.png', '/images/whisky/dalmore/dalmore-4.png'],
-    title: 'The Dalmore',
-    reference: '62-Year-Old Decanter',
-    description: 'A legendary expression presented in a handcrafted crystal decanter.',
-    // badge: 'PRIVATE CELLAR',
-    currentBid: '$1.48M',
-    detailedpage: '/whisky/2',
-    details: [
-      { label: 'DISTILLERY', value: 'The Dalmore' },
-      { label: 'DISTILLED', value: '1942' },
-      { label: 'CASK', value: 'American Oak' },
-    //   { label: 'VIEWING', value: '24 Members' },
-      { label: 'RARITY', value: '1 of 12 Bottles' },
-    //   { label: 'RETURN', value: '+265%', isGold: true }
+    image: "/images/whisky/dalmore/dalmore.png",
+    angles: [
+      "/images/whisky/dalmore/dalmore-2.png",
+      "/images/whisky/dalmore/dalmore-3.png",
+      "/images/whisky/dalmore/dalmore-4.png",
     ],
-    initialTime: { days: 0, hours: 12, minutes: 15, seconds: 44 }
+    title: "The Dalmore",
+    reference: "62-Year-Old Decanter",
+    description:
+      "A legendary expression presented in a handcrafted crystal decanter.",
+    currentBid: "$1.48M",
+    detailedpage: "/whisky/2",
+    details: [
+      { label: "DISTILLERY", value: "The Dalmore" },
+      { label: "DISTILLED", value: "1942" },
+      { label: "CASK", value: "American Oak" },
+      { label: "RARITY", value: "1 of 12 Bottles" },
+    ],
+    initialTime: { days: 0, hours: 12, minutes: 15, seconds: 44 },
   },
-
   {
     id: 3,
-    image: '/images/whisky/yamazaki/yamazaki-main.png',
+    image: "/images/whisky/yamazaki/yamazaki-main.png",
     angles: [],
-    title: 'Yamazaki',
-    reference: '55-Year-Old',
-    description: 'Japan\'s oldest and most sought-after single malt whisky.',
-    // badge: 'MEMBER EXCLUSIVE',
-    currentBid: '$965K',
-    detailedpage: '/whisky/3',
+    title: "Yamazaki",
+    reference: "55-Year-Old",
+    description: "Japan's oldest and most sought-after single malt whisky.",
+    currentBid: "$965K",
+    detailedpage: "/whisky/3",
     details: [
-      { label: 'DISTILLERY', value: 'Yamazaki' },
-      { label: 'DISTILLED', value: '1960' },
-      { label: 'CASK', value: 'Mizunara Oak' },
-    //   { label: 'VIEWING', value: '19 Members' },
-      { label: 'RARITY', value: '100 Bottles Worldwide' },
-    //   { label: 'RETURN', value: '+183%', isGold: true }
+      { label: "DISTILLERY", value: "Yamazaki" },
+      { label: "DISTILLED", value: "1960" },
+      { label: "CASK", value: "Mizunara Oak" },
+      { label: "RARITY", value: "100 Bottles Worldwide" },
     ],
-    initialTime: { days: 2, hours: 3, minutes: 28, seconds: 51 }
+    initialTime: { days: 2, hours: 3, minutes: 28, seconds: 51 },
   },
-
   {
     id: 4,
-    image: '/images/whisky/bowmore/bowmore-main.png',
-    angles: ['/images/whisky/bowmore/bowmore.png'],
-    title: 'Bowmore',
-    reference: 'Black Bowmore 1964',
-    description: 'The first release of the legendary Black Bowmore series.',
-    // badge: 'SEALED ARCHIVE',
-    currentBid: '$742K',
-    detailedpage: '/whisky/4',
+    image: "/images/whisky/bowmore/bowmore-main.png",
+    angles: ["/images/whisky/bowmore/bowmore.png"],
+    title: "Bowmore",
+    reference: "Black Bowmore 1964",
+    description: "The first release of the legendary Black Bowmore series.",
+    currentBid: "$742K",
+    detailedpage: "/whisky/4",
     details: [
-      { label: 'DISTILLERY', value: 'Bowmore' },
-      { label: 'DISTILLED', value: '1964' },
-      { label: 'CASK', value: 'Oloroso Sherry' },
-    //   { label: 'VIEWING', value: '16 Members' },
-      { label: 'RARITY', value: '1 of 827 Bottles' },
-    //   { label: 'RETURN', value: '+156%', isGold: true }
+      { label: "DISTILLERY", value: "Bowmore" },
+      { label: "DISTILLED", value: "1964" },
+      { label: "CASK", value: "Oloroso Sherry" },
+      { label: "RARITY", value: "1 of 827 Bottles" },
     ],
-    initialTime: { days: 0, hours: 18, minutes: 9, seconds: 27 }
+    initialTime: { days: 0, hours: 18, minutes: 9, seconds: 27 },
   },
-
   {
     id: 5,
-    image: '/images/whisky/glenfiddich/glenfiddich-main.png',
+    image: "/images/whisky/glenfiddich/glenfiddich-main.png",
     angles: [],
-    title: 'Glenfiddich',
-    reference: '1937 Rare Collection',
-    description: 'One of the oldest Glenfiddich expressions ever bottled.',
-    // badge: 'FOUNDERS COLLECTION',
-    currentBid: '$1.12M',
-    detailedpage: '/whisky/5',
+    title: "Glenfiddich",
+    reference: "1937 Rare Collection",
+    description: "One of the oldest Glenfiddich expressions ever bottled.",
+    currentBid: "$1.12M",
+    detailedpage: "/whisky/5",
     details: [
-      { label: 'DISTILLERY', value: 'Glenfiddich' },
-      { label: 'DISTILLED', value: '1937' },
-      { label: 'CASK', value: 'European Oak' },
-    //   { label: 'VIEWING', value: '21 Members' },
-      { label: 'RARITY', value: '1 of 61 Bottles' },
-    //   { label: 'RETURN', value: '+231%', isGold: true }
+      { label: "DISTILLERY", value: "Glenfiddich" },
+      { label: "DISTILLED", value: "1937" },
+      { label: "CASK", value: "European Oak" },
+      { label: "RARITY", value: "1 of 61 Bottles" },
     ],
-    initialTime: { days: 1, hours: 5, minutes: 37, seconds: 19 }
+    initialTime: { days: 1, hours: 5, minutes: 37, seconds: 19 },
   },
-
   {
     id: 6,
-    image: '/images/whisky/hibiki/hibiki-main.png',
+    image: "/images/whisky/hibiki/hibiki-main.png",
     angles: [],
-    title: 'Hibiki',
-    reference: '35-Year-Old',
-    description: 'A masterpiece blend celebrating Japanese whisky craftsmanship.',
-    // badge: 'INVITATION ONLY',
-    currentBid: '$528K',
-    detailedpage: '/whisky/6',
+    title: "Hibiki",
+    reference: "35-Year-Old",
+    description:
+      "A masterpiece blend celebrating Japanese whisky craftsmanship.",
+    currentBid: "$528K",
+    detailedpage: "/whisky/6",
     details: [
-      { label: 'DISTILLERY', value: 'Hibiki' },
-      { label: 'DISTILLED', value: '1986' },
-      { label: 'CASK', value: 'Mizunara Finish' },
-    //   { label: 'VIEWING', value: '14 Members' },
-      { label: 'RARITY', value: 'Limited Edition' },
-    //   { label: 'RETURN', value: '+139%', isGold: true }
+      { label: "DISTILLERY", value: "Hibiki" },
+      { label: "DISTILLED", value: "1986" },
+      { label: "CASK", value: "Mizunara Finish" },
+      { label: "RARITY", value: "Limited Edition" },
     ],
-    initialTime: { days: 0, hours: 9, minutes: 54, seconds: 33 }
-  }
+    initialTime: { days: 0, hours: 9, minutes: 54, seconds: 33 },
+  },
+];
+
+export const CaskData = [
+  {
+    id: 1,
+    image: "/images/cask/Cask 1.png",
+    title: "Macallan Sherry Butt",
+    reference: "Cask #SB-1926-001",
+    description:
+      "An extraordinary single sherry butt from Macallan's 1926 distillation. Stored in temperature-controlled Speyside warehouse.",
+    currentBid: "$4.8M",
+    details: [
+      { label: "DISTILLERY", value: "The Macallan" },
+      { label: "CASK TYPE", value: "Sherry Butt" },
+      { label: "AGE", value: "60 Years" },
+      { label: "ABV", value: "58.7%" },
+      { label: "VOLUME", value: "480 Litres" },
+      { label: "BOTTLES", value: "~640 Approx." },
+    ],
+  },
+  {
+    id: 2,
+    image: "/images/cask/Cask 2.png",
+    title: "Dalmore American Oak Barrel",
+    reference: "Cask #AOB-1942-014",
+    description:
+      "A pristine American oak ex-bourbon barrel holding one of The Dalmore's oldest surviving spirit reserves.",
+    currentBid: "$2.9M",
+    details: [
+      { label: "DISTILLERY", value: "The Dalmore" },
+      { label: "CASK TYPE", value: "American Oak Barrel" },
+      { label: "AGE", value: "62 Years" },
+      { label: "ABV", value: "52.4%" },
+      { label: "VOLUME", value: "195 Litres" },
+      { label: "BOTTLES", value: "~260 Approx." },
+    ],
+  },
 ];
 
 export default WhiskyData;

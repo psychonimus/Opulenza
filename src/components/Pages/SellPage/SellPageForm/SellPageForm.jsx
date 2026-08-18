@@ -3,7 +3,10 @@ import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { SendSellingFormData } from "../../../../services/sellingServices/sendSellingFormData/SendSellingFormData";
-import { encryptFile, getEncryptionSecret } from "../../../../utils/fileEncryption";
+import {
+  encryptFile,
+  getEncryptionSecret,
+} from "../../../../utils/fileEncryption";
 import "./SellPageForm.css";
 
 const categories = [
@@ -356,6 +359,108 @@ const formFields = {
       label: "Estimated Value (USD)",
       type: "text",
       placeholder: "Total desired value for the listing",
+      half: true,
+    },
+  ],
+  whisky_tab2: [
+    {
+      id: "specSection",
+      label: "Whisky / Wine - Specifications (Cask)",
+      type: "section",
+    },
+    {
+      id: "caskType",
+      label: "Cask Type",
+      type: "text",
+      placeholder: "e.g. Sherry Butt, Bourbon Barrel",
+      half: true,
+    },
+    {
+      id: "distillesy",
+      label: "Distillesy",
+      type: "text",
+      placeholder: "e.g. Macallan, Bowmore",
+      half: true,
+    },
+    {
+      id: "ays",
+      label: "Ays",
+      type: "date",
+      placeholder: "Select Date",
+      half: true,
+    },
+    {
+      id: "abv",
+      label: "ABV",
+      type: "number",
+      placeholder: "e.g. 55.4",
+      half: true,
+    },
+    {
+      id: "appxNoBottols",
+      label: "Appx No Bottols",
+      type: "number",
+      placeholder: "e.g. 250",
+      half: true,
+    },
+    {
+      id: "cossgPrice",
+      label: "cossg Price",
+      type: "number",
+      placeholder: "e.g. 15000",
+      half: true,
+    },
+
+    { id: "docSection", label: "Documentation", type: "section" },
+    {
+      id: "Document1",
+      label: "Acquisition Invoice / Receipt",
+      type: "file",
+      placeholder: "Proof of purchase, retail receipt, or auction invoice.",
+      half: true,
+    },
+    {
+      id: "Document2",
+      label: "Cellar / Bonded Storage Certificate",
+      type: "file",
+      placeholder: "Official storage statement or climate logs.",
+      half: true,
+    },
+
+    { id: "photoSection", label: "Photo Requirements", type: "section" },
+    {
+      id: "Image1",
+      label: "Front Label View",
+      type: "file",
+      placeholder: "Clear head-on shot of the front label showing logo and text.",
+      half: true,
+    },
+    {
+      id: "Image2",
+      label: "Back Label & Barcode",
+      type: "file",
+      placeholder: "Importers labels, back stamp, and barcode details.",
+      half: true,
+    },
+    {
+      id: "Image3",
+      label: "Capsule, Seal & Fill Level",
+      type: "file",
+      placeholder: "Close-up of seal integrity and visible fill level (ullage).",
+      half: true,
+    },
+    {
+      id: "Image4",
+      label: "Base / Glass Engravings",
+      type: "file",
+      placeholder: "Bottom of the bottle showing glass mold serial numbers.",
+      half: true,
+    },
+    {
+      id: "Image5",
+      label: "Original Case & Packaging",
+      type: "file",
+      placeholder: "Original wooden box, carton, booklet, or outer case.",
       half: true,
     },
   ],
@@ -790,8 +895,9 @@ const formFields = {
   ],
 };
 
-const buildSchema = (category) => {
-  const fields = formFields[category] || [];
+const buildSchema = (category, whiskyTab = "tab1") => {
+  const fieldsKey = category === "whisky" ? (whiskyTab === "tab2" ? "whisky_tab2" : "whisky") : category;
+  const fields = formFields[fieldsKey] || [];
   const shape = {};
 
   fields.forEach((field) => {
@@ -803,6 +909,14 @@ const buildSchema = (category) => {
       return;
     }
 
+    if (field.type === "number") {
+      shape[field.id] = yup
+        .number()
+        .typeError(`${field.label} must be a number`)
+        .required(`${field.label} is required`);
+      return;
+    }
+
     shape[field.id] = yup.string().required(`${field.label} is required`);
   });
 
@@ -810,17 +924,19 @@ const buildSchema = (category) => {
 };
 
 const SellPageForm = () => {
-  
   const [activeCategory, setActiveCategory] = useState("cigars");
   const [activeCategoryNumber, setActiveCategoryNumber] = useState("1");
+  const [whiskyTab, setWhiskyTab] = useState("tab1");
 
   const [fileNames, setFileNames] = useState({});
   const [selectedFiles, setSelectedFiles] = useState({});
   const fileVersions = useRef({});
   const formRef = useRef(null);
   const [isEncrypting, setIsEncrypting] = useState(false);
-  
-  const fields = formFields[activeCategory] || [];
+
+  const fields = activeCategory === "whisky"
+    ? (whiskyTab === "tab2" ? formFields.whisky_tab2 : formFields.whisky)
+    : (formFields[activeCategory] || []);
 
   const {
     register,
@@ -830,7 +946,7 @@ const SellPageForm = () => {
     reset,
     formState: { errors },
   } = useForm({
-    resolver: yupResolver(buildSchema(activeCategory)),
+    resolver: yupResolver(buildSchema(activeCategory, whiskyTab)),
     defaultValues: {},
   });
 
@@ -839,6 +955,14 @@ const SellPageForm = () => {
   const handleCategoryChange = (id, number) => {
     setActiveCategory(id);
     setActiveCategoryNumber(number);
+    setWhiskyTab("tab1");
+    setFileNames({});
+    setSelectedFiles({});
+    reset({});
+  };
+
+  const handleWhiskyTabChange = (tab) => {
+    setWhiskyTab(tab);
     setFileNames({});
     setSelectedFiles({});
     reset({});
@@ -846,16 +970,17 @@ const SellPageForm = () => {
 
   const validateFile = (file, id) => {
     if (!file) return "File does not exist.";
-    
+
     const maxBytes = 10 * 1024 * 1024;
     if (file.size > maxBytes) {
       return "File size exceeds 10MB limit.";
     }
-    
-    const ext = file.name.split('.').pop().toLowerCase();
+
+    const ext = file.name.split(".").pop().toLowerCase();
     const isDocument = id.toLowerCase().includes("document");
-    const isImage = id.toLowerCase().includes("image") || id.startsWith("photo");
-    
+    const isImage =
+      id.toLowerCase().includes("image") || id.startsWith("photo");
+
     if (isDocument) {
       const allowedExtensions = ["pdf", "jpg", "jpeg", "png"];
       if (!allowedExtensions.includes(ext)) {
@@ -867,7 +992,7 @@ const SellPageForm = () => {
         return "Invalid image file. Allowed image formats only.";
       }
     }
-    
+
     return null;
   };
 
@@ -937,8 +1062,8 @@ const SellPageForm = () => {
             iv: encryptedData.iv,
             encryptionAlgorithm: "AES-256-GCM",
             encryptionVersion: 1,
-            logicalName: ""
-          }
+            logicalName: "",
+          },
         };
         recalculateLogicalNames(next);
         return next;
@@ -956,7 +1081,10 @@ const SellPageForm = () => {
         recalculateLogicalNames(next);
         return next;
       });
-      alert("Security Error: Failed to encrypt the selected file. Details: " + err.message);
+      alert(
+        "Security Error: Failed to encrypt the selected file. Details: " +
+          err.message,
+      );
     } finally {
       setIsEncrypting(false);
     }
@@ -968,7 +1096,7 @@ const SellPageForm = () => {
       return;
     }
     const formData = new FormData();
-    
+
     // Append standard fields
     Object.keys(data).forEach((key) => {
       if (Array.isArray(data[key])) {
@@ -979,19 +1107,35 @@ const SellPageForm = () => {
     });
 
     formData.append("categoryId", activeCategoryNumber);
+    if (activeCategory === "whisky") {
+      formData.append("whiskyTab", whiskyTab);
+    }
 
     // Append encrypted files and metadata
     Object.keys(selectedFiles).forEach((key) => {
       const fileData = selectedFiles[key];
       if (fileData && fileData.encryptedBlob) {
         const logicalName = fileData.logicalName;
-        formData.append(logicalName, fileData.encryptedBlob, `${logicalName}.enc`);
-        formData.append(`${logicalName}_originalFileName`, fileData.originalFileName);
+        formData.append(
+          logicalName,
+          fileData.encryptedBlob,
+          `${logicalName}.enc`,
+        );
+        formData.append(
+          `${logicalName}_originalFileName`,
+          fileData.originalFileName,
+        );
         formData.append(`${logicalName}_contentType`, fileData.contentType);
         formData.append(`${logicalName}_salt`, fileData.salt);
         formData.append(`${logicalName}_iv`, fileData.iv);
-        formData.append(`${logicalName}_encryptionAlgorithm`, fileData.encryptionAlgorithm);
-        formData.append(`${logicalName}_encryptionVersion`, String(fileData.encryptionVersion));
+        formData.append(
+          `${logicalName}_encryptionAlgorithm`,
+          fileData.encryptionAlgorithm,
+        );
+        formData.append(
+          `${logicalName}_encryptionVersion`,
+          String(fileData.encryptionVersion),
+        );
       }
     });
 
@@ -1059,10 +1203,28 @@ const SellPageForm = () => {
         </div>
 
         <div className="sell-form-panel">
+          {activeCategory === "whisky" && (
+            <div className="whisky-tabs-container">
+              <button
+                type="button"
+                className={`whisky-tab-btn${whiskyTab === "tab1" ? " active" : ""}`}
+                onClick={() => handleWhiskyTabChange("tab1")}
+              >
+                Whisky
+              </button>
+              <button
+                type="button"
+                className={`whisky-tab-btn${whiskyTab === "tab2" ? " active" : ""}`}
+                onClick={() => handleWhiskyTabChange("tab2")}
+              >
+                Cask
+              </button>
+            </div>
+          )}
           <form
             ref={formRef}
             className="sell-form-fields"
-            key={activeCategory}
+            key={activeCategory === "whisky" ? `whisky_${whiskyTab}` : activeCategory}
             onSubmit={handleSubmit(onSubmit)}
             noValidate
           >
@@ -1169,7 +1331,7 @@ const SellPageForm = () => {
                         multiple={field.id === "addImages"}
                         accept={
                           field.id === "addImages" ||
-                            field.id.startsWith("photo")
+                          field.id.startsWith("photo")
                             ? "image/*"
                             : ".pdf,.jpg,.jpeg,.png"
                         }
@@ -1257,7 +1419,11 @@ const SellPageForm = () => {
               className="sell-form-footer"
               style={{ display: "flex", justifyContent: "end" }}
             >
-              <button type="submit" className="sell-btn-next" disabled={isEncrypting}>
+              <button
+                type="submit"
+                className="sell-btn-next"
+                disabled={isEncrypting}
+              >
                 {isEncrypting ? "Encrypting..." : "Submit"}
                 <svg
                   width="16"

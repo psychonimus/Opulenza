@@ -3,9 +3,80 @@
    ═══════════════════════════════════════════════════════════════ */
 
 .all-whisky-section {
-    padding: 3rem 0 6rem;
-    background: #000;
+  padding: 3rem 0 6rem;
+  background: #000;
 }
+
+/* ── Tab Navigation ──────────────────────────────────────────── */
+.aw-tabs-container {
+  display: flex;
+  gap: 0;
+  margin-bottom: 2.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.aw-tab-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.45);
+  font-family: 'inter', Inter, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 14px 28px;
+  cursor: pointer;
+  transition: color 0.25s ease;
+  position: relative;
+  outline: none;
+}
+
+.aw-tab-btn:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.aw-tab-btn--active {
+  color: var(--primary-color, #d6a54d);
+}
+
+.aw-tab-btn--active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--primary-color, #d6a54d);
+  border-radius: 2px 2px 0 0;
+}
+
+/* ── Cask card overrides ─────────────────────────────────────── */
+.whisky-card--cask {
+  position: relative;
+}
+
+.whisky-card__cask-ribbon {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 3;
+  font-family: 'inter', sans-serif;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #0b0707;
+  background: linear-gradient(110deg, #d6a54d, #f2c86c 50%, #b17000);
+  padding: 0.28rem 0.7rem;
+  pointer-events: none;
+}
+
+/* 3-column meta grid for cask (more fields) */
+.whisky-card__meta--cask {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+
 
 .all-whisky-grid {
     display: grid;
