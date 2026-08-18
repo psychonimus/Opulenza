@@ -78,8 +78,18 @@ const Navbar = () => {
 
   useEffect(() => {
     updateRightOffset();
+    if (!navRef.current) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateRightOffset();
+    });
+    resizeObserver.observe(navRef.current);
+
     window.addEventListener("resize", updateRightOffset);
-    return () => window.removeEventListener("resize", updateRightOffset);
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updateRightOffset);
+    };
   }, [updateRightOffset, stage]);
 
   // Scroll listener for collapse/expand sequence
@@ -185,27 +195,17 @@ const Navbar = () => {
       >
         <ul className="nav-list">
           {/* Logo */}
-          <AnimatePresence>
-            {!isCollapsed && (
-              <motion.li
-                className="nav-logo-container"
-                initial={{ opacity: 0, width: 0, scale: 0.9 }}
-                animate={{ opacity: 1, width: "auto", scale: 1 }}
-                exit={{ opacity: 0, width: 0, scale: 0.9 }}
-                transition={{ duration: 0.22, ease: "easeInOut" }}
-              >
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="nav-logo"
-                >
-                  <Link to={isAuthenticated ? "/concierge" : "/"}>
-                    <img src="/images/opulenza-logo.png" alt="Opulenza" />
-                  </Link>
-                </motion.div>
-              </motion.li>
-            )}
-          </AnimatePresence>
+          <li className="nav-logo-container">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="nav-logo"
+            >
+              <Link to={isAuthenticated ? "/concierge" : "/"}>
+                <img src="/images/opulenza-logo.png" alt="Opulenza" />
+              </Link>
+            </motion.div>
+          </li>
 
           {/* Desktop: Logged-in navigation links */}
           <AnimatePresence>

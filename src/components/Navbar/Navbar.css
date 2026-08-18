@@ -22,11 +22,11 @@
 }
 
 .custom-navbar--collapsed {
-  padding: 4px;
+  padding: 6px 14px;
 }
 
 .custom-navbar--collapsed .nav-hamburger-container {
-  margin-left: 0;
+  margin-left: 10px;
 }
 
 .nav-list {
@@ -384,6 +384,10 @@
     width: 120px;
   }
 
+  .custom-navbar--collapsed .nav-logo img {
+    width: 105px;
+  }
+
   .custom-navbar {
     padding: 6px 10px;
   }
@@ -392,5 +396,9 @@
 @media (max-width: 480px) {
   .nav-logo img {
     width: 105px;
+  }
+
+  .custom-navbar--collapsed .nav-logo img {
+    width: 90px;
   }
 }
