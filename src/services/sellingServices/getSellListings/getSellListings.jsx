@@ -13,6 +13,12 @@ export const getApprovedListing = (selectedCat) => {
     return api.get(`api/item/ItemList?PageSize=10&PageNumber=1&CategoryId=${selectedCat}`);    
 };
 
+export const getItemMedia = (itemId, mediaId) => {
+    return api.get(`api/item/${itemId}/media/${mediaId}`);
+};
+
+
+
 
 
 

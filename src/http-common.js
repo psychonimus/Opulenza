@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "https://ayurmitra.in/opulenza_reserve";
+const BASE_URL = "https://kompasshr.com/OpulenzaReserve";
 const STORAGE_KEY = "authState";
 const META_KEY = "authRefreshMeta";
 const BROADCAST_CHANNEL_NAME = "auth-sync";
@@ -11,6 +11,7 @@ const FALLBACK_POLL_MS = 100;
 const FALLBACK_TIMEOUT_MS = FALLBACK_CLAIM_TTL_MS + 5_000;
 const REFRESH_BUFFER_MS = 10 * 60 * 1_000;
 const BACKOFF_MS = 30_000;
+const HOME_PATH = "/";
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -212,6 +213,19 @@ export function clearTokens() {
   clearLocalState();
   clearMeta();
   broadcast({ type: "auth-cleared" });
+}
+
+function redirectToHome() {
+  if (!hasEnv()) return;
+  if (window.location.pathname !== HOME_PATH) {
+    window.location.href = HOME_PATH;
+  }
+}
+
+export function logoutAndRedirect() {
+  clearTokens();
+  dispatch("auth-failed");
+  redirectToHome();
 }
 
 export function saveTokens(data) {
@@ -450,6 +464,7 @@ function getChannel() {
       if (data.type === "auth-cleared") {
         clearLocalState();
         dispatch("auth-failed");
+        redirectToHome();
       } else if (data.type === "auth-updated") reconcileTimer();
       else if (data.type === "backoff-active") {
         writeMeta({
@@ -591,8 +606,7 @@ async function executeRefreshFlow() {
     const tokenAtStart = getRT();
     if (!tokenAtStart) {
       console.warn("[Auth] No refresh token — logging out.");
-      clearTokens();
-      dispatch("auth-failed");
+      logoutAndRedirect();
       throw new Error("No refresh token.");
     }
     try {
@@ -652,8 +666,7 @@ export function refreshAccessToken() {
         console.warn(
           `[Auth] 401 genuine invalid RT:${mask(failedRefreshToken)} tabId:${TAB_ID}. Logging out.`,
         );
-        clearTokens();
-        dispatch("auth-failed");
+        logoutAndRedirect();
       } else if (!err?._authBackoff) {
         console.warn(
           `[Auth] Refresh error (status:${status ?? "network"}) — session preserved.`,
@@ -687,8 +700,6 @@ function applyBearer(config, token) {
 
 api.interceptors.request.use(
   async (config) => {
-    // If the request body is FormData, let the browser set Content-Type
-    // (with the correct multipart boundary) by deleting the default JSON header.
     if (config.data instanceof FormData) {
       if (typeof config.headers?.delete === "function") {
         config.headers.delete("Content-Type");
@@ -717,13 +728,18 @@ api.interceptors.response.use(
   (r) => r,
   async (error) => {
     const req = error.config;
-    if (
-      !req ||
-      error.response?.status !== 401 ||
-      req._retry ||
-      isAuthUrl(req.url)
-    )
+    const status = error.response?.status;
+
+    if (!req || isAuthUrl(req?.url)) {
+      if (status === 401) logoutAndRedirect();
       return Promise.reject(error);
+    }
+
+    if (status !== 401 || req._retry) {
+      if (status === 401 && req._retry) logoutAndRedirect();
+      return Promise.reject(error);
+    }
+
     req._retry = true;
     if (!canRefresh("401Retry")) {
       if (isExpiredNow()) return rejectExpiredRequest();
@@ -733,6 +749,9 @@ api.interceptors.response.use(
       const newAT = await refreshAccessToken();
       return api(applyBearer(req, newAT));
     } catch (e) {
+      if (e?.response?.status === 401 || e?.response?.status === 403) {
+        logoutAndRedirect();
+      }
       return Promise.reject(e);
     }
   },
@@ -779,6 +798,7 @@ if (hasEnv()) {
       if (newValue === null) {
         clearLocalState();
         dispatch("auth-failed");
+        redirectToHome();
       } else reconcileTimer();
     }
     if (key === META_KEY && newValue !== null) {

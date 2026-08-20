@@ -15,7 +15,7 @@ const CATEGORIES = [
     name: "All",
   },
   {
-    id: 1,
+    id: 3,
     name: "Watches",
   },
   {
@@ -23,7 +23,11 @@ const CATEGORIES = [
     name: "Whisky",
   },
   {
-    id: 3,
+    id: 6,
+    name: "Casks",
+  },
+  {
+    id: 1,
     name: "Cigars",
   },
   {
@@ -35,6 +39,20 @@ const CATEGORIES = [
     name: "Yachts",
   },
 ];
+
+/** Safely convert any value to something React can render in a <td>. */
+const renderCell = (value) => {
+  if (value === null || value === undefined) return "—";
+  if (typeof value === "object") {
+    if (Array.isArray(value)) {
+      return value
+        .map((v) => (typeof v === "object" ? JSON.stringify(v) : String(v)))
+        .join(", ");
+    }
+    return JSON.stringify(value);
+  }
+  return String(value) || "—";
+};
 
 const AuctionManagement = () => {
   const [search, setSearch] = useState("");
@@ -185,12 +203,12 @@ const AuctionManagement = () => {
                   {Object.keys(l)
                     .filter((item) => item !== "details")
                     .map((item, id) => (
-                      <td key={id}>{l[item] || "-"}</td>
+                      <td key={id}>{renderCell(l[item])}</td>
                     ))}
 
                   {/* Details fields */}
                   {Object.keys(l.details || {}).map((item, id) => (
-                    <td key={`details-${id}`}>{l.details[item] || "-"}</td>
+                    <td key={`details-${id}`}>{renderCell(l.details[item])}</td>
                   ))}
                 </tr>
               ))
