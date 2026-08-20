@@ -11,6 +11,7 @@ import { registerUser } from "../../../../services/registerService/RegisterServi
 import { checkUserEmail } from "../../../../services/getUserData/GetUserData";
 import CommonBackdrop from "../../../CommonBackdrop/CommonBackdrop";
 
+
 const isInviteCodeFilled = (code) => code.join("").trim().length === 10;
 
 export const getFlagEmoji = (countryCode) => {
@@ -50,11 +51,11 @@ const SearchableCountrySelect = ({ countries, selectedDialCode, onSelect }) => {
     (c) => c.dialCode === selectedDialCode,
   ) ||
     countries[0] || {
-      dialCode: "+1",
-      code: "US",
-      name: "United States",
-      flag: "🇺🇸",
-    };
+    dialCode: "+1",
+    code: "US",
+    name: "United States",
+    flag: "🇺🇸",
+  };
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -74,6 +75,8 @@ const SearchableCountrySelect = ({ countries, selectedDialCode, onSelect }) => {
       c.dialCode.toLowerCase().includes(q)
     );
   });
+
+
 
   return (
     <div className="pa-country-picker" ref={dropdownRef}>
@@ -116,9 +119,8 @@ const SearchableCountrySelect = ({ countries, selectedDialCode, onSelect }) => {
               filteredCountries.map((c, idx) => (
                 <div
                   key={`${c.code}-${c.dialCode}-${idx}`}
-                  className={`pa-country-item ${
-                    c.dialCode === selectedDialCode ? "is-selected" : ""
-                  }`}
+                  className={`pa-country-item ${c.dialCode === selectedDialCode ? "is-selected" : ""
+                    }`}
                   onClick={() => {
                     onSelect(c.dialCode);
                     setIsOpen(false);
@@ -275,10 +277,10 @@ const RegistrationModal = ({
   } = useForm({
     resolver: yupResolver(registrationSchema),
     defaultValues: {
-      firstName: "",
+      firstName: loginData?.details?.name,
       lastName: "",
       displayName: "",
-      primaryEmail: "",
+      primaryEmail: loginData?.details?.inviteTo,
       secondaryEmail: "",
       primaryMobile: "",
       secondaryMobile: "",

@@ -15,7 +15,7 @@ const CATEGORIES = [
     name: "All",
   },
   {
-    id: 1,
+    id: 3,
     name: "Watches",
   },
   {
@@ -23,7 +23,11 @@ const CATEGORIES = [
     name: "Whisky",
   },
   {
-    id: 3,
+    id: 6,
+    name: "Casks",
+  },
+  {
+    id: 1,
     name: "Cigars",
   },
   {
@@ -34,6 +38,7 @@ const CATEGORIES = [
     id: 5,
     name: "Yachts",
   },
+  
 ];
 
 const AuctionManagement = () => {

@@ -1,9 +1,42 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import cigarData from '../../../../data/CigarData'
 import './CigarListingsBody.css'
+import { getApprovedListing } from '../../../../services/sellingServices/getSellListings/getSellListings'
+
 
 const CigarListingsBody = () => {
+
+    const [cigars, setCigars] = useState([])
+
+    const getCigarListings = () => {
+        getApprovedListing(3)
+        .then((res)=> {
+            setCigars(res?.data.data)
+        })
+        .catch((err) => {
+            console.log(err)
+        })
+    }
+
+    useEffect(() => {
+        getCigarListings()
+    }, [])
+
+    // console.log(cigars)
+
+
+
+
+
+
+
+
+
+
+
+
+    
     return (
         <section className="all-cigar-section">
             <div className="container">
@@ -18,7 +51,65 @@ const CigarListingsBody = () => {
                     </Link>
                 </div>
 
-                <div className="all-cigar-grid">
+                 <div className="all-cigar-grid">
+                    {cigars.map((item) => {
+                        // const brand = item.details?.find(d => d.label === 'BRAND')?.value || item.title
+                        // const origin = item.details?.find(d => d.label === 'ORIGIN')?.value || '—'
+                        // const size = item.details?.find(d => d.label === 'SIZE')?.value || '—'
+                        // const rarity = item.details?.find(d => d.label === 'RARITY')?.value || '—'
+
+                        return (
+                            <Link
+                                to={`/cigar/${item.itemId}`}
+                                key={item.itemId}
+                                className="cigar-card-link"
+                            >
+                                <div className="cigar-card">
+                                    <div className="cigar-card__image-wrapper">
+                                        <img
+                                            src={item.openBox}
+                                            alt={`${item.brand} ${item.editionName}`}
+                                            className="cigar-card__image"
+                                        />
+                                        <div className="cigar-card__overlay" />
+                                    </div>
+                                    <div className="cigar-card__body">
+                                        <h3 className="cigar-card__title">{item.brand}</h3>
+                                        <p className="cigar-card__reference">{item.editionName}</p>
+                                        <p className="cigar-card__desc">{item.commercialShape}</p>
+                                        <div className="cigar-card__meta">
+                                            <div className="cigar-card__meta-item">
+                                                <span className="cigar-card__meta-label">BRAND</span>
+                                                <span className="cigar-card__meta-value">{item.brand}</span>
+                                            </div>
+                                            <div className="cigar-card__meta-item">
+                                                <span className="cigar-card__meta-label">ORIGIN</span>
+                                                <span className="cigar-card__meta-value">{item.origin}</span>
+                                            </div>
+                                            <div className="cigar-card__meta-item">
+                                                <span className="cigar-card__meta-label">SIZE</span>
+                                                <span className="cigar-card__meta-value">{item.length}</span>
+                                            </div>
+                                            <div className="cigar-card__meta-item">
+                                                <span className="cigar-card__meta-label">BOX YEAR</span>
+                                                <span className="cigar-card__meta-value">{item.boxYear}</span>
+                                            </div>
+                                        </div>
+                                        <div className="cigar-card__footer">
+                                            <div className="cigar-card__bid">
+                                                <span className="cigar-card__bid-label">CURRENT BID</span>
+                                                <span className="cigar-card__bid-value">$568</span>
+                                            </div>
+                                            <span className="cigar-card__cta">BID NOW →</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Link>
+                        )
+                    })}
+                </div>
+
+                {/* <div className="all-cigar-grid">
                     {cigarData.map((item) => {
                         const brand = item.details?.find(d => d.label === 'BRAND')?.value || item.title
                         const origin = item.details?.find(d => d.label === 'ORIGIN')?.value || '—'
@@ -74,7 +165,7 @@ const CigarListingsBody = () => {
                             </Link>
                         )
                     })}
-                </div>
+                </div> */}
             </div>
         </section>
     )

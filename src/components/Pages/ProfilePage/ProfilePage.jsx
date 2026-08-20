@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   AddAddress,
+  DeleteAddress,
   GetAddress,
   GetPreferences,
 } from "../../../services/getUserData/GetUserData";
@@ -9,6 +10,7 @@ import { useUser } from "../../../services/showUserInfo/ShowUserInfo";
 import InviteModal from "../../InviteModal/InviteModal";
 import AddDocuments from "./AddDocuments";
 import AddPreferencesModal from "./AddPreferences";
+import { MdDeleteForever } from "react-icons/md";
 import "./ProfilePage.css";
 
 // ── Helpers ──────────────────────────────────────────────
@@ -131,7 +133,7 @@ const TABS = [
   "My Addresses",
   "My Documents",
   "Family Office",
-  
+
   "My Preferences",
   "My Invitations",
 ];
@@ -306,6 +308,25 @@ const ProfilePage = () => {
       });
   };
 
+  const handleDeleteAddress = (id) => {
+    // console.log("this is the address id",id)
+    const data = {
+      Id: id
+    }
+    DeleteAddress(data)
+      .then((res) => {
+        console.log(res);
+        if (res?.data?.status === 200) {
+          console.log("Address deleted successfully");
+          GetAddressDetails();
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        // throw err;
+      });
+  }
+
   return (
     <div className="prof-page">
       {/* Background */}
@@ -425,6 +446,7 @@ const ProfilePage = () => {
                             {addr.addressType}
                           </span>
                         </div>
+                        <div className="delete-address button" onClick={() => { handleDeleteAddress(addr.addressID) }} ><MdDeleteForever size={25} /></div>
                       </div>
                     ))}
                   </>

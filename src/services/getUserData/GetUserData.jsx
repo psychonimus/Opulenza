@@ -30,6 +30,10 @@ export const AddAddress = (dataObj) => {
   return api.post("/api/member/AddAddress", dataObj);
 };
 
+export const DeleteAddress = (id) => {
+  return api.post("api/member/DeleteAddress", id);
+};
+
 // api/member/AddDocument
 export const AddDocument = (dataObj) => {
   return api.post("/api/member/AddDocument", dataObj);

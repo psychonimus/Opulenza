@@ -1149,4 +1149,15 @@
   filter: invert(100%) opacity(40%);
 }
 
+.delete-address{
+  color: #da251c;
+  opacity: 0.4;
+  scale: 0.8;
+  transition: all 0.25s ease;
+}
+
+.delete-address:hover{
+  opacity: 1;
+  scale: 1;
+}
 

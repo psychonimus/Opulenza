@@ -22,6 +22,7 @@ const categories = [
     label: "Whisky",
     subtitle: "Bordeaux, Burgundy, Rare Cognac",
   },
+  
   {
     id: "watches",
     number: "3",
@@ -369,42 +370,42 @@ const formFields = {
       type: "section",
     },
     {
-      id: "caskType",
+      id: "CaskType",
       label: "Cask Type",
       type: "text",
       placeholder: "e.g. Sherry Butt, Bourbon Barrel",
       half: true,
     },
     {
-      id: "distillesy",
+      id: "Distillesy",
       label: "Distillesy",
       type: "text",
       placeholder: "e.g. Macallan, Bowmore",
       half: true,
     },
     {
-      id: "ays",
+      id: "AYS",
       label: "Ays",
       type: "date",
       placeholder: "Select Date",
       half: true,
     },
     {
-      id: "abv",
+      id: "ABV",
       label: "ABV",
       type: "number",
       placeholder: "e.g. 55.4",
       half: true,
     },
     {
-      id: "appxNoBottols",
+      id: "NoOfBottles",
       label: "Appx No Bottols",
       type: "number",
       placeholder: "e.g. 250",
       half: true,
     },
     {
-      id: "cossgPrice",
+      id: "CossgPrice",
       label: "cossg Price",
       type: "number",
       placeholder: "e.g. 15000",
@@ -933,6 +934,9 @@ const SellPageForm = () => {
   const fileVersions = useRef({});
   const formRef = useRef(null);
   const [isEncrypting, setIsEncrypting] = useState(false);
+  // submit states: 'idle' | 'sending' | 'success' | 'error'
+  const [submitStatus, setSubmitStatus] = useState("idle");
+  const [submitError, setSubmitError] = useState("");
 
   const fields = activeCategory === "whisky"
     ? (whiskyTab === "tab2" ? formFields.whisky_tab2 : formFields.whisky)
@@ -967,6 +971,8 @@ const SellPageForm = () => {
     setSelectedFiles({});
     reset({});
   };
+
+  
 
   const validateFile = (file, id) => {
     if (!file) return "File does not exist.";
@@ -1106,10 +1112,13 @@ const SellPageForm = () => {
       }
     });
 
-    formData.append("categoryId", activeCategoryNumber);
+    formData.append("categoryId", activeCategory === "whisky" && whiskyTab === "tab2" ? 6 : activeCategoryNumber);
+
     if (activeCategory === "whisky") {
       formData.append("whiskyTab", whiskyTab);
     }
+
+    
 
     // Append encrypted files and metadata
     Object.keys(selectedFiles).forEach((key) => {
@@ -1139,9 +1148,13 @@ const SellPageForm = () => {
       }
     });
 
+    setSubmitStatus("sending");
+    setSubmitError("");
+
     SendSellingFormData(formData)
       .then((res) => {
         console.log(res);
+        setSubmitStatus("success");
         reset();
         setFileNames({});
         setSelectedFiles({});
@@ -1152,11 +1165,85 @@ const SellPageForm = () => {
       })
       .catch((err) => {
         console.log(err);
+        const message =
+          err?.response?.data?.message ||
+          err?.message ||
+          "Something went wrong. Please try again.";
+        setSubmitError(message);
+        setSubmitStatus("error");
       });
+  };
+
+  const dismissStatus = () => {
+    setSubmitStatus("idle");
+    setSubmitError("");
   };
 
   return (
     <section className="sell-form-section">
+      {/* ── Submit status overlay ── */}
+      {submitStatus !== "idle" && (
+        <div
+          className={`sell-submit-overlay sell-submit-overlay--${submitStatus}`}
+          onClick={submitStatus !== "sending" ? dismissStatus : undefined}
+        >
+          <div
+            className="sell-submit-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {submitStatus === "sending" && (
+              <>
+                <div className="sell-submit-spinner" />
+                <p className="sell-submit-title">Sending your listing…</p>
+                <p className="sell-submit-sub">
+                  Please wait while we securely transmit your details.
+                </p>
+              </>
+            )}
+
+            {submitStatus === "success" && (
+              <>
+                <div className="sell-submit-icon sell-submit-icon--success">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M20 6L9 17l-5-5" />
+                  </svg>
+                </div>
+                <p className="sell-submit-title">Listing Submitted!</p>
+                <p className="sell-submit-sub">
+                  Your item has been received. Our team will review and
+                  reach out within 24 hours.
+                </p>
+                <button
+                  className="sell-submit-close-btn"
+                  onClick={dismissStatus}
+                >
+                  Close
+                </button>
+              </>
+            )}
+
+            {submitStatus === "error" && (
+              <>
+                <div className="sell-submit-icon sell-submit-icon--error">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </div>
+                <p className="sell-submit-title">Submission Failed</p>
+                <p className="sell-submit-sub">{submitError}</p>
+                <button
+                  className="sell-submit-close-btn"
+                  onClick={dismissStatus}
+                >
+                  Try Again
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="sell-form-container">
         <div className="sell-categories">
           <div className="sell-categories-label">
@@ -1421,20 +1508,36 @@ const SellPageForm = () => {
             >
               <button
                 type="submit"
-                className="sell-btn-next"
-                disabled={isEncrypting}
+                className={`sell-btn-next${
+                  submitStatus === "sending" ? " sell-btn-next--sending" : ""
+                }${
+                  submitStatus === "success" ? " sell-btn-next--success" : ""
+                }${
+                  submitStatus === "error" ? " sell-btn-next--error" : ""
+                }`}
+                disabled={isEncrypting || submitStatus === "sending"}
               >
-                {isEncrypting ? "Encrypting..." : "Submit"}
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
+                {isEncrypting
+                  ? "Encrypting…"
+                  : submitStatus === "sending"
+                  ? "Sending…"
+                  : submitStatus === "success"
+                  ? "Submitted ✓"
+                  : submitStatus === "error"
+                  ? "Failed — Retry"
+                  : "Submit"}
+                {submitStatus === "idle" && !isEncrypting && (
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                )}
               </button>
             </div>
           </form>

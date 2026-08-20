@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "https://ayurmitra.in/opulenza_reserve";
+const BASE_URL = "https://kompasshr.com/OpulenzaReserve";
 const STORAGE_KEY = "authState";
 const META_KEY = "authRefreshMeta";
 const BROADCAST_CHANNEL_NAME = "auth-sync";
