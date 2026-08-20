@@ -298,6 +298,15 @@ const ProfilePage = () => {
         if (res?.data?.status === 200) {
           console.log("Address added successfully");
           setIsAddModalOpen(false);
+          setNewAddress({
+            AddressType: "",
+            AddressLine1: "",
+            AddressLine2: "",
+            City: "",
+            StateProvince: "",
+            Country: "",
+            PostalCode: "",
+          });
           GetAddressDetails();
           console.log("function finished");
         }
@@ -316,7 +325,7 @@ const ProfilePage = () => {
     DeleteAddress(data)
       .then((res) => {
         console.log(res);
-        if (res?.data?.status === 200) {
+        if (res?.data?.statusCode === 200) {
           console.log("Address deleted successfully");
           GetAddressDetails();
         }

@@ -3,6 +3,7 @@ import './AllWatches.css'
 import { Link } from 'react-router-dom'
 // import watchData from '../../data/WatchData'
 import watchData from '../../../../data/WatchData'
+import { getApprovedListing } from '../../../../services/sellingServices/getSellListings/getSellListings'
 
 // const watchData = [
 //   {
@@ -46,6 +47,9 @@ import watchData from '../../../../data/WatchData'
 
 const CountdownTimer = ({ days, hours, minutes, seconds }) => {
   const [timeLeft, setTimeLeft] = useState({ days, hours, minutes, seconds })
+
+
+
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -105,6 +109,26 @@ const AllWatches = () => {
     }))
   }
 
+
+  const [watches, setWatches] = useState([])
+
+  const getWatchListings = () => {
+    getApprovedListing(1)
+      .then((res) => {
+        setWatches(res?.data.data)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+  }
+
+  useEffect(() => {
+    getWatchListings()
+  }, [])
+
+
+  console.log(watches)
+
   return (
     <div className="watch-listing-page">
       <div className="container">
@@ -119,11 +143,11 @@ const AllWatches = () => {
         </div>
 
         <div className="watch-grid">
-          {watchData.map(watch => (
-            <div className="watch-card" key={watch.id}>
+          {watches.map(watch => (
+            <div className="watch-card" key={watch.itemId}>
               {/* Image Section */}
               <div className="watch-card__image-container">
-                <img src={watch.image} alt={watch.title} className="watch-card__image" />
+                <img src={watch.details?.images[0]} alt={watch.details?.editionName} className="watch-card__image" />
                 <div className="watch-card__gradient-overlay"></div>
 
                 {/* Dossier Badge */}
@@ -135,11 +159,84 @@ const AllWatches = () => {
                 {/* Current Bid info overlay */}
                 <div className="watch-card__bid-overlay">
                   <div className="watch-card__bid-label">CURRENT BID</div>
-                  <div className="watch-card__bid-value">{watch.currentBid}</div>
+                  <div className="watch-card__bid-value">{watch.expectedPrice}</div>
                 </div>
               </div>
 
               {/* Info Section */}
+              <div className="watch-card__info">
+                <div className="watch-card__header-row">
+                  <h3 className="watch-card__title">
+                    {watch.details?.brand} <span className="watch-card__reference">{8787}</span>
+                  </h3>
+                  <button
+                    className={`watch-card__favorite-btn ${favorites[watch.itemId] ? 'watch-card__favorite-btn--active' : ''}`}
+                    onClick={() => toggleFavorite(watch.itemId)}
+                    aria-label="Add to wishlist"
+                  >
+                    <svg viewBox="0 0 24 24" fill={favorites[watch.id] ? '#D4AF37' : 'none'} stroke={favorites[watch.id] ? '#D4AF37' : 'currentColor'} strokeWidth="1.5" className="watch-card__heart-icon">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                    </svg>
+                  </button>
+                </div>
+
+                <p className="watch-card__description">{watch.details?.editionName}</p>
+
+                <div className="watch-card__divider"></div>
+
+                {/* Details Grid */}
+                <div className="watch-card__details-grid">
+                  {watch.details &&
+                    Object.entries(watch.details).map(([key, value]) => (
+                      <div className="watch-card__detail-item" key={key}>
+                        <div className="watch-card__detail-label">
+                          {key.replace(/([A-Z])/g, ' $1').trim().toUpperCase()}
+                        </div>
+                        <div className="watch-card__detail-value">
+                          {Array.isArray(value) ? value.join(', ') : String(value ?? '—')}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+
+                <div className="watch-card__divider"></div>
+
+                {/* Card Footer with Countdown and Place Bid */}
+                <div className="watch-card__footer">
+                  <div className="watch-card__closes-container">
+                    <div className="watch-card__closes-label">CLOSES IN</div>
+                    {/* <CountdownTimer
+                      days={watch.initialTime.days}
+                      hours={watch.initialTime.hours}
+                      minutes={watch.initialTime.minutes}
+                      seconds={watch.initialTime.seconds}
+                    /> */}
+                  </div>
+                  <Link to={`/watch/${watch.id}`} style={{ textDecoration: "none" }}><button className="watch-card__bid-btn" >
+                    PLACE A BID
+                  </button></Link>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* <div className="watch-grid">
+          {watchData.map(watch => (
+            <div className="watch-card" key={watch.id}>
+              
+              <div className="watch-card__image-container">
+                <img src={watch.image} alt={watch.title} className="watch-card__image" />
+                <div className="watch-card__gradient-overlay"></div>
+
+                
+                <div className="watch-card__bid-overlay">
+                  <div className="watch-card__bid-label">CURRENT BID</div>
+                  <div className="watch-card__bid-value">{watch.currentBid}</div>
+                </div>
+              </div>
+
+              
               <div className="watch-card__info">
                 <div className="watch-card__header-row">
                   <h3 className="watch-card__title">
@@ -160,7 +257,7 @@ const AllWatches = () => {
 
                 <div className="watch-card__divider"></div>
 
-                {/* Details Grid */}
+                
                 <div className="watch-card__details-grid">
                   {watch.details.map((detail, idx) => (
                     <div className="watch-card__detail-item" key={idx}>
@@ -174,7 +271,7 @@ const AllWatches = () => {
 
                 <div className="watch-card__divider"></div>
 
-                {/* Card Footer with Countdown and Place Bid */}
+                
                 <div className="watch-card__footer">
                   <div className="watch-card__closes-container">
                     <div className="watch-card__closes-label">CLOSES IN</div>
@@ -192,7 +289,7 @@ const AllWatches = () => {
               </div>
             </div>
           ))}
-        </div>
+        </div> */}
       </div>
 
 

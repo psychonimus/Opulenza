@@ -11,12 +11,12 @@ const CigarListingsBody = () => {
 
     const getCigarListings = () => {
         getApprovedListing(3)
-        .then((res)=> {
-            setCigars(res?.data.data)
-        })
-        .catch((err) => {
-            console.log(err)
-        })
+            .then((res) => {
+                setCigars(res?.data.data)
+            })
+            .catch((err) => {
+                console.log(err)
+            })
     }
 
     useEffect(() => {
@@ -36,7 +36,7 @@ const CigarListingsBody = () => {
 
 
 
-    
+
     return (
         <section className="all-cigar-section">
             <div className="container">
@@ -51,7 +51,7 @@ const CigarListingsBody = () => {
                     </Link>
                 </div>
 
-                 <div className="all-cigar-grid">
+                <div className="all-cigar-grid">
                     {cigars.map((item) => {
                         // const brand = item.details?.find(d => d.label === 'BRAND')?.value || item.title
                         // const origin = item.details?.find(d => d.label === 'ORIGIN')?.value || '—'
@@ -67,32 +67,32 @@ const CigarListingsBody = () => {
                                 <div className="cigar-card">
                                     <div className="cigar-card__image-wrapper">
                                         <img
-                                            src={item.openBox}
-                                            alt={`${item.brand} ${item.editionName}`}
+                                            src={item.details?.openBox}
+                                            alt={`${item.brand} ${item.details.editionName}`}
                                             className="cigar-card__image"
                                         />
                                         <div className="cigar-card__overlay" />
                                     </div>
                                     <div className="cigar-card__body">
-                                        <h3 className="cigar-card__title">{item.brand}</h3>
-                                        <p className="cigar-card__reference">{item.editionName}</p>
-                                        <p className="cigar-card__desc">{item.commercialShape}</p>
+                                        <h3 className="cigar-card__title">{item.details?.brand}</h3>
+                                        <p className="cigar-card__reference">{item.details?.editionName}</p>
+                                        <p className="cigar-card__desc">{item.details?.commercialShape}</p>
                                         <div className="cigar-card__meta">
                                             <div className="cigar-card__meta-item">
                                                 <span className="cigar-card__meta-label">BRAND</span>
-                                                <span className="cigar-card__meta-value">{item.brand}</span>
+                                                <span className="cigar-card__meta-value">{item.details?.brand}</span>
                                             </div>
                                             <div className="cigar-card__meta-item">
                                                 <span className="cigar-card__meta-label">ORIGIN</span>
-                                                <span className="cigar-card__meta-value">{item.origin}</span>
+                                                <span className="cigar-card__meta-value">{item.details?.origin}</span>
                                             </div>
                                             <div className="cigar-card__meta-item">
                                                 <span className="cigar-card__meta-label">SIZE</span>
-                                                <span className="cigar-card__meta-value">{item.length}</span>
+                                                <span className="cigar-card__meta-value">{item.details?.length}</span>
                                             </div>
                                             <div className="cigar-card__meta-item">
                                                 <span className="cigar-card__meta-label">BOX YEAR</span>
-                                                <span className="cigar-card__meta-value">{item.boxYear}</span>
+                                                <span className="cigar-card__meta-value">{item.details?.boxYear}</span>
                                             </div>
                                         </div>
                                         <div className="cigar-card__footer">
@@ -167,7 +167,7 @@ const CigarListingsBody = () => {
                     })}
                 </div> */}
             </div>
-        </section>
+        </section >
     )
 }
 
