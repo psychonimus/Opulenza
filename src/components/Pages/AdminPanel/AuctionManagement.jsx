@@ -38,6 +38,7 @@ const CATEGORIES = [
     id: 5,
     name: "Yachts",
   },
+  
 ];
 
 /** Safely convert any value to something React can render in a <td>. */

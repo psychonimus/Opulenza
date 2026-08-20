@@ -30,9 +30,10 @@ import { FaCheckCircle, FaSpinner } from "react-icons/fa";
 
 const CATEGORIES = [
   { id: 0, name: "All" },
-  { id: 1, name: "Watches" },
+  { id: 3, name: "Watches" },
   { id: 2, name: "Whisky" },
-  { id: 3, name: "Cigars" },
+  { id: 6, name: "Casks" },
+  { id: 1, name: "Cigars" },
   { id: 4, name: "Pens" },
   { id: 5, name: "Yachts" },
 ];
