@@ -78,12 +78,22 @@ export async function encryptFile(file, password) {
   };
 }
 
-export async function decryptFile(encryptedBlob, password, saltBase64, ivBase64) {
+export async function decryptFile(encryptedInput, password, saltBase64, ivBase64) {
   if (!password) {
     throw new Error("Password/Key is required for decryption.");
   }
   
-  const encryptedBuffer = await encryptedBlob.arrayBuffer();
+  let encryptedBuffer;
+  if (typeof encryptedInput === "string") {
+    encryptedBuffer = base64ToBuffer(encryptedInput);
+  } else if (encryptedInput instanceof ArrayBuffer) {
+    encryptedBuffer = encryptedInput;
+  } else if (encryptedInput && typeof encryptedInput.arrayBuffer === "function") {
+    encryptedBuffer = await encryptedInput.arrayBuffer();
+  } else {
+    throw new Error("Invalid encrypted file payload.");
+  }
+  
   const salt = new Uint8Array(base64ToBuffer(saltBase64));
   const iv = new Uint8Array(base64ToBuffer(ivBase64));
   

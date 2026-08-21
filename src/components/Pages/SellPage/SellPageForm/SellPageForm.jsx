@@ -896,7 +896,7 @@ const formFields = {
   ],
 };
 
-const buildSchema = (category, whiskyTab = "tab1") => {
+const buildSchema = (category, whiskyTab = "tab1", currentValues = {}) => {
   const fieldsKey = category === "whisky" ? (whiskyTab === "tab2" ? "whisky_tab2" : "whisky") : category;
   const fields = formFields[fieldsKey] || [];
   const shape = {};
@@ -904,6 +904,9 @@ const buildSchema = (category, whiskyTab = "tab1") => {
   fields.forEach((field) => {
     if (field.type === "section") return;
     if (field.type === "file") return;
+
+    // Skip fields whose condition is not met — they are hidden and should not be validated
+    if (field.condition && !field.condition(currentValues)) return;
 
     if (field.type === "checkbox-group") {
       shape[field.id] = yup.array().of(yup.string());
@@ -950,7 +953,10 @@ const SellPageForm = () => {
     reset,
     formState: { errors },
   } = useForm({
-    resolver: yupResolver(buildSchema(activeCategory, whiskyTab)),
+    resolver: async (values, context, options) => {
+      const schema = buildSchema(activeCategory, whiskyTab, values);
+      return yupResolver(schema)(values, context, options);
+    },
     defaultValues: {},
   });
 
@@ -1120,31 +1126,42 @@ const SellPageForm = () => {
 
     
 
-    // Append encrypted files and metadata
-    Object.keys(selectedFiles).forEach((key) => {
-      const fileData = selectedFiles[key];
+    // Separate selected files into documents and images, preserving logical order
+    const documentEntries = Object.keys(selectedFiles)
+      .filter((k) => k.toLowerCase().includes("document"))
+      .sort()
+      .map((k) => selectedFiles[k]);
+
+    const imageEntries = Object.keys(selectedFiles)
+      .filter((k) => k.toLowerCase().includes("image"))
+      .sort()
+      .map((k) => selectedFiles[k]);
+
+    // Append documents with indexed keys: documents[i].File, documents[i].OriginalFileName, ...
+    documentEntries.forEach((fileData, index) => {
       if (fileData && fileData.encryptedBlob) {
-        const logicalName = fileData.logicalName;
-        formData.append(
-          logicalName,
-          fileData.encryptedBlob,
-          `${logicalName}.enc`,
-        );
-        formData.append(
-          `${logicalName}_originalFileName`,
-          fileData.originalFileName,
-        );
-        formData.append(`${logicalName}_contentType`, fileData.contentType);
-        formData.append(`${logicalName}_salt`, fileData.salt);
-        formData.append(`${logicalName}_iv`, fileData.iv);
-        formData.append(
-          `${logicalName}_encryptionAlgorithm`,
-          fileData.encryptionAlgorithm,
-        );
-        formData.append(
-          `${logicalName}_encryptionVersion`,
-          String(fileData.encryptionVersion),
-        );
+        const prefix = `documents[${index}]`;
+        formData.append(`${prefix}.File`, fileData.encryptedBlob, `${fileData.logicalName}.enc`);
+        formData.append(`${prefix}.OriginalFileName`, fileData.originalFileName);
+        formData.append(`${prefix}.ContentType`, fileData.contentType);
+        formData.append(`${prefix}.Salt`, fileData.salt);
+        formData.append(`${prefix}.IV`, fileData.iv);
+        formData.append(`${prefix}.EncryptionAlgorithm`, fileData.encryptionAlgorithm);
+        formData.append(`${prefix}.EncryptionVersion`, String(fileData.encryptionVersion));
+      }
+    });
+
+    // Append images with indexed keys: images[i].File, images[i].OriginalFileName, ...
+    imageEntries.forEach((fileData, index) => {
+      if (fileData && fileData.encryptedBlob) {
+        const prefix = `images[${index}]`;
+        formData.append(`${prefix}.File`, fileData.encryptedBlob, `${fileData.logicalName}.enc`);
+        formData.append(`${prefix}.OriginalFileName`, fileData.originalFileName);
+        formData.append(`${prefix}.ContentType`, fileData.contentType);
+        formData.append(`${prefix}.Salt`, fileData.salt);
+        formData.append(`${prefix}.IV`, fileData.iv);
+        formData.append(`${prefix}.EncryptionAlgorithm`, fileData.encryptionAlgorithm);
+        formData.append(`${prefix}.EncryptionVersion`, String(fileData.encryptionVersion));
       }
     });
 
