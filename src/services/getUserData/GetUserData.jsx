@@ -47,6 +47,10 @@ export const GetPreferences = () => {
   return api.get("/api/member/GetPreferences");
 };
 
+export const GetMyInvitations = () => {
+  return api.get("/api/member/MyInvitations?pageNumber=1&pageSize=10");
+};
+
 
 
 

@@ -4,55 +4,55 @@ import './VaultPage.css'
 
 // Mock initial data for Vault
 const INITIAL_ACTIVE_BIDS = [
-  {
-    id: 'w1',
-    category: 'WATCHES',
-    title: 'Patek Philippe',
-    reference: 'Ref. 2499, First Series',
-    image: '/images/pattek/pattek-phillipe.png',
-    userBid: 2840000,
-    currentHighBid: 2840000,
-    timeLeft: { hours: 2, minutes: 14, seconds: 33 },
-    link: '/watch/1'
-  },
-  {
-    id: 'c1',
-    category: 'CIGARS',
-    title: 'Cohiba',
-    reference: 'Behike BHK 56',
-    image: '/images/cigars/cohiba/cohiba-main.png',
-    userBid: 4200,
-    currentHighBid: 4800,
-    timeLeft: { hours: 8, minutes: 4, seconds: 12 },
-    link: '/cigar/1'
-  }
+  // {
+  //   id: 'w1',
+  //   category: 'WATCHES',
+  //   title: 'Patek Philippe',
+  //   reference: 'Ref. 2499, First Series',
+  //   image: '/images/pattek/pattek-phillipe.png',
+  //   userBid: 2840000,
+  //   currentHighBid: 2840000,
+  //   timeLeft: { hours: 2, minutes: 14, seconds: 33 },
+  //   link: '/watch/1'
+  // },
+  // {
+  //   id: 'c1',
+  //   category: 'CIGARS',
+  //   title: 'Cohiba',
+  //   reference: 'Behike BHK 56',
+  //   image: '/images/cigars/cohiba/cohiba-main.png',
+  //   userBid: 4200,
+  //   currentHighBid: 4800,
+  //   timeLeft: { hours: 8, minutes: 4, seconds: 12 },
+  //   link: '/cigar/1'
+  // }
 ]
 
 const INITIAL_SECURED_ASSETS = [
-  {
-    id: 'p1',
-    category: 'WRITING INSTRUMENTS',
-    title: 'Montblanc',
-    reference: '149 Masterpiece — 18K Solid Gold',
-    image: '/images/pens/montblanc/montblanc-main.png',
-    purchasePrice: 28000,
-    securedDate: 'June 18, 2026',
-    vaultLocation: 'Zurich Vault — Box #904',
-    certificateId: 'OP-MB-9048-A',
-    link: '/pen/1'
-  },
-  {
-    id: 'wh1',
-    category: 'FINE SPIRITS',
-    title: 'The Macallan',
-    reference: 'Fine & Rare 1926',
-    image: '/images/whisky/macallan/macallan-main.png',
-    purchasePrice: 1250000,
-    securedDate: 'May 04, 2026',
-    vaultLocation: 'London City Vaults — Box #12',
-    certificateId: 'OP-MC-1926-Z',
-    link: '/whisky/1'
-  }
+  // {
+  //   id: 'p1',
+  //   category: 'WRITING INSTRUMENTS',
+  //   title: 'Montblanc',
+  //   reference: '149 Masterpiece — 18K Solid Gold',
+  //   image: '/images/pens/montblanc/montblanc-main.png',
+  //   purchasePrice: 28000,
+  //   securedDate: 'June 18, 2026',
+  //   vaultLocation: 'Zurich Vault — Box #904',
+  //   certificateId: 'OP-MB-9048-A',
+  //   link: '/pen/1'
+  // },
+  // {
+  //   id: 'wh1',
+  //   category: 'FINE SPIRITS',
+  //   title: 'The Macallan',
+  //   reference: 'Fine & Rare 1926',
+  //   image: '/images/whisky/macallan/macallan-main.png',
+  //   purchasePrice: 1250000,
+  //   securedDate: 'May 04, 2026',
+  //   vaultLocation: 'London City Vaults — Box #12',
+  //   certificateId: 'OP-MC-1926-Z',
+  //   link: '/whisky/1'
+  // }
 ]
 
 const INITIAL_CART_ITEMS = [
@@ -79,27 +79,53 @@ const INITIAL_CART_ITEMS = [
 ]
 
 const INITIAL_WATCHLIST = [
-  {
-    id: 'y2',
-    category: 'YACHTS',
-    title: 'Feadship',
-    reference: 'Syzygy — 81.5m',
-    image: '/images/yachts/syzygy/syzygy-main.png',
-    currentBid: 92000000,
-    timeLeft: { hours: 14, minutes: 48, seconds: 50 },
-    link: '/yacht/2'
-  },
-  {
-    id: 'pen5',
-    category: 'WRITING INSTRUMENTS',
-    title: 'Pelikan',
-    reference: 'Souverän M1000',
-    image: '/images/pens/pelican/pelican-main.png',
-    currentBid: 22000,
-    timeLeft: { hours: 10, minutes: 17, seconds: 5 },
-    link: '/pen/5'
-  }
+  // {
+  //   id: 'y2',
+  //   category: 'YACHTS',
+  //   title: 'Feadship',
+  //   reference: 'Syzygy — 81.5m',
+  //   image: '/images/yachts/syzygy/syzygy-main.png',
+  //   currentBid: 92000000,
+  //   timeLeft: { hours: 14, minutes: 48, seconds: 50 },
+  //   link: '/yacht/2'
+  // },
+  // {
+  //   id: 'pen5',
+  //   category: 'WRITING INSTRUMENTS',
+  //   title: 'Pelikan',
+  //   reference: 'Souverän M1000',
+  //   image: '/images/pens/pelican/pelican-main.png',
+  //   currentBid: 22000,
+  //   timeLeft: { hours: 10, minutes: 17, seconds: 5 },
+  //   link: '/pen/5'
+  // }
 ]
+
+const INITIAL_SELLINGLIST = [
+    // {
+    //   id: 'w1',
+    //   category: 'WATCHES',
+    //   title: 'Patek Philippe',
+    //   reference: 'Ref. 2499, First Series',
+    //   image: '/images/pattek/pattek-phillipe.png',
+    //   userBid: 2840000,
+    //   currentHighBid: 2840000,
+    //   timeLeft: { hours: 2, minutes: 14, seconds: 33 },
+    //   link: '/watch/1'
+    // },
+    // {
+    //   id: 'c1',
+    //   category: 'CIGARS',
+    //   title: 'Cohiba',
+    //   reference: 'Behike BHK 56',
+    //   image: '/images/cigars/cohiba/cohiba-main.png',
+    //   userBid: 4200,
+    //   currentHighBid: 4800,
+    //   timeLeft: { hours: 8, minutes: 4, seconds: 12 },
+    //   link: '/cigar/1'
+    // }
+  ]
+
 
 const VaultPage = () => {
   const [activeTab, setActiveTab] = useState('bids') // 'bids' | 'secured' | 'cart' | 'watchlist'
@@ -109,6 +135,7 @@ const VaultPage = () => {
   const [securedAssets, setSecuredAssets] = useState(INITIAL_SECURED_ASSETS)
   const [cartItems, setCartItems] = useState(INITIAL_CART_ITEMS)
   const [watchlist, setWatchlist] = useState(INITIAL_WATCHLIST)
+  const [sellingList, setSellingList] = useState(INITIAL_SELLINGLIST)
 
   // Payment State
   const [isCheckingOut, setIsCheckingOut] = useState(false)
@@ -258,6 +285,14 @@ const VaultPage = () => {
           >
             WATCHLIST ({watchlist.length})
             {activeTab === 'watchlist' && <span className="vault-tab-indicator" />}
+          </button>
+          
+          <button
+            className={`vault-tab-btn ${activeTab === 'sellingList' ? 'vault-tab-btn--active' : ''}`}
+            onClick={() => setActiveTab('sellingList')}
+          >
+            SELLING LIST ({sellingList.length})
+            {activeTab === 'sellingList' && <span className="vault-tab-indicator" />}
           </button>
         </div>
 
@@ -416,6 +451,50 @@ const VaultPage = () => {
                         </button>
                         <Link to={item.link} className="vault-action-btn">
                           PLACE A BID
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 4. Selling List Tab */}
+          {activeTab === 'sellingList' && (
+            <div className="vault-panel-grid fade-in-animation">
+              {sellingList.length === 0 ? (
+                <div className="vault-empty-state">
+                  <p>Your selling list is currently empty.</p>
+                  <Link to="/sell" className="vault-explore-btn">SELL AN ASSET</Link>
+                </div>
+              ) : (
+                <div className="vault-items-list">
+                  {sellingList.map(item => (
+                    <div className="vault-item-card" key={item.id}>
+                      <div className="vault-item-card__image">
+                        <img src={item.image} alt={item.title} />
+                      </div>
+                      <div className="vault-item-card__details">
+                        <span className="vault-item-cat">{item.category}</span>
+                        <h3 className="vault-item-title">{item.title} <span className="vault-item-ref">{item.reference}</span></h3>
+                        <div className="vault-item-specs">
+                          <div>
+                            <span className="vault-spec-label">CURRENT BID</span>
+                            <span className="vault-spec-val">{formatCurrency(item.currentBid)}</span>
+                          </div>
+                          <div>
+                            <span className="vault-spec-label">TIME REMAINING</span>
+                            <span className="vault-spec-val vault-spec-val--timer">{formatTime(item.timeLeft)}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="vault-item-card__action-zone">
+                        <button className="vault-cart-remove-btn" style={{ marginBottom: '10px' }} onClick={() => handleRemoveSellingList(item.id)}>
+                          REMOVE FROM LISTING
+                        </button>
+                        <Link to={item.link} className="vault-action-btn">
+                          VIEW LISTING
                         </Link>
                       </div>
                     </div>

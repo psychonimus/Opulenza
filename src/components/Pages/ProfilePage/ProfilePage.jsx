@@ -5,6 +5,7 @@ import {
   DeleteAddress,
   GetAddress,
   GetPreferences,
+  GetMyInvitations,
 } from "../../../services/getUserData/GetUserData";
 import { useUser } from "../../../services/showUserInfo/ShowUserInfo";
 import InviteModal from "../../InviteModal/InviteModal";
@@ -274,9 +275,21 @@ const ProfilePage = () => {
       });
   };
 
+
+  const getMyInvitations = () => {
+    GetMyInvitations()
+    .then((res) => {
+      console.log("Invitation data", res);
+    })
+    .catch((err) => {
+      console.log(err);
+    })
+  }
+
   useEffect(() => {
     GetAddressDetails();
     // fetchUserPreferences();
+    getMyInvitations();
   }, []);
 
   const [newAddress, setNewAddress] = useState({

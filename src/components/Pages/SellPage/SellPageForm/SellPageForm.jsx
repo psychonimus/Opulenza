@@ -3,10 +3,6 @@ import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { SendSellingFormData } from "../../../../services/sellingServices/sendSellingFormData/SendSellingFormData";
-import {
-  encryptFile,
-  getEncryptionSecret,
-} from "../../../../utils/fileEncryption";
 import "./SellPageForm.css";  
 
 const categories = [
@@ -1101,7 +1097,6 @@ const SellPageForm = () => {
   const [selectedFiles, setSelectedFiles] = useState({});
   const fileVersions = useRef({});
   const formRef = useRef(null);
-  const [isEncrypting, setIsEncrypting] = useState(false);
   // submit states: 'idle' | 'sending' | 'success' | 'error'
   const [submitStatus, setSubmitStatus] = useState("idle");
   const [submitError, setSubmitError] = useState("");
@@ -1218,60 +1213,27 @@ const SellPageForm = () => {
     }
 
     setFileNames((prev) => ({ ...prev, [id]: file.name }));
-    setIsEncrypting(true);
 
-    try {
-      const secret = getEncryptionSecret();
-      const encryptedData = await encryptFile(file, secret);
-
-      if (fileVersions.current[id] !== version) {
-        return; // Stale selection
-      }
-
-      setSelectedFiles((prev) => {
-        const next = {
-          ...prev,
-          [id]: {
-            encryptedBlob: encryptedData.encryptedBlob,
-            originalFileName: encryptedData.originalFileName,
-            contentType: encryptedData.contentType,
-            salt: encryptedData.salt,
-            iv: encryptedData.iv,
-            encryptionAlgorithm: "AES-256-GCM",
-            encryptionVersion: 1,
-            logicalName: "",
-          },
-        };
-        recalculateLogicalNames(next);
-        return next;
-      });
-    } catch (err) {
-      console.error("Encryption failed:", err);
-      setFileNames((prev) => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-      setSelectedFiles((prev) => {
-        const next = { ...prev };
-        delete next[id];
-        recalculateLogicalNames(next);
-        return next;
-      });
-      alert(
-        "Security Error: Failed to encrypt the selected file. Details: " +
-          err.message,
-      );
-    } finally {
-      setIsEncrypting(false);
+    if (fileVersions.current[id] !== version) {
+      return; // Stale selection
     }
+
+    setSelectedFiles((prev) => {
+      const next = {
+        ...prev,
+        [id]: {
+          file,
+          originalFileName: file.name,
+          contentType: file.type,
+          logicalName: "",
+        },
+      };
+      recalculateLogicalNames(next);
+      return next;
+    });
   };
 
   const onSubmit = (data) => {
-    if (isEncrypting) {
-      alert("Encryption is in progress. Please wait.");
-      return;
-    }
     const formData = new FormData();
 
     // Append standard fields
@@ -1317,31 +1279,19 @@ const SellPageForm = () => {
       .sort()
       .map((k) => selectedFiles[k]);
 
-    // Append documents with indexed keys: documents[i].File, documents[i].OriginalFileName, ...
+    // Append documents as flat keys: Document1, Document2, ...
     documentEntries.forEach((fileData, index) => {
-      if (fileData && fileData.encryptedBlob) {
-        const prefix = `documents[${index}]`;
-        formData.append(`${prefix}.File`, fileData.encryptedBlob, `${fileData.logicalName}.enc`);
-        formData.append(`${prefix}.OriginalFileName`, fileData.originalFileName);
-        formData.append(`${prefix}.ContentType`, fileData.contentType);
-        formData.append(`${prefix}.Salt`, fileData.salt);
-        formData.append(`${prefix}.IV`, fileData.iv);
-        formData.append(`${prefix}.EncryptionAlgorithm`, fileData.encryptionAlgorithm);
-        formData.append(`${prefix}.EncryptionVersion`, String(fileData.encryptionVersion));
+      if (fileData && fileData.file) {
+        const key = `Document${index + 1}`;
+        formData.append(key, fileData.file, fileData.originalFileName);
       }
     });
 
-    // Append images with indexed keys: images[i].File, images[i].OriginalFileName, ...
+    // Append images as flat keys: Image1, Image2, ...
     imageEntries.forEach((fileData, index) => {
-      if (fileData && fileData.encryptedBlob) {
-        const prefix = `images[${index}]`;
-        formData.append(`${prefix}.File`, fileData.encryptedBlob, `${fileData.logicalName}.enc`);
-        formData.append(`${prefix}.OriginalFileName`, fileData.originalFileName);
-        formData.append(`${prefix}.ContentType`, fileData.contentType);
-        formData.append(`${prefix}.Salt`, fileData.salt);
-        formData.append(`${prefix}.IV`, fileData.iv);
-        formData.append(`${prefix}.EncryptionAlgorithm`, fileData.encryptionAlgorithm);
-        formData.append(`${prefix}.EncryptionVersion`, String(fileData.encryptionVersion));
+      if (fileData && fileData.file) {
+        const key = `Image${index + 1}`;
+        formData.append(key, fileData.file, fileData.originalFileName);
       }
     });
 
@@ -1712,18 +1662,16 @@ const SellPageForm = () => {
                 }${
                   submitStatus === "error" ? " sell-btn-next--error" : ""
                 }`}
-                disabled={isEncrypting || submitStatus === "sending"}
+                disabled={submitStatus === "sending"}
               >
-                {isEncrypting
-                  ? "Encrypting…"
-                  : submitStatus === "sending"
+                {submitStatus === "sending"
                   ? "Sending…"
                   : submitStatus === "success"
                   ? "Submitted ✓"
                   : submitStatus === "error"
                   ? "Failed — Retry"
                   : "Submit"}
-                {submitStatus === "idle" && !isEncrypting && (
+                {submitStatus === "idle" && (
                   <svg
                     width="16"
                     height="16"

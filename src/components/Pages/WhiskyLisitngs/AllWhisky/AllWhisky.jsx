@@ -47,6 +47,21 @@ const AllWhisky = () => {
 
         {/* ── Tab 1: Whisky ── */}
         {activeTab === "whisky" && (
+          whiskyData.length === 0 ? (
+            <div className="listings-empty-state">
+              <div className="listings-empty-state__icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  <line x1="11" y1="8" x2="11" y2="14" />
+                  <line x1="8" y1="11" x2="14" y2="11" />
+                </svg>
+              </div>
+              <h3 className="listings-empty-state__title">No Listings at the Moment</h3>
+              <p className="listings-empty-state__sub">Our cellar masters are selecting the finest spirits. Revisit soon or consign your own rare bottle.</p>
+              <Link to="/sell" className="listings-empty-state__cta">Submit an Asset</Link>
+            </div>
+          ) : (
           <div className="all-whisky-grid">
             {whiskyData.map((item) => {
               const distillery =
@@ -82,42 +97,26 @@ const AllWhisky = () => {
                       <p className="whisky-card__desc">{item.description}</p>
                       <div className="whisky-card__meta">
                         <div className="whisky-card__meta-item">
-                          <span className="whisky-card__meta-label">
-                            DISTILLERY
-                          </span>
-                          <span className="whisky-card__meta-value">
-                            {distillery}
-                          </span>
+                          <span className="whisky-card__meta-label">DISTILLERY</span>
+                          <span className="whisky-card__meta-value">{distillery}</span>
                         </div>
                         <div className="whisky-card__meta-item">
-                          <span className="whisky-card__meta-label">
-                            DISTILLED
-                          </span>
-                          <span className="whisky-card__meta-value">
-                            {distilled}
-                          </span>
+                          <span className="whisky-card__meta-label">DISTILLED</span>
+                          <span className="whisky-card__meta-value">{distilled}</span>
                         </div>
                         <div className="whisky-card__meta-item">
                           <span className="whisky-card__meta-label">CASK</span>
                           <span className="whisky-card__meta-value">{cask}</span>
                         </div>
                         <div className="whisky-card__meta-item">
-                          <span className="whisky-card__meta-label">
-                            RARITY
-                          </span>
-                          <span className="whisky-card__meta-value">
-                            {rarity}
-                          </span>
+                          <span className="whisky-card__meta-label">RARITY</span>
+                          <span className="whisky-card__meta-value">{rarity}</span>
                         </div>
                       </div>
                       <div className="whisky-card__footer">
                         <div className="whisky-card__bid">
-                          <span className="whisky-card__bid-label">
-                            CURRENT BID
-                          </span>
-                          <span className="whisky-card__bid-value">
-                            {item.currentBid}
-                          </span>
+                          <span className="whisky-card__bid-label">CURRENT BID</span>
+                          <span className="whisky-card__bid-value">{item.currentBid}</span>
                         </div>
                         <span className="whisky-card__cta">BID NOW →</span>
                       </div>
@@ -127,38 +126,44 @@ const AllWhisky = () => {
               );
             })}
           </div>
+          )
         )}
 
         {/* ── Tab 2: Cask ── */}
         {activeTab === "cask" && (
+          CaskData.length === 0 ? (
+            <div className="listings-empty-state">
+              <div className="listings-empty-state__icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  <line x1="11" y1="8" x2="11" y2="14" />
+                  <line x1="8" y1="11" x2="14" y2="11" />
+                </svg>
+              </div>
+              <h3 className="listings-empty-state__title">No Cask Lots at the Moment</h3>
+              <p className="listings-empty-state__sub">Rare cask opportunities are sourced discreetly. Register your interest or consign your own cask.</p>
+              <Link to="/sell" className="listings-empty-state__cta">Submit a Cask</Link>
+            </div>
+          ) : (
           <div className="all-whisky-grid">
             {CaskData.map((item) => {
               const distillery =
                 item.details?.find((d) => d.label === "DISTILLERY")?.value ||
                 item.title;
               const caskType =
-                item.details?.find((d) => d.label === "CASK TYPE")?.value ||
-                "—";
-              const age =
-                item.details?.find((d) => d.label === "AGE")?.value || "—";
-              const abv =
-                item.details?.find((d) => d.label === "ABV")?.value || "—";
-              const volume =
-                item.details?.find((d) => d.label === "VOLUME")?.value || "—";
-              const bottles =
-                item.details?.find((d) => d.label === "BOTTLES")?.value || "—";
+                item.details?.find((d) => d.label === "CASK TYPE")?.value || "—";
+              const age = item.details?.find((d) => d.label === "AGE")?.value || "—";
+              const abv = item.details?.find((d) => d.label === "ABV")?.value || "—";
+              const volume = item.details?.find((d) => d.label === "VOLUME")?.value || "—";
+              const bottles = item.details?.find((d) => d.label === "BOTTLES")?.value || "—";
 
               return (
                 <div key={item.id} className="whisky-card-link">
                   <div className="whisky-card whisky-card--cask">
-                    {/* Cask badge ribbon */}
                     <div className="whisky-card__cask-ribbon">CASK LOT</div>
                     <div className="whisky-card__image-wrapper">
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        className="whisky-card__image"
-                      />
+                      <img src={item.image} alt={item.title} className="whisky-card__image" />
                       <div className="whisky-card__overlay" />
                     </div>
                     <div className="whisky-card__body">
@@ -167,20 +172,12 @@ const AllWhisky = () => {
                       <p className="whisky-card__desc">{item.description}</p>
                       <div className="whisky-card__meta whisky-card__meta--cask">
                         <div className="whisky-card__meta-item">
-                          <span className="whisky-card__meta-label">
-                            DISTILLERY
-                          </span>
-                          <span className="whisky-card__meta-value">
-                            {distillery}
-                          </span>
+                          <span className="whisky-card__meta-label">DISTILLERY</span>
+                          <span className="whisky-card__meta-value">{distillery}</span>
                         </div>
                         <div className="whisky-card__meta-item">
-                          <span className="whisky-card__meta-label">
-                            CASK TYPE
-                          </span>
-                          <span className="whisky-card__meta-value">
-                            {caskType}
-                          </span>
+                          <span className="whisky-card__meta-label">CASK TYPE</span>
+                          <span className="whisky-card__meta-value">{caskType}</span>
                         </div>
                         <div className="whisky-card__meta-item">
                           <span className="whisky-card__meta-label">AGE</span>
@@ -191,30 +188,18 @@ const AllWhisky = () => {
                           <span className="whisky-card__meta-value">{abv}</span>
                         </div>
                         <div className="whisky-card__meta-item">
-                          <span className="whisky-card__meta-label">
-                            VOLUME
-                          </span>
-                          <span className="whisky-card__meta-value">
-                            {volume}
-                          </span>
+                          <span className="whisky-card__meta-label">VOLUME</span>
+                          <span className="whisky-card__meta-value">{volume}</span>
                         </div>
                         <div className="whisky-card__meta-item">
-                          <span className="whisky-card__meta-label">
-                            BOTTLES
-                          </span>
-                          <span className="whisky-card__meta-value">
-                            {bottles}
-                          </span>
+                          <span className="whisky-card__meta-label">BOTTLES</span>
+                          <span className="whisky-card__meta-value">{bottles}</span>
                         </div>
                       </div>
                       <div className="whisky-card__footer">
                         <div className="whisky-card__bid">
-                          <span className="whisky-card__bid-label">
-                            EST. CASK VALUE
-                          </span>
-                          <span className="whisky-card__bid-value">
-                            {item.currentBid}
-                          </span>
+                          <span className="whisky-card__bid-label">EST. CASK VALUE</span>
+                          <span className="whisky-card__bid-value">{item.currentBid}</span>
                         </div>
                         <span className="whisky-card__cta">ENQUIRE →</span>
                       </div>
@@ -224,6 +209,7 @@ const AllWhisky = () => {
               );
             })}
           </div>
+          )
         )}
       </div>
     </section>
