@@ -7,7 +7,7 @@ import {
   encryptFile,
   getEncryptionSecret,
 } from "../../../../utils/fileEncryption";
-import "./SellPageForm.css";
+import "./SellPageForm.css";  
 
 const categories = [
   {
@@ -746,7 +746,7 @@ const formFields = {
       half: true,
     },
     {
-      id: "Image5",
+      id: "Document1",
       label: "Box and/or authenticity certificate.",
       type: "file",
       placeholder: "Images of box, papers, or certificate.",
@@ -896,6 +896,149 @@ const formFields = {
   ],
 };
 
+// ─── Per-field validation rules ───────────────────────────────────────────────
+
+// Price fields: positive number (no strings, no negatives)
+const priceField = (label) =>
+  yup
+    .string()
+    .required(`${label} is required`)
+    .test("is-positive-number", `${label} must be a positive number`, (v) => {
+      if (!v) return false;
+      const n = Number(v.replace(/,/g, "").trim());
+      return !isNaN(n) && n > 0;
+    });
+
+// Positive integer fields (quantity, bottles)
+const positiveIntField = (label) =>
+  yup
+    .string()
+    .required(`${label} is required`)
+    .test("is-positive-int", `${label} must be a whole positive number`, (v) => {
+      if (!v) return false;
+      const n = Number(v.trim());
+      return !isNaN(n) && Number.isInteger(n) && n > 0;
+    });
+
+// Age in years: 1–200
+const ageField = (label) =>
+  yup
+    .string()
+    .required(`${label} is required`)
+    .test("is-valid-age", `${label} must be a number between 1 and 200`, (v) => {
+      if (!v) return false;
+      const n = parseFloat(v);
+      return !isNaN(n) && n >= 1 && n <= 200;
+    });
+
+// ABV / Proof: 0–100 decimal
+const abvField = (label) =>
+  yup
+    .string()
+    .required(`${label} is required`)
+    .test("is-valid-abv", `${label} must be between 0 and 100`, (v) => {
+      if (!v) return false;
+      const n = parseFloat(v);
+      return !isNaN(n) && n >= 0 && n <= 100;
+    });
+
+// Auction end date: today → today+15 days
+const today = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+const auctionEndDateField = () =>
+  yup
+    .string()
+    .required("Auction end date is required")
+    .test("is-future", "Date must be today or in the future", (v) => {
+      if (!v) return false;
+      return new Date(v) >= today();
+    })
+    .test("is-max-15-days", "Auction end date cannot exceed 15 days from today", (v) => {
+      if (!v) return false;
+      const max = new Date(today());
+      max.setDate(max.getDate() + 15);
+      return new Date(v) <= max;
+    });
+
+// AYS / fill date: must be a past or present date
+const pastDateField = (label) =>
+  yup
+    .string()
+    .required(`${label} is required`)
+    .test("is-past-or-today", `${label} must be today or a past date`, (v) => {
+      if (!v) return false;
+      return new Date(v) <= new Date();
+    });
+
+// Short text (brand, model, etc.): at least 2 characters
+const shortTextField = (label) =>
+  yup
+    .string()
+    .required(`${label} is required`)
+    .min(2, `${label} must be at least 2 characters`);
+
+// Serial number: alphanumeric, at least 4 chars
+const serialField = (label) =>
+  yup
+    .string()
+    .required(`${label} is required`)
+    .min(4, `${label} must be at least 4 characters`)
+    .matches(/^[A-Za-z0-9\s\-\/]+$/, `${label} may only contain letters, numbers, dashes, or slashes`);
+
+// Bottle size: free text but required
+const bottleSizeField = (label) =>
+  yup
+    .string()
+    .required(`${label} is required`)
+    .min(2, `${label} must be at least 2 characters`);
+
+// Map field IDs to their specific validator
+const FIELD_VALIDATORS = {
+  // ── Price fields ──────────────────────────────
+  originalPrice:  (f) => priceField(f.label),
+  expectedPrice:  (f) => priceField(f.label),
+  CossgPrice:     (f) => priceField(f.label),
+
+  // ── Integer quantity fields ───────────────────
+  quantity:       (f) => positiveIntField(f.label),
+  NoOfBottles:    (f) => positiveIntField(f.label),
+
+  // ── Age ──────────────────────────────────────
+  age:            (f) => ageField(f.label),
+
+  // ── ABV / Proof ───────────────────────────────
+  ABV:            (f) => abvField(f.label),
+  proof:          (f) => abvField(f.label),
+
+  // ── Dates ─────────────────────────────────────
+  auctionEndDate: ()  => auctionEndDateField(),
+  AYS:            (f) => pastDateField(f.label),
+
+  // ── Serial / registry numbers ─────────────────
+  serialNumber:   (f) => serialField(f.label),
+
+  // ── Short text fields ─────────────────────────
+  brand:          (f) => shortTextField(f.label),
+  model:          (f) => shortTextField(f.label),
+  make:           (f) => shortTextField(f.label),
+  editionName:    (f) => shortTextField(f.label),
+  CaskType:       (f) => shortTextField(f.label),
+  Distillesy:     (f) => shortTextField(f.label),
+  producerName:   (f) => shortTextField(f.label),
+  bottlingName:   (f) => shortTextField(f.label),
+  bottleSize:     (f) => bottleSizeField(f.label),
+  bodyMaterial:   (f) => shortTextField(f.label),
+  trim:           (f) => shortTextField(f.label),
+  nibMaterial:    (f) => shortTextField(f.label),
+  commercialShape:(f) => shortTextField(f.label),
+  registry:       (f) => shortTextField(f.label),
+  length:         (f) => shortTextField(f.label),
+  packagingType:  (f) => shortTextField(f.label),
+};
+
 const buildSchema = (category, whiskyTab = "tab1", currentValues = {}) => {
   const fieldsKey = category === "whisky" ? (whiskyTab === "tab2" ? "whisky_tab2" : "whisky") : category;
   const fields = formFields[fieldsKey] || [];
@@ -913,15 +1056,37 @@ const buildSchema = (category, whiskyTab = "tab1", currentValues = {}) => {
       return;
     }
 
+    // Native number inputs (ABV, NoOfBottles, CossgPrice in cask form)
     if (field.type === "number") {
-      shape[field.id] = yup
-        .number()
-        .typeError(`${field.label} must be a number`)
-        .required(`${field.label} is required`);
+      // Use per-field validator if available, otherwise generic positive number
+      if (FIELD_VALIDATORS[field.id]) {
+        shape[field.id] = FIELD_VALIDATORS[field.id](field);
+      } else {
+        shape[field.id] = yup
+          .number()
+          .typeError(`${field.label} must be a number`)
+          .positive(`${field.label} must be positive`)
+          .required(`${field.label} is required`);
+      }
       return;
     }
 
-    shape[field.id] = yup.string().required(`${field.label} is required`);
+    // Date fields
+    if (field.type === "date") {
+      if (FIELD_VALIDATORS[field.id]) {
+        shape[field.id] = FIELD_VALIDATORS[field.id](field);
+      } else {
+        shape[field.id] = yup.string().required(`${field.label} is required`);
+      }
+      return;
+    }
+
+    // Select / text fields — use specific validator if available, else generic required
+    if (FIELD_VALIDATORS[field.id]) {
+      shape[field.id] = FIELD_VALIDATORS[field.id](field);
+    } else {
+      shape[field.id] = yup.string().required(`${field.label} is required`);
+    }
   });
 
   return yup.object().shape(shape);
@@ -1110,8 +1275,23 @@ const SellPageForm = () => {
     const formData = new FormData();
 
     // Append standard fields
+    // The pens "Inclusions" checkbox group sends an array of strings but the API
+    // expects three separate boolean fields: OrignalOuterBox, PresentationCase, ServiceGuide.
+    // Map label strings → API key names
+    const INCLUSION_MAP = {
+      "Original Outer Box": "OrignalOuterBox",
+      "Presentation Case":  "PresentationCase",
+      "Service Guide":      "ServiceGuide",
+    };
+
     Object.keys(data).forEach((key) => {
-      if (Array.isArray(data[key])) {
+      if (key === "orignalOuterBox") {
+        // Convert checked array to individual booleans
+        const checked = Array.isArray(data[key]) ? data[key] : [];
+        Object.entries(INCLUSION_MAP).forEach(([label, apiKey]) => {
+          formData.append(apiKey, checked.includes(label) ? "true" : "false");
+        });
+      } else if (Array.isArray(data[key])) {
         data[key].forEach((val) => formData.append(key, val));
       } else if (data[key] !== undefined && data[key] !== null) {
         formData.append(key, data[key]);

@@ -10,7 +10,7 @@ const CigarListingsBody = () => {
     const [cigars, setCigars] = useState([])
 
     const getCigarListings = () => {
-        getApprovedListing(3)
+        getApprovedListing(1)
             .then((res) => {
                 setCigars(res?.data.data)
             })

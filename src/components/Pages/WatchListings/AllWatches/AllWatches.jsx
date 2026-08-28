@@ -113,7 +113,7 @@ const AllWatches = () => {
   const [watches, setWatches] = useState([])
 
   const getWatchListings = () => {
-    getApprovedListing(1)
+    getApprovedListing(3)
       .then((res) => {
         setWatches(res?.data.data)
       })
