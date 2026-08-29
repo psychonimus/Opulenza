@@ -1,20 +1,82 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import watchData from '../../../../data/WatchData'
+import { getApprovedListing } from '../../../../services/sellingServices/getSellListings/getSellListings'
+import { AddBid } from '../../../../services/biddingServices/BiddingServices'
 
 import './DetailedPage.css'
 
 const DetailedPage = () => {
-    const { id } = useParams();
-    const watch = watchData.find(item => item.id === Number(id));
+
+    const { id } = useParams(); // Route parameter is id (from App.jsx /watch/:id)
+    const [watch, setWatch] = useState(null)
+    const [watchData, setWatchData] = useState([])
+    const [loading, setLoading] = useState(true)
+
+    const calculateTimeLeft = (endDateStr) => {
+        if (!endDateStr) return { days: 0, hours: 0, minutes: 0, seconds: 0 }
+        const difference = +new Date(endDateStr) - +new Date()
+        if (difference <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 }
+        return {
+            days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+            hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+            minutes: Math.floor((difference / 1000 / 60) % 60),
+            seconds: Math.floor((difference / 1000) % 60)
+        }
+    }
+
+    useEffect(() => {
+        setLoading(true)
+        getApprovedListing(3)
+            .then((res) => {
+                const list = res?.data?.data || []
+                setWatchData(list)
+                const found = list.find(w => w.itemId === Number(id))
+                if (found) {
+                    const mappedWatch = {
+                        id: found.itemId,
+                        itemId: found.itemId,
+                        title: found.details?.brand || found.categoryName || "Timepiece",
+                        reference: found.details?.model || "",
+                        description: `Year of purchase: ${found.details?.yearOfPurchase || 'N/A'}`,
+                        detailedDescription: `This is an exceptional ${found.details?.brand || 'timepiece'} with serial number ${found.details?.serialNumber || 'N/A'}.`,
+                        image: found.details?.front || "",
+                        angles: [found.details?.caseBack, found.details?.side, found.details?.boxAndPaper].filter(Boolean),
+                        currentBidNumber: found.currentPrice || found.expectedPrice || 1500,
+                        bidIncrement: found.bidIncreament || 500,
+                        activeBidders: 12,
+                        auctionEndDate: found.auctionEndDate,
+                        currency: found.currency || 'USD',
+                        liveActivity: [
+                            { id: 1, member: 'MEMBER #7***3', timeAgo: '2 minutes ago', timestamp: Date.now() - 120000, amount: `$${found.currentPrice || found.expectedPrice || 1500}`, amountNumber: found.currentPrice || found.expectedPrice || 1500 }
+                        ],
+                        ownershipHistory: {
+                            title: 'Original Provenance',
+                            description: `This watch was acquired in ${found.details?.yearOfPurchase || 'N/A'} and has serial number ${found.details?.serialNumber || 'N/A'}. It comes with ${found.details?.papers ? 'original papers' : 'no papers'} and ${found.details?.boxAndPaper ? 'original box & papers' : 'no box/papers'}.`,
+                            timeline: [
+                                { period: found.details?.yearOfPurchase || 'N/A', detail: 'Purchased by the original owner' },
+                                { period: 'PRESENT', detail: 'Opulenza Authenticated Custody' }
+                            ]
+                        },
+                        authentication: `This timepiece has been fully authenticated. Serial number ${found.details?.serialNumber || 'N/A'} is confirmed authentic. Certificates: ${found.details?.certificates ? 'Included' : 'Verified by experts'}.`,
+                        conditionReport: `Pristine condition. Checked movement, strap, case back (${found.details?.caseBack ? 'Verified' : 'N/A'}) and side profiles (${found.details?.side ? 'Verified' : 'N/A'}).`
+                    }
+                    setWatch(mappedWatch)
+                }
+                setLoading(false)
+            })
+            .catch((err) => {
+                console.error(err)
+                setLoading(false)
+            })
+    }, [id])
 
     // Tab State: 'history' | 'auth' | 'condition'
     const [activeTab, setActiveTab] = useState('history');
 
     // Bidding States
-    const [currentBid, setCurrentBid] = useState(watch ? watch.currentBidNumber : 0);
-    const [bids, setBids] = useState(watch ? (watch.liveActivity || []) : []);
-    const [biddersCount, setBiddersCount] = useState(watch ? (watch.activeBidders || 10) : 10);
+    const [currentBid, setCurrentBid] = useState(0);
+    const [bids, setBids] = useState([]);
+    const [biddersCount, setBiddersCount] = useState(10);
     const [isFavorited, setIsFavorited] = useState(false);
     const [isAutoBidding, setIsAutoBidding] = useState(false);
 
@@ -35,8 +97,6 @@ const DetailedPage = () => {
         const rect = wrapper.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
-        // Pixel-perfect background-position:
-        // Shows the zoomed region centred on (x, y)
         const bgX = -(x * ZOOM - LENS_SIZE / 2);
         const bgY = -(y * ZOOM - LENS_SIZE / 2);
         setMagnifier({
@@ -53,11 +113,11 @@ const DetailedPage = () => {
     }, []);
 
     // Image gallery state
-    const [mainImage, setMainImage] = useState(watch ? watch.image : '');
+    const [mainImage, setMainImage] = useState('');
 
     // Modal State for custom placing bid
     const [showBidModal, setShowBidModal] = useState(false);
-    const [customBidAmount, setCustomBidAmount] = useState(watch ? (watch.currentBidNumber + watch.bidIncrement) : 0);
+    const [customBidAmount, setCustomBidAmount] = useState(0);
     const [bidError, setBidError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [termsAccepted, setTermsAccepted] = useState(false);
@@ -65,44 +125,30 @@ const DetailedPage = () => {
 
     // Dynamic Timer countdown
     const [timeLeft, setTimeLeft] = useState({
-        days: watch?.initialTime?.days || 0,
-        hours: watch?.initialTime?.hours || 4,
-        minutes: watch?.initialTime?.minutes || 18,
-        seconds: watch?.initialTime?.seconds || 40
+        days: 0,
+        hours: 0,
+        minutes: 0,
+        seconds: 0
     });
 
     useEffect(() => {
-        const timer = setInterval(() => {
-            setTimeLeft(prev => {
-                if (prev.days === 0 && prev.hours === 0 && prev.minutes === 0 && prev.seconds === 0) {
-                    clearInterval(timer);
-                    return prev;
-                }
-                let s = prev.seconds - 1;
-                let m = prev.minutes;
-                let h = prev.hours;
-                let d = prev.days;
-                if (s < 0) {
-                    s = 59;
-                    m -= 1;
-                }
-                if (m < 0) {
-                    m = 59;
-                    h -= 1;
-                }
-                if(h < 0 ){
-                    h = 23
-                    d -= 1
-                }
-                if(d<0){
-                    d = 0
-                }
-                return { days: d, hours: h, minutes: m, seconds: s };
-            });
-        }, 1000);
+        if (watch) {
+            setCurrentBid(watch.currentBidNumber)
+            setBids(watch.liveActivity || [])
+            setBiddersCount(watch.activeBidders || 10)
+            setMainImage(watch.image)
+            setCustomBidAmount(watch.bidIncrement)
+            setTimeLeft(watch.auctionEndDate ? calculateTimeLeft(watch.auctionEndDate) : { days: 1, hours: 4, minutes: 18, seconds: 40 })
+        }
+    }, [watch])
 
-        return () => clearInterval(timer);
-    }, []);
+    useEffect(() => {
+        if (!watch || !watch.auctionEndDate) return
+        const timer = setInterval(() => {
+            setTimeLeft(calculateTimeLeft(watch.auctionEndDate))
+        }, 1000)
+        return () => clearInterval(timer)
+    }, [watch])
 
     // Auto-bid simulation background loop
     useEffect(() => {
@@ -134,6 +180,17 @@ const DetailedPage = () => {
             if (simInterval) clearInterval(simInterval);
         };
     }, [isAutoBidding, watch?.bidIncrement, watch]);
+
+    // Handle loading state
+    if (loading) {
+        return (
+            <div className="watch-not-found">
+                <div className="container text-center py-5">
+                    <span className="ap-spin" style={{ color: '#d6a54d' }}>Loading details...</span>
+                </div>
+            </div>
+        )
+    }
 
     // Handle invalid watch ID (Early return after all hooks are declared)
     if (!watch) {
@@ -168,7 +225,7 @@ const DetailedPage = () => {
 
     // Place Bid Action handler
     const handlePlaceBidClick = () => {
-        setCustomBidAmount(currentBid + watch.bidIncrement);
+        setCustomBidAmount(watch.bidIncrement);
         setBidError('');
         setShowBidModal(true);
     };
@@ -176,37 +233,50 @@ const DetailedPage = () => {
     const submitCustomBid = (e) => {
         e.preventDefault();
         const amt = Number(customBidAmount);
-        const minRequired = currentBid + watch.bidIncrement;
+        const minRequired = watch.bidIncrement;
 
         if (isNaN(amt) || amt < minRequired) {
             setBidError(`Bid must be at least ${formatCurrency(minRequired)}`);
             return;
         }
 
-        // Apply new bid
-        const newBidObj = {
-            id: Date.now(),
-            member: `MEMBER #YOU***${Math.floor(Math.random() * 9 + 1)}`,
-            timeAgo: 'Just now',
-            timestamp: Date.now(),
-            amount: formatCurrency(amt),
-            amountNumber: amt
-        };
+        const payload = {
+            ItemId: watch.itemId,
+            BidAmount: amt,
+            Currency: watch.currency
+        }
 
-        setCurrentBid(amt);
-        setBids(prev => [newBidObj, ...prev]);
-        setBiddersCount(prev => prev + 1);
-        setShowBidModal(false);
-        setSuccessMessage(`Bid of ${formatCurrency(amt)} placed successfully!`);
+        AddBid(payload)
+            .then(() => {
+                // Apply new bid
+                const newBidObj = {
+                    id: Date.now(),
+                    member: `MEMBER #YOU***${Math.floor(Math.random() * 9 + 1)}`,
+                    timeAgo: 'Just now',
+                    timestamp: Date.now(),
+                    amount: formatCurrency(amt),
+                    amountNumber: amt
+                };
 
-        setTimeout(() => {
-            setSuccessMessage('');
-        }, 4000);
+                setCurrentBid(amt);
+                setBids(prev => [newBidObj, ...prev]);
+                setBiddersCount(prev => prev + 1);
+                setShowBidModal(false);
+                setSuccessMessage(`Bid of ${formatCurrency(amt)} placed successfully!`);
+
+                setTimeout(() => {
+                    setSuccessMessage('');
+                }, 4000);
+            })
+            .catch((err) => {
+                console.error(err)
+                setBidError(err?.response?.data?.message || err?.message || 'Failed to place bid. Please try again.')
+            })
     };
 
     return (
         <>
-            
+
             <section className="detailed-page">
                 <div className="detailed-page__bg-overlay"></div>
                 <div className="container detailed-page__container">
@@ -591,7 +661,6 @@ const DetailedPage = () => {
                             </div>
 
                             <form onSubmit={submitCustomBid} className="modal-form">
-
                                 {/* Current Bid / Min Next Bid */}
                                 <div className="modal-bid-row">
                                     <div className="modal-bid-stat">
@@ -600,7 +669,7 @@ const DetailedPage = () => {
                                     </div>
                                     <div className="modal-bid-stat modal-bid-stat--right">
                                         <span className="modal-bid-stat-label">MIN. NEXT BID</span>
-                                        <span className="modal-bid-stat-value modal-bid-stat-value--gold">{formatCurrency(currentBid + watch.bidIncrement)}</span>
+                                        <span className="modal-bid-stat-value modal-bid-stat-value--gold">{formatCurrency(watch.bidIncrement)}</span>
                                     </div>
                                 </div>
 
@@ -614,8 +683,8 @@ const DetailedPage = () => {
                                             className="modal-bid-input"
                                             value={customBidAmount}
                                             onChange={(e) => setCustomBidAmount(Number(e.target.value))}
-                                            min={currentBid + watch.bidIncrement}
-                                            step={watch.bidIncrement}
+                                            min={watch.bidIncrement}
+                                            step={1}
                                             required
                                             autoFocus
                                         />
@@ -624,7 +693,7 @@ const DetailedPage = () => {
                                 </div>
 
                                 {/* Auto Bid Toggle */}
-                                <div className="modal-autobid-row">
+                                {/* <div className="modal-autobid-row">
                                     <div className="modal-autobid-text">
                                         <span className="modal-autobid-title">Auto Bid</span>
                                         <span className="modal-autobid-sub">AUREUS WILL BID UP TO YOUR LIMIT</span>
@@ -637,7 +706,7 @@ const DetailedPage = () => {
                                     >
                                         <span className="modal-toggle-knob" />
                                     </button>
-                                </div>
+                                </div> */}
 
                                 {/* Terms Checkbox */}
                                 <label className="modal-terms-row">
@@ -689,19 +758,19 @@ const DetailedPage = () => {
 
                         <div className="recommended-grid">
                             {watchData
-                                .filter(w => w.id !== watch.id)
+                                .filter(w => w.itemId !== watch.itemId)
                                 .slice(0, 3)
                                 .map(rec => (
-                                <Link to={`/watch/${rec.id}`} key={rec.id} className="recommended-card-link">
+                                <Link to={`/watch/${rec.itemId}`} key={rec.itemId} className="recommended-card-link">
                                     <div className="recommended-card">
                                         <div className="recommended-card__image-container">
-                                            <img src={rec.image} alt={`${rec.title} ${rec.reference}`} className="recommended-card__image" />
+                                            <img src={rec.details?.front || rec.image} alt={`${rec.details?.brand || rec.title} ${rec.details?.model || rec.reference}`} className="recommended-card__image" />
                                             <div className="recommended-card__gradient-overlay"></div>
                                         </div>
                                         <div className="recommended-card__info">
-                                            <span className="recommended-card__badge">{rec.badge}</span>
-                                            <h3 className="recommended-card__title">{rec.title} — {rec.reference}</h3>
-                                            <p className="recommended-card__estimate">Current Bid: {rec.currentBid}</p>
+                                            <span className="recommended-card__badge">LIVE</span>
+                                            <h3 className="recommended-card__title">{rec.details?.brand || rec.title} — {rec.details?.model || rec.reference}</h3>
+                                            <p className="recommended-card__estimate">Current Bid: {formatCurrency(rec.currentPrice || rec.expectedPrice)}</p>
                                         </div>
                                     </div>
                                 </Link>

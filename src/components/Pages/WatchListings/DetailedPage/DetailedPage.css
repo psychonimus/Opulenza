@@ -889,7 +889,9 @@
 
 /* Header */
 .modal-header {
-    text-align: center;
+    /* text-align: center; */
+    display: flex;
+    flex-direction: column;
     margin-bottom: 1.6rem;
 }
 

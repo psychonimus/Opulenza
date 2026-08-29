@@ -898,6 +898,8 @@
 .pen-modal-header {
     text-align: center;
     margin-bottom: 1.6rem;
+    display: flex;
+    flex-direction: column;
 }
 
 .pen-modal-auction-badge {

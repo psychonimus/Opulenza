@@ -3,179 +3,11 @@ import { useParams, Link } from 'react-router-dom'
 import { FaSpinner } from 'react-icons/fa'
 import { getApprovedListing } from '../../../../services/sellingServices/getSellListings/getSellListings'
 import cigarData from '../../../../data/CigarData'
+import { AddBid } from '../../../../services/biddingServices/BiddingServices'
 import './DetailedCigarPage.css'
 
 /* ── Cigar-specific enrichments ─────────────────────────────── */
-const cigarEnrichments = {
-    1: {
-        currentBidNumber: 58000,
-        bidIncrement: 1000,
-        activeBidders: 14,
-        reserveMet: true,
-        angles: ['/images/cigars/cohiba-behike/cohiba-behike-2.png', '/images/cigars/cohiba-behike/cohiba-behike-3.png'],
-        detailedDescription: 'The Cohiba Behike BHK 56 represents the absolute pinnacle of Cuban cigar craftsmanship. Introduced in 2010 to mark Cohiba\'s 45th anniversary, the Behike line incorporates the ultra-rare medio tiempo leaf — a second pair of leaves found only on select plants — giving the cigar an incomparable depth of flavour and strength that is unmatched in the cigar world.',
-        liveActivity: [
-            { id: 1, member: 'MEMBER #7***3', timeAgo: '2 minutes ago', timestamp: Date.now() - 120000, amount: '$58,000', amountNumber: 58000 },
-            { id: 2, member: 'MEMBER #2***9', timeAgo: '11 minutes ago', timestamp: Date.now() - 660000, amount: '$57,000', amountNumber: 57000 },
-            { id: 3, member: 'MEMBER #5***1', timeAgo: '28 minutes ago', timestamp: Date.now() - 1680000, amount: '$56,000', amountNumber: 56000 },
-        ],
-        provenance: {
-            title: 'The Crown Jewel of Cuba',
-            description: 'Handcrafted in El Laguito, Havana — Cuba\'s most prestigious cigar factory — the Behike BHK 56 is rolled by torcedores of the highest classification. This box comes from an authenticated private European humidor maintained at constant 70% RH and 18°C since acquisition.',
-            timeline: [
-                { period: '2010', detail: 'Released for Cohiba\'s 45th Anniversary — only 4,000 boxes worldwide' },
-                { period: '2010–2018', detail: 'Private European Collection, Switzerland' },
-                { period: '2018–2024', detail: 'Climate-controlled humidor vault, London' },
-                { period: '2024–PRESENT', detail: 'Opulenza Authenticated Custody' },
-            ]
-        },
-        authentication: 'Authenticated by Habanos S.A. and verified by an independent master tobacconist. The box hologram, warranty card, and factory bands are all confirmed original. Accompanied by a full chain-of-custody certificate.',
-        conditionReport: {
-            label: ['WRAPPER', 'CONSTRUCTION', 'BOX SEAL', 'STORAGE'],
-            value: ['Pristine — no blemishes or dry patches', 'Flawless — seamless double cap', 'Unbroken original Habanos hologram', 'Climate-controlled vault, 70% RH'],
-        }
-    },
-    2: {
-        currentBidNumber: 42000,
-        bidIncrement: 750,
-        activeBidders: 9,
-        reserveMet: true,
-        angles: [],
-        detailedDescription: 'The Davidoff Oro Blanco is a cigar of singular rarity: a pearl-white, un-pressed, box-pressed torpedo hand-crafted from Dominican tobaccos aged for twelve or more years. Released once in 2012, only 300 boxes of 10 were made, each individually numbered and sold exclusively through Davidoff flagship boutiques.',
-        liveActivity: [
-            { id: 1, member: 'MEMBER #4***8', timeAgo: '5 minutes ago', timestamp: Date.now() - 300000, amount: '$42,000', amountNumber: 42000 },
-            { id: 2, member: 'MEMBER #9***2', timeAgo: '19 minutes ago', timestamp: Date.now() - 1140000, amount: '$41,250', amountNumber: 41250 },
-            { id: 3, member: 'MEMBER #1***6', timeAgo: '41 minutes ago', timestamp: Date.now() - 2460000, amount: '$40,500', amountNumber: 40500 },
-        ],
-        provenance: {
-            title: 'One of 300 Boxes in Existence',
-            description: 'This numbered box was purchased directly from Davidoff of Geneva\'s New York flagship store at launch. The tobaccos inside have been resting for over a decade in ideal conditions, reaching a peak of complexity that will endure for many years more.',
-            timeline: [
-                { period: '2000–2012', detail: 'Tobaccos aged in Dominican Republic curing barns' },
-                { period: '2012', detail: 'Box No. 217 of 300 released — Davidoff New York' },
-                { period: '2012–2024', detail: 'Private humidor, New York' },
-                { period: '2024–PRESENT', detail: 'Opulenza Authenticated Custody' },
-            ]
-        },
-        authentication: 'Authenticated by Davidoff of Geneva. Box number, hologram seal, and band typography confirmed original. Accompanied by original Davidoff purchase receipt and numbered certificate.',
-        conditionReport: {
-            label: ['WRAPPER', 'BANDS', 'BOX', 'HUMIDITY'],
-            value: ['Pristine — creamy Connecticut shade', 'Mint — original silver-on-white', 'Near Mint — original cedar box, hinges intact', 'Stored at 65% RH / 16°C'],
-        }
-    },
-    3: {
-        currentBidNumber: 35000,
-        bidIncrement: 500,
-        activeBidders: 11,
-        reserveMet: true,
-        angles: [],
-        detailedDescription: 'The Arturo Fuente OpusX Forbidden X is the most coveted cigar produced at the Fuente family\'s Château de la Fuente estate in the Dominican Republic. Utilising estate-grown Fuente Fuente OpusX wrapper leaf — the holy grail of Dominican tobacco — it delivers a rich, layered complexity that collectors pursue with extraordinary dedication.',
-        liveActivity: [
-            { id: 1, member: 'MEMBER #3***5', timeAgo: '7 minutes ago', timestamp: Date.now() - 420000, amount: '$35,000', amountNumber: 35000 },
-            { id: 2, member: 'MEMBER #8***1', timeAgo: '22 minutes ago', timestamp: Date.now() - 1320000, amount: '$34,500', amountNumber: 34500 },
-            { id: 3, member: 'MEMBER #6***7', timeAgo: '48 minutes ago', timestamp: Date.now() - 2880000, amount: '$34,000', amountNumber: 34000 },
-        ],
-        provenance: {
-            title: 'Château de la Fuente — Estate Grown',
-            description: 'The OpusX Forbidden X is a collectors\' edition released sporadically and exclusively through hand-picked retailers. This collection was acquired directly from an authorised Fuente Family retailer and has been stored in pristine condition since the day of purchase.',
-            timeline: [
-                { period: 'Estate', detail: 'Wrapper leaf grown and cured on Château de la Fuente' },
-                { period: '2019', detail: 'Released — limited allocation, select retailers only' },
-                { period: '2019–2024', detail: 'Private humidor, Miami' },
-                { period: '2024–PRESENT', detail: 'Opulenza Authenticated Custody' },
-            ]
-        },
-        authentication: 'Verified by an independent Fuente Family retailer. OpusX band hologram and box branding are confirmed authentic. Chain-of-custody documentation accompanies the lot.',
-        conditionReport: {
-            label: ['WRAPPER', 'DRAW', 'BOX SEAL', 'STORAGE'],
-            value: ['Excellent — oily maduro-brown wrapper', 'Firm — ideal resting firmness', 'Original golden Fuente box seal intact', '70% RH / 18°C private cabinet'],
-        }
-    },
-    4: {
-        currentBidNumber: 28000,
-        bidIncrement: 500,
-        activeBidders: 7,
-        reserveMet: false,
-        angles: [],
-        detailedDescription: 'The Montecristo A is the longest cigar ever produced by Cuba\'s most legendary brand — measuring a majestic 9.4 inches with a 47 ring gauge. Produced in strictly limited quantities, it is a ceremonial cigar: a slow, deliberate, multi-hour contemplation of the finest Vuelta Abajo tobacco. A collector\'s trophy and a connoisseur\'s challenge.',
-        liveActivity: [
-            { id: 1, member: 'MEMBER #2***4', timeAgo: '14 minutes ago', timestamp: Date.now() - 840000, amount: '$28,000', amountNumber: 28000 },
-            { id: 2, member: 'MEMBER #7***9', timeAgo: '33 minutes ago', timestamp: Date.now() - 1980000, amount: '$27,500', amountNumber: 27500 },
-            { id: 3, member: 'MEMBER #1***3', timeAgo: '58 minutes ago', timestamp: Date.now() - 3480000, amount: '$27,000', amountNumber: 27000 },
-        ],
-        provenance: {
-            title: 'Cuba\'s Most Ceremonial Format',
-            description: 'This box of Montecristo A was sourced through a verified LCDH (La Casa del Habano) retailer and maintained in a precision humidor since acquisition. The Montecristo A is one of the few remaining true gran corona formats still in production.',
-            timeline: [
-                { period: 'H. Upmann Factory', detail: 'Hand-rolled by master torcedores, Havana' },
-                { period: '2017', detail: 'Sourced via authorised LCDH outlet, Geneva' },
-                { period: '2017–2024', detail: 'Private collection humidor, Geneva' },
-                { period: '2024–PRESENT', detail: 'Opulenza Authenticated Custody' },
-            ]
-        },
-        authentication: 'Authenticated via Habanos S.A. warranty card and hologram verification. LCDH purchase receipt included. Independent master tobacconist inspection confirms originality of bands and construction.',
-        conditionReport: {
-            label: ['WRAPPER', 'CONSTRUCTION', 'BOX', 'HUMIDITY'],
-            value: ['Very Good — minor age-related oil sheen', 'Excellent — firm, seamless construction', 'Near Mint — original cedar, one corner very slightly scuffed', '68% RH / 17°C'],
-        }
-    },
-    5: {
-        currentBidNumber: 24000,
-        bidIncrement: 500,
-        activeBidders: 8,
-        reserveMet: true,
-        angles: [],
-        detailedDescription: 'The Padrón 1964 Anniversary Series Torpedo is a masterclass in Nicaraguan cigar craftsmanship. Introduced in 1994 to celebrate the family\'s 30th year in tobacco, the 1964 Series uses aged, sun-grown Nicaraguan tobacco presented in a natural or maduro wrapper. Consistently rated 95+ by major cigar publications, it is among the greatest value and quality propositions in the world of premium cigars.',
-        liveActivity: [
-            { id: 1, member: 'MEMBER #6***2', timeAgo: '9 minutes ago', timestamp: Date.now() - 540000, amount: '$24,000', amountNumber: 24000 },
-            { id: 2, member: 'MEMBER #3***8', timeAgo: '26 minutes ago', timestamp: Date.now() - 1560000, amount: '$23,500', amountNumber: 23500 },
-            { id: 3, member: 'MEMBER #9***4', timeAgo: '52 minutes ago', timestamp: Date.now() - 3120000, amount: '$23,000', amountNumber: 23000 },
-        ],
-        provenance: {
-            title: '30 Years of Family Tradition',
-            description: 'Jorge Padrón introduced the 1964 Anniversary Series in 1994 from the family\'s Jalapa and Estelí valley farms in Nicaragua. This box was sourced from a specialist importer and stored in a private humidity-controlled cabinet from day of acquisition.',
-            timeline: [
-                { period: '1964', detail: 'José Orlando Padrón founds Padrón Cigars' },
-                { period: '1994', detail: '1964 Anniversary Series introduced — 30th anniversary' },
-                { period: '2020', detail: 'This box acquired through specialist importer, London' },
-                { period: '2020–PRESENT', detail: 'Private humidity-controlled storage' },
-            ]
-        },
-        authentication: 'Box confirmed authentic via Padrón factory records. Band typography and box branding verified by an independent tobacconist. Full provenance documentation accompanies this lot.',
-        conditionReport: {
-            label: ['WRAPPER', 'CONSTRUCTION', 'BOX', 'BANDS'],
-            value: ['Excellent — natural Colorado wrapper, subtle oils', 'Firm and even — flawless Torpedo formation', 'Near Mint — cedar box with intact ribbon tie', 'Mint — original gold-on-black print'],
-        }
-    },
-    6: {
-        currentBidNumber: 31000,
-        bidIncrement: 500,
-        activeBidders: 10,
-        reserveMet: true,
-        angles: [],
-        detailedDescription: 'The Trinidad Fundadores is steeped in legend: originally produced exclusively for Fidel Castro to gift to foreign dignitaries and heads of state, it was not commercially available until 1998. The Laguito Especial format — long, slender, and elegant — delivers a refined Cuban smoke of extraordinary finesse. This lot represents a rare opportunity to acquire a box of immense historical and collectible significance.',
-        liveActivity: [
-            { id: 1, member: 'MEMBER #5***7', timeAgo: '4 minutes ago', timestamp: Date.now() - 240000, amount: '$31,000', amountNumber: 31000 },
-            { id: 2, member: 'MEMBER #1***3', timeAgo: '17 minutes ago', timestamp: Date.now() - 1020000, amount: '$30,500', amountNumber: 30500 },
-            { id: 3, member: 'MEMBER #8***6', timeAgo: '39 minutes ago', timestamp: Date.now() - 2340000, amount: '$30,000', amountNumber: 30000 },
-        ],
-        provenance: {
-            title: 'Cigars of State — Originally Diplomatic Gifts',
-            description: 'Trinidad Fundadores were the private diplomatic cigars of the Cuban state until their commercial release in 1998. This authenticated box was sourced from a private estate and comes with full documentation tracing its chain of custody from acquisition in Havana.',
-            timeline: [
-                { period: 'Pre-1998', detail: 'Produced exclusively for diplomatic use — El Laguito, Havana' },
-                { period: '1998', detail: 'Commercial release authorised — Trinidad enters public market' },
-                { period: '2005', detail: 'Box acquired through Havana authorised LCDH' },
-                { period: '2005–PRESENT', detail: 'Single-ownership private humidor, Paris' },
-            ]
-        },
-        authentication: 'Authenticated by Habanos S.A. Warranty card, box hologram, and band typography verified original. Accompanied by original LCDH purchase receipt and a signed letter of provenance from the original collector.',
-        conditionReport: {
-            label: ['WRAPPER', 'CONSTRUCTION', 'BOX SEAL', 'STORAGE'],
-            value: ['Excellent — silky Colorado-claro wrapper', 'Pristine — seamless triple-seam foot', 'Original Habanos hologram unbroken', '70% RH / 18°C — single-owner humidor'],
-        }
-    },
-}
+
 
 const calculateTimeLeft = (endDateStr) => {
     if (!endDateStr) return { days: 0, hours: 0, minutes: 0, seconds: 0 }
@@ -377,7 +209,7 @@ const DetailedCigarPage = () => {
     const rarity  = item.details?.find(d => d.label === 'RARITY')?.value || '—'
 
     const handlePlaceBidClick = () => {
-        setCustomBidAmount(currentBid + item.bidIncrement)
+        setCustomBidAmount(item?.bidIncrement || 0)
         setBidError('')
         setShowBidModal(true)
     }
@@ -385,25 +217,39 @@ const DetailedCigarPage = () => {
     const submitCustomBid = (e) => {
         e.preventDefault()
         const amt = Number(customBidAmount)
-        const minRequired = currentBid + item.bidIncrement
+        const minRequired = item?.bidIncrement || 0
         if (isNaN(amt) || amt < minRequired) {
             setBidError(`Bid must be at least ${formatCurrency(minRequired)}`)
             return
         }
-        const newBidObj = {
-            id: Date.now(),
-            member: `MEMBER #YOU***${Math.floor(Math.random() * 9 + 1)}`,
-            timeAgo: 'Just now',
-            timestamp: Date.now(),
-            amount: formatCurrency(amt),
-            amountNumber: amt
+
+        const payload = {
+            ItemId: item.itemId,
+            BidAmount: amt,
+            Currency : item.currency
         }
-        setCurrentBid(amt)
-        setBids(prev => [newBidObj, ...prev])
-        setBiddersCount(prev => prev + 1)
-        setShowBidModal(false)
-        setSuccessMessage(`Bid of ${formatCurrency(amt)} placed successfully!`)
-        setTimeout(() => setSuccessMessage(''), 4000)
+
+        AddBid(payload)
+            .then(() => {
+                const newBidObj = {
+                    id: Date.now(),
+                    member: `MEMBER #YOU***${Math.floor(Math.random() * 9 + 1)}`,
+                    timeAgo: 'Just now',
+                    timestamp: Date.now(),
+                    amount: formatCurrency(amt),
+                    amountNumber: amt
+                }
+                setCurrentBid(amt)
+                setBids(prev => [newBidObj, ...prev])
+                setBiddersCount(prev => prev + 1)
+                setShowBidModal(false)
+                setSuccessMessage(`Bid of ${formatCurrency(amt)} placed successfully!`)
+                setTimeout(() => setSuccessMessage(''), 4000)
+            })
+            .catch((err) => {
+                console.error(err)
+                setBidError(err?.response?.data?.message || err?.message || 'Failed to place bid. Please try again.')
+            })
     }
 
     return (
@@ -757,8 +603,7 @@ const DetailedCigarPage = () => {
                                 <div className="modal-asset-info">
                                     <span className="modal-asset-label">CURRENT ASSET</span>
                                     <p className="modal-asset-name">{item.title} <span>{item.reference}</span></p>
-                                    <p className="modal-asset-lot">Lot #{item.id ? String(item.id).padStart(3, '0') + String(Math.floor(Math.random() * 900) + 100) : '0061401'}</p>
-                                </div>
+                                     </div>
                             </div>
                             <form onSubmit={submitCustomBid} className="modal-form">
                                 <div className="modal-bid-row">
@@ -778,10 +623,10 @@ const DetailedCigarPage = () => {
                                         <input
                                             type="number"
                                             className="modal-bid-input"
-                                            value={item.bidIncrement}
+                                            value={customBidAmount}
                                             onChange={(e) => setCustomBidAmount(Number(e.target.value))}
-                                            min={currentBid + item.bidIncrement}
-                                            step={item.bidIncrement}
+                                            min={item?.bidIncrement}
+                                            step={1}
                                             required
                                             autoFocus
                                         />
