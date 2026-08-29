@@ -46,6 +46,34 @@ const years = Array.from(
   (_, i) => currentYear - i,
 );
 
+// ─── Currencies ───────────────────────────────────────────────────────────────
+// USD first, then Asia-Pacific, then European
+const CURRENCIES = [
+  { code: "USD", name: "US Dollar" },
+  // ── Asia Pacific ──────────────────────────────────────────────────────────
+  { code: "AUD", name: "Australian Dollar" },
+  // { code: "CNY", name: "Chinese Yuan" },
+  { code: "HKD", name: "Hong Kong Dollar" },
+  { code: "INR", name: "Indian Rupee" },
+  // { code: "JPY", name: "Japanese Yen" },
+  // { code: "KRW", name: "South Korean Won" },
+  { code: "MYR", name: "Malaysian Ringgit" },
+  // { code: "NZD", name: "New Zealand Dollar" },
+  { code: "SGD", name: "Singapore Dollar" },
+  { code: "THB", name: "Thai Baht" },
+  // { code: "TWD", name: "New Taiwan Dollar" },
+  // ── Europe ────────────────────────────────────────────────────────────────
+  { code: "EUR", name: "Euro" },
+  { code: "GBP", name: "British Pound" },
+  // { code: "CHF", name: "Swiss Franc" },
+  // { code: "CZK", name: "Czech Koruna" },
+  // { code: "DKK", name: "Danish Krone" },
+  // { code: "HUF", name: "Hungarian Forint" },
+  // { code: "NOK", name: "Norwegian Krone" },
+  // { code: "PLN", name: "Polish Zloty" },
+  // { code: "SEK", name: "Swedish Krona" },
+];
+
 const formFields = {
   watches: [
     { id: "specSection", label: "Watches - Specifications", type: "section" },
@@ -82,17 +110,19 @@ const formFields = {
     { id: "pricingSection", label: "Pricing & Auction", type: "section" },
     {
       id: "originalPrice",
-      label: "Original Price (USD)",
+      label: "Original Price",
       type: "text",
       placeholder: "Value at acquisition",
       half: true,
+      hasCurrency: true,
     },
     {
       id: "expectedPrice",
-      label: "Expected Price (USD)",
+      label: "Expected Price",
       type: "text",
       placeholder: "Expected Price",
       half: true,
+      hasCurrency: true,
     },
     {
       id: "auctionEndDate",
@@ -350,12 +380,27 @@ const formFields = {
     },
 
     // Pricing
-    { id: "originalPrice", label: "Pricing & Value", type: "section" },
+    { id: "pricingSection", label: "Pricing & Value", type: "section" },
+    {
+      id: "originalPrice",
+      label: "Original Price",
+      type: "text",
+      placeholder: "Value at acquisition",
+      half: true,
+      hasCurrency: true,
+    },
     {
       id: "expectedPrice",
-      label: "Estimated Value (USD)",
+      label: "Estimated Value",
       type: "text",
       placeholder: "Total desired value for the listing",
+      half: true,
+      hasCurrency: true,
+    },
+    {
+      id: "auctionEndDate",
+      label: "Select Auction End Date (Max 15 days)",
+      type: "date",
       half: true,
     },
   ],
@@ -402,10 +447,11 @@ const formFields = {
     },
     {
       id: "CossgPrice",
-      label: "cossg Price",
+      label: "Cask Price",
       type: "number",
       placeholder: "e.g. 15000",
       half: true,
+      hasCurrency: true,
     },
 
     { id: "docSection", label: "Documentation", type: "section" },
@@ -458,6 +504,23 @@ const formFields = {
       label: "Original Case & Packaging",
       type: "file",
       placeholder: "Original wooden box, carton, booklet, or outer case.",
+      half: true,
+    },
+
+    // Pricing
+    { id: "pricingSection", label: "Pricing & Value", type: "section" },
+    {
+      id: "originalPrice",
+      label: "Original Price",
+      type: "text",
+      placeholder: "Value at acquisition",
+      half: true,
+      hasCurrency: true,
+    },
+    {
+      id: "auctionEndDate",
+      label: "Select Auction End Date (Max 15 days)",
+      type: "date",
       half: true,
     },
   ],
@@ -589,12 +652,27 @@ const formFields = {
     },
 
     // Pricing
-    { id: "originalPrice", label: "Pricing & Value", type: "section" },
+    { id: "pricingSection", label: "Pricing & Value", type: "section" },
+    {
+      id: "originalPrice",
+      label: "Original Price",
+      type: "text",
+      placeholder: "Value at acquisition",
+      half: true,
+      hasCurrency: true,
+    },
     {
       id: "expectedPrice",
-      label: "Asking Price (USD)",
+      label: "Asking Price",
       type: "text",
       placeholder: "Your desired price",
+      half: true,
+      hasCurrency: true,
+    },
+    {
+      id: "auctionEndDate",
+      label: "Select Auction End Date (Max 15 days)",
+      type: "date",
       half: true,
     },
   ],
@@ -750,12 +828,27 @@ const formFields = {
     },
 
     // Pricing
-    { id: "originalPrice", label: "Pricing", type: "section" },
+    { id: "pricingSection", label: "Pricing", type: "section" },
+    {
+      id: "originalPrice",
+      label: "Original Price",
+      type: "text",
+      placeholder: "Value at acquisition",
+      half: true,
+      hasCurrency: true,
+    },
     {
       id: "expectedPrice",
-      label: "Asking Price (USD)",
+      label: "Asking Price",
       type: "text",
       placeholder: "Your desired price",
+      half: true,
+      hasCurrency: true,
+    },
+    {
+      id: "auctionEndDate",
+      label: "Select Auction End Date (Max 15 days)",
+      type: "date",
       half: true,
     },
   ],
@@ -881,12 +974,27 @@ const formFields = {
     },
 
     // Pricing
-    { id: "originalPrice", label: "Pricing & Value", type: "section" },
+    { id: "pricingSection", label: "Pricing & Value", type: "section" },
+    {
+      id: "originalPrice",
+      label: "Original Price",
+      type: "text",
+      placeholder: "Value at acquisition",
+      half: true,
+      hasCurrency: true,
+    },
     {
       id: "expectedPrice",
-      label: "Asking Price (USD)",
+      label: "Asking Price",
       type: "text",
       placeholder: "Your desired price",
+      half: true,
+      hasCurrency: true,
+    },
+    {
+      id: "auctionEndDate",
+      label: "Select Auction End Date (Max 15 days)",
+      type: "date",
       half: true,
     },
   ],
@@ -1085,7 +1193,20 @@ const buildSchema = (category, whiskyTab = "tab1", currentValues = {}) => {
     }
   });
 
+  // Currency is always required — all forms contain at least one price field
+  shape["Currency"] = yup.string().required("Please select a currency");
+
   return yup.object().shape(shape);
+};
+
+/** Returns today's date as YYYY-MM-DD. */
+const getTodayDate = () => new Date().toISOString().split("T")[0];
+
+/** Returns YYYY-MM-DD string for today + 15 days (the default auction end date). */
+const getDefaultAuctionDate = () => {
+  const d = new Date();
+  d.setDate(d.getDate() + 15);
+  return d.toISOString().split("T")[0];
 };
 
 const SellPageForm = () => {
@@ -1117,7 +1238,7 @@ const SellPageForm = () => {
       const schema = buildSchema(activeCategory, whiskyTab, values);
       return yupResolver(schema)(values, context, options);
     },
-    defaultValues: {},
+    defaultValues: { auctionEndDate: getDefaultAuctionDate() },
   });
 
   const watchedValues = watch();
@@ -1128,14 +1249,14 @@ const SellPageForm = () => {
     setWhiskyTab("tab1");
     setFileNames({});
     setSelectedFiles({});
-    reset({});
+    reset({ auctionEndDate: getDefaultAuctionDate() });
   };
 
   const handleWhiskyTabChange = (tab) => {
     setWhiskyTab(tab);
     setFileNames({});
     setSelectedFiles({});
-    reset({});
+    reset({ auctionEndDate: getDefaultAuctionDate() });
   };
 
   
@@ -1327,7 +1448,7 @@ const SellPageForm = () => {
   };
 
   return (
-    <section className="sell-form-section">
+    <section className="sell-form-section container">
       {/* ── Submit status overlay ── */}
       {submitStatus !== "idle" && (
         <div
@@ -1605,6 +1726,42 @@ const SellPageForm = () => {
                       </span>
                       <span className="sell-file-btn">Browse</span>
                     </label>
+                  ) : field.hasCurrency ? (
+                    <>
+                      <div className="sell-currency-group">
+                        <div className="sell-select-wrapper">
+                          <select
+                            className="sell-field-select"
+                            {...register("Currency")}
+                          >
+                            <option value="" disabled hidden>Currency</option>
+                            {CURRENCIES.map((c) => (
+                              <option key={c.code} value={c.code}>
+                                {c.code} — {c.name}
+                              </option>
+                            ))}
+                          </select>
+                          <span className="sell-select-arrow">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M6 9l6 6 6-6" />
+                            </svg>
+                          </span>
+                        </div>
+                        <input
+                          id={field.id}
+                          type={field.type === "number" ? "number" : "text"}
+                          className="sell-field-input"
+                          placeholder={field.placeholder}
+                          {...register(field.id)}
+                        />
+                      </div>
+                      {errors["Currency"] && (
+                        <span className="sell-field-error">{errors["Currency"].message}</span>
+                      )}
+                      {errors[field.id] && (
+                        <span className="sell-field-error">{errors[field.id].message}</span>
+                      )}
+                    </>
                   ) : (
                     <>
                       <input
@@ -1612,6 +1769,10 @@ const SellPageForm = () => {
                         type={field.type}
                         className="sell-field-input"
                         placeholder={field.placeholder}
+                        {...(field.id === "auctionEndDate" ? {
+                          min: getTodayDate(),
+                          max: getDefaultAuctionDate(),
+                        } : {})}
                         {...register(field.id)}
                       />
                       {errors[field.id] && (

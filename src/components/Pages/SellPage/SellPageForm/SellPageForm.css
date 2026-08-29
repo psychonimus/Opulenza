@@ -38,7 +38,7 @@
   display: flex;
   gap: 24px;
   width: 100%;
-  max-width: 1020px;
+  /* max-width: 1020px; */
   align-items: flex-start;
 }
 
@@ -232,26 +232,117 @@
 .sell-field-select {
   width: 100%;
   cursor: pointer;
-  padding-right: 28px;
-  background: transparent;
+  padding: 10px 36px 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
   color: #fff;
+  font-family: 'inter', Inter, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.sell-field-select:hover {
+  background: rgba(214, 165, 77, 0.06);
+  border-color: rgba(214, 165, 77, 0.35);
+}
+
+.sell-field-select:focus {
+  background: rgba(214, 165, 77, 0.08);
+  border-color: rgba(214, 165, 77, 0.6);
+  box-shadow: 0 0 0 3px rgba(214, 165, 77, 0.08);
 }
 
 .sell-field-select option {
-  background: #1a0800;
-  color: #fff;
-  
+  background: #1a0e02;
+  color: #e8d5a8;
+  font-size: 0.88rem;
+  padding: 10px 12px;
+}
+
+.sell-field-select option:checked,
+.sell-field-select option:hover {
+  background: #2e1a04;
+  color: var(--primary-color, #d6a54d);
+}
+
+.sell-field-select option:disabled {
+  color: rgba(255, 255, 255, 0.28);
 }
 
 .sell-select-arrow {
   pointer-events: none;
   position: absolute;
-  right: 4px;
+  right: 11px;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.35);
   display: flex;
   align-items: center;
+  transition: color 0.25s ease;
+}
+
+.sell-select-wrapper:hover .sell-select-arrow,
+.sell-select-wrapper:focus-within .sell-select-arrow {
+  color: var(--primary-color, #d6a54d);
+}
+
+/* ── Currency + Price inline group ── */
+.sell-currency-group {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  overflow: hidden;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.sell-currency-group:focus-within {
+  border-color: rgba(214, 165, 77, 0.6);
+  box-shadow: 0 0 0 3px rgba(214, 165, 77, 0.08);
+}
+
+.sell-currency-group .sell-select-wrapper {
+  flex: 0 0 148px;
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.sell-currency-group .sell-field-select {
+  border: none;
+  border-radius: 0;
+  background: rgba(214, 165, 77, 0.06);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--primary-color, #d6a54d);
+  letter-spacing: 0.02em;
+  padding: 10px 32px 10px 12px;
+  box-shadow: none;
+}
+
+.sell-currency-group .sell-field-select:hover,
+.sell-currency-group .sell-field-select:focus {
+  background: rgba(214, 165, 77, 0.1);
+  box-shadow: none;
+}
+
+.sell-currency-group .sell-field-input {
+  flex: 1;
+  border: none;
+  border-radius: 0;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  min-width: 0;
+}
+
+.sell-currency-group .sell-field-input:focus {
+  border-bottom: none;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 /* ===== FILE UPLOAD ===== */

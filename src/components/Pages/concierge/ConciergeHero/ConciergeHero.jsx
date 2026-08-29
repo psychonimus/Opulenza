@@ -18,7 +18,7 @@ const ConciergeHero = () => {
                 <div className="container" style={{marginTop:"6rem"}}>
                     <Header
                         topText="The Concierge"
-                        mainText="Hey"
+                        mainText="Hello"
                         highlight={userInfo?.firstName}
                         center={false}
                         eyebrow = {false}

@@ -368,7 +368,7 @@ const DetailedPage = () => {
 
                                 {/* Secondary Buttons (Auto Bid, Watch) */}
                                 <div className="detailed-page__action-row">
-                                    <button
+                                    {/* <button
                                         className={`action-btn-secondary ${isAutoBidding ? 'action-btn-secondary--active' : ''}`}
                                         onClick={() => setIsAutoBidding(!isAutoBidding)}
                                         title="Toggle automatic bidding mode"
@@ -377,7 +377,7 @@ const DetailedPage = () => {
                                             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                                         </svg>
                                         {isAutoBidding ? 'AUTO BID ACTIVE' : 'AUTO BID'}
-                                    </button>
+                                    </button> */}
                                     <button
                                         className={`action-btn-secondary ${isFavorited ? 'action-btn-secondary--active' : ''}`}
                                         onClick={() => setIsFavorited(!isFavorited)}

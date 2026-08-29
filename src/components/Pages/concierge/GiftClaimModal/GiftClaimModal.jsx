@@ -20,7 +20,7 @@ const schema = yup.object().shape({
 });
 const GiftClaimModal = ({ isOpen, onClose }) => {
     const navigate = useNavigate();
-    const { userInfo } = useUser();
+    const { userInfo, refreshUser } = useUser();
     const [isLocating, setIsLocating] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [addresses, setAddresses] = useState([]);
@@ -112,6 +112,7 @@ const GiftClaimModal = ({ isOpen, onClose }) => {
             .then((response) => {
                 console.log(response);
                 setIsSubmitted(true);
+                refreshUser();
                 navigate('/concierge');
             })
             .catch((error) => {

@@ -314,7 +314,7 @@ const DetailedPenPage = () => {
 
                                 {/* Secondary Buttons */}
                                 <div className="pen-action-row">
-                                    <button
+                                    {/* <button
                                         className={`pen-action-btn-secondary ${isAutoBidding ? 'pen-action-btn-secondary--active' : ''}`}
                                         onClick={() => setIsAutoBidding(!isAutoBidding)}
                                     >
@@ -322,7 +322,7 @@ const DetailedPenPage = () => {
                                             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                                         </svg>
                                         {isAutoBidding ? 'AUTO BID ACTIVE' : 'AUTO BID'}
-                                    </button>
+                                    </button> */}
                                     <button
                                         className={`pen-action-btn-secondary ${isFavorited ? 'pen-action-btn-secondary--active' : ''}`}
                                         onClick={() => setIsFavorited(!isFavorited)}

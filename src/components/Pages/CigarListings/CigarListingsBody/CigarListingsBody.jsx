@@ -27,16 +27,6 @@ const CigarListingsBody = () => {
 
 
 
-
-
-
-
-
-
-
-
-
-
     return (
         <section className="all-cigar-section">
             <div className="container">
@@ -108,7 +98,7 @@ const CigarListingsBody = () => {
                                         <div className="cigar-card__footer">
                                             <div className="cigar-card__bid">
                                                 <span className="cigar-card__bid-label">CURRENT BID</span>
-                                                <span className="cigar-card__bid-value">$568</span>
+                                                <span className="cigar-card__bid-value">${item.currentPrice}</span>
                                             </div>
                                             <span className="cigar-card__cta">BID NOW →</span>
                                         </div>

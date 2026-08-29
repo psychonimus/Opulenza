@@ -314,7 +314,7 @@ const DetailedYachtPage = () => {
 
                                 {/* Secondary Buttons */}
                                 <div className="yacht-action-row">
-                                    <button
+                                    {/* <button
                                         className={`yacht-action-btn-secondary ${isAutoBidding ? 'yacht-action-btn-secondary--active' : ''}`}
                                         onClick={() => setIsAutoBidding(!isAutoBidding)}
                                     >
@@ -322,7 +322,7 @@ const DetailedYachtPage = () => {
                                             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                                         </svg>
                                         {isAutoBidding ? 'AUTO BID ACTIVE' : 'AUTO BID'}
-                                    </button>
+                                    </button> */}
                                     <button
                                         className={`yacht-action-btn-secondary ${isFavorited ? 'yacht-action-btn-secondary--active' : ''}`}
                                         onClick={() => setIsFavorited(!isFavorited)}

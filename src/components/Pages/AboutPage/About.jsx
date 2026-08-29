@@ -6,7 +6,7 @@ const stats = [
     { value: '2,400+', label: 'Timepieces Sold' },
     { value: '$1.2B', label: 'Total Auction Value' },
     { value: '94', label: 'Countries Represented' },
-    { value: '18', label: 'Years of Excellence' },
+    { value: '18+', label: 'Global HNI Users' },
 ]
 
 const values = [
@@ -123,9 +123,9 @@ const About = () => {
                         Opluenza is the world's most discreet destination for exceptional timepieces —
                         built by collectors, for collectors.
                     </p>
-                    <Link to="/watchListing" className="about-hero__cta">
+                    {/* <Link to="/watchListing" className="about-hero__cta">
                         Enter Private Access
-                    </Link>
+                    </Link> */}
                 </div>
                 <div className="about-hero__scroll-hint">
                     <div className="about-scroll-dot" />
@@ -241,9 +241,9 @@ const About = () => {
                         our concierge team would be pleased to hear from you.
                     </p>
                     <div className="about-cta__buttons">
-                        <Link to="/watchListing" className="about-btn about-btn--gold">
+                        {/* <Link to="/watchListing" className="about-btn about-btn--gold">
                             Enter Private Access
-                        </Link>
+                        </Link> */}
                         
                     </div>
                 </div>

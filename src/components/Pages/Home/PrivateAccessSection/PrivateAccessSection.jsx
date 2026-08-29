@@ -225,6 +225,7 @@ const RegistrationModal = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [primaryCountryCode, setPrimaryCountryCode] = useState("+1");
@@ -297,7 +298,11 @@ const RegistrationModal = ({
   const handleCloseModal = () => {
     reset();
     setError("");
-    onClose();
+    if (success) {
+      onSuccess();
+    } else {
+      onClose();
+    }
   };
 
   const handleRegister = async (data) => {
@@ -324,7 +329,7 @@ const RegistrationModal = ({
       reset();
       setPrimaryCountryCode("+1");
       setSecondaryCountryCode("+1");
-      onSuccess();
+      setSuccess(true);
       setLoginData(null);
     } catch (err) {
       const msg =
@@ -360,17 +365,51 @@ const RegistrationModal = ({
             </svg>
           </button>
 
-          <div className="pa-modal-header">
-            <span className="pa-modal-eyebrow">— INVITATION ACCEPTED —</span>
-            <h2 className="pa-modal-title">
-              Complete your <em>profile.</em>
-            </h2>
-            <p className="pa-modal-sub">
-              You have been granted exclusive access. Introduce yourself.
-            </p>
-          </div>
+          {success ? (
+            <div className="pa-modal-success-screen" style={{ textAlign: "center", padding: "40px 20px" }}>
+              <div style={{ color: "#d4af37", marginBottom: "24px" }}>
+                <svg
+                  width="64"
+                  height="64"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+              </div>
+              <h2 className="pa-modal-title" style={{ marginBottom: "16px", fontFamily: "'Playfair Display', serif", fontSize: "2rem" }}>
+                Registration <em>Successful</em>
+              </h2>
+              <p className="pa-modal-sub" style={{ fontSize: "1rem", lineHeight: "1.6", color: "rgba(255,255,255,0.7)", marginBottom: "32px", maxWidth: "360px", marginInline: "auto" }}>
+                Your registration process is successful. Our team will review your profile and get back to you shortly.
+              </p>
+              <button
+                type="button"
+                className="pa-submit-btn"
+                onClick={handleCloseModal}
+                style={{ maxWidth: "200px", marginInline: "auto" }}
+              >
+                CLOSE
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="pa-modal-header">
+                <span className="pa-modal-eyebrow">— INVITATION ACCEPTED —</span>
+                <h2 className="pa-modal-title">
+                  Complete your <em>profile.</em>
+                </h2>
+                <p className="pa-modal-sub">
+                  You have been granted exclusive access. Introduce yourself.
+                </p>
+              </div>
 
-          <div className="pa-modal-divider" />
+              <div className="pa-modal-divider" />
 
           <form
             className="pa-modal-form"
@@ -411,7 +450,7 @@ const RegistrationModal = ({
 
               <div className="pa-field">
                 <label className="pa-field-label">
-                  USERNAME / DISPLAY NAME *
+                  DISPLAY NAME *
                 </label>
                 <input
                   type="text"
@@ -435,6 +474,7 @@ const RegistrationModal = ({
                   type="email"
                   className="pa-field-input"
                   placeholder="member@private.com"
+                  readOnly
                   {...register("primaryEmail")}
                   onChange={(e) => {
                     setValue("primaryEmail", e.target.value.toLowerCase(), {
@@ -695,6 +735,8 @@ const RegistrationModal = ({
               {loading ? "REGISTERING..." : "CREATE MY ACCOUNT"}
             </button>
           </form>
+            </>
+          )}
 
           <div className="pa-modal-footer">
             <span className="pa-footer-line" />

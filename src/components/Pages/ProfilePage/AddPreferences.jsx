@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { AddPreferences } from '../../../services/getUserData/GetUserData';
+import { showUserData } from '../../../services/loginservice/LoginServices';
 import CommonBackdrop from '../../CommonBackdrop/CommonBackdrop';
 
 import watchIcon from '../../../assets/icons/watch.svg';
@@ -121,6 +122,7 @@ function AddPreferencesModal({ show, onClose, onSuccess, initialData }) {
 
       if (onSuccess) onSuccess(res?.data, payload);
       if (onClose) onClose();
+      showUserData();
     } catch (err) {
       console.error("Failed to add preferences:", err);
       setLoading(false);

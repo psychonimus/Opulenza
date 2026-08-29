@@ -123,11 +123,12 @@ const InviteModal = ({ show, onClose, onSuccessCallback }) => {
             </div>
 
             <div className="prof-form-group">
-              <label>Remarks</label>
+              <label>Breif Profile</label>
               <input
                 type="text"
-                
-                placeholder="Some Remarks"
+                // style={{height:"100px"}}
+                // className='d-flex align-items-start pt-2'
+                placeholder="Profile details for opulenza team to verify"
                 value={inviteRemark}
                 onChange={(e) => setInviteRemark(e.target.value)}
               />

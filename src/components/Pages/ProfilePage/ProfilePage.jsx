@@ -278,13 +278,21 @@ const ProfilePage = () => {
 
   const getMyInvitations = () => {
     GetMyInvitations()
-    .then((res) => {
-      console.log("Invitation data", res);
-    })
-    .catch((err) => {
-      console.log(err);
-    })
-  }
+      .then((res) => {
+        const data = res?.data?.data;
+        if (Array.isArray(data)) {
+          setInvitations(data);
+        } else if (data && typeof data === "object") {
+          setInvitations([data]);
+        } else {
+          setInvitations([]);
+        }
+        console.log("Invitation data", data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
 
   useEffect(() => {
     GetAddressDetails();
@@ -371,15 +379,15 @@ const ProfilePage = () => {
             </div>
             <div className="prof-hero__info">
               <div className="prof-hero__tier">
-                <svg
+                {/* <svg
                   width="10"
                   height="10"
                   viewBox="0 0 24 24"
                   fill="currentColor"
                 >
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </svg>
-                {member.tier} MEMBER · SINCE {member.since}
+                </svg> */}
+                {/* {member.tier} MEMBER · SINCE {member.since} */}
               </div>
               <h1 className="prof-hero__name">
                 {userInfo?.firstName + " " + userInfo?.lastName}
@@ -614,7 +622,7 @@ const ProfilePage = () => {
             {activeTab === "My Preferences" && (
               <div className="prof-panel">
                 <div className="prof-listings-header">
-                  <span>Membership Preferences ({preferences.length})</span>
+                  <span>Membership Preferences</span>
                   <button
                     onClick={() => openAddModal("preference")}
                     className="prof-btn prof-btn--gold"
@@ -623,16 +631,59 @@ const ProfilePage = () => {
                     + Add Preference
                   </button>
                 </div>
-                {preferences?.length > 0 ? (
-                  preferences.map((pref) => (
-                    <div className="prof-listing-row" key={pref.id}>
-                      <div className="prof-listing-dot" data-status="live" />
-                      <div className="prof-listing-info">
-                        <p className="prof-listing-title">{pref.category}</p>
-                        <p className="prof-listing-date">{pref.value}</p>
-                      </div>
+                {userInfo?.preferences ? (
+                  <>
+                    <div className="prof-listing-row">
+                    <div className="prof-listing-dot" data-status="live" />
+                    <div className="prof-listing-info">
+                      <p className="prof-listing-title">Peferred Assets</p>
+                      <p className="prof-listing-date">
+                        {userInfo?.preferences?.interestedInWatches ? "Watches" : ""}{" "}
+                        {userInfo?.preferences?.interestedInWhisky ? "Whisky" : ""}{" "}
+                        {userInfo?.preferences?.interestedInCigars ? "Cigars" : ""}{" "}
+                        {userInfo?.preferences?.interestedInLuxuryPens ? "Luxury Pens" : ""}{" "}
+                        {userInfo?.preferences?.interestedInMotorCycles ? "Motor Cycles" : ""}{" "}
+                        {userInfo?.preferences?.interestedInYachts ? "Yachts" : ""}
+                      </p>
                     </div>
-                  ))
+                  </div>
+
+                  <div className="prof-listing-row">
+                    <div className="prof-listing-dot" data-status="live" />
+                    <div className="prof-listing-info">
+                      <p className="prof-listing-title">Preferred Currency</p>
+                      <p className="prof-listing-date">
+                        {userInfo?.preferences?.preferredCurrency}
+                      </p>
+                    </div>
+                  </div>
+
+
+                  <div className="prof-listing-row">
+                    <div className="prof-listing-dot" data-status="live" />
+                    <div className="prof-listing-info">
+                      <p className="prof-listing-title">Preferred Language</p>
+                      <p className="prof-listing-date">
+                        {userInfo?.preferences?.preferredLanguage}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="prof-listing-row">
+                    <div className="prof-listing-dot" data-status="live" />
+                    <div className="prof-listing-info">
+                      <p className="prof-listing-title">Active Alerts</p>
+                      <p className="prof-listing-date">
+                        {userInfo?.preferences?.newsletter ? "Newsletter" : ""}
+                        {userInfo?.preferences?.smsAlerts ? "SMS Alerts" : ""}
+                        {userInfo?.preferences?.emailAlerts ? "Email Alerts" : ""}
+                        
+                      </p>
+                    </div>
+                  </div>
+                  </>
+
+
                 ) : (
                   <div className="prof-listing-row">
                     <div className="prof-listing-dot" data-status="live" />
@@ -650,7 +701,7 @@ const ProfilePage = () => {
                 <div className="prof-listings-header">
                   <span>Sent Invitations ({invitations.length})</span>
                   <button
-                    onClick={() => openAddModal("invitation")}
+                    onClick={() => setShowInviteModal(true)}
                     className="prof-btn prof-btn--gold"
                     style={{ padding: "8px 20px", fontSize: "0.7rem" }}
                   >
@@ -659,21 +710,21 @@ const ProfilePage = () => {
                 </div>
                 {invitations?.length > 0 ? (
                   invitations.map((invite) => (
-                    <div className="prof-listing-row" key={invite.id}>
+                    <div className="prof-listing-row" key={invite.invitationID}>
                       <div
                         className="prof-listing-dot"
                         data-status={
-                          invite.status === "Joined" ? "live" : "review"
+                          invite.invitationStatus === "Joined" ? "live" : "review"
                         }
                       />
                       <div className="prof-listing-info">
-                        <p className="prof-listing-title">{invite.name}</p>
+                        <p className="prof-listing-title">{invite?.name}</p>
                         <p className="prof-listing-date">
-                          {invite.email} · Invited on {invite.date}
+                          {invite?.inviteTo} · Invited on {invite?.invitationDate}
                         </p>
                       </div>
                       <div className="prof-listing-right">
-                        <StatusBadge status={invite.status} />
+                        <StatusBadge status={invite.invitationStatus} />
                       </div>
                     </div>
                   ))
@@ -695,14 +746,14 @@ const ProfilePage = () => {
             <div className="prof-member-card">
               <div className="prof-member-card__top">
                 <span className="prof-member-card__eyebrow">OPLUENZA</span>
-                <span className="prof-member-card__tier">{member.tier}</span>
+                {/* <span className="prof-member-card__tier">{member.tier}</span> */}
               </div>
               <div className="prof-member-card__id">{member.memberId}</div>
               <div className="prof-member-card__name">
                 {userInfo?.firstName + " " + userInfo?.lastName}
               </div>
               <div className="prof-member-card__since">
-                Member since {member.since}
+                {/* Member since {member.since} */}
               </div>
               <div className="prof-member-card__shine" />
             </div>
@@ -933,6 +984,7 @@ const ProfilePage = () => {
       <InviteModal
         show={showInviteModal}
         onClose={() => setShowInviteModal(false)}
+        onSuccessCallback={getMyInvitations}
       />
     </div>
   );

@@ -51,6 +51,10 @@ export const GetMyInvitations = () => {
   return api.get("/api/member/MyInvitations?pageNumber=1&pageSize=10");
 };
 
+export const GetMySoldItems = () => {
+  return api.get("/api/member/MyItems?PageNumber=1&PageSize=10&CategoryId=0");
+};
+
 
 
 

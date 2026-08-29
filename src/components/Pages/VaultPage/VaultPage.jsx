@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import './VaultPage.css'
+import { GetMySoldItems } from '../../../services/getUserData/GetUserData'
+
+
+
 
 // Mock initial data for Vault
 const INITIAL_ACTIVE_BIDS = [
@@ -101,41 +105,44 @@ const INITIAL_WATCHLIST = [
   // }
 ]
 
-const INITIAL_SELLINGLIST = [
-    // {
-    //   id: 'w1',
-    //   category: 'WATCHES',
-    //   title: 'Patek Philippe',
-    //   reference: 'Ref. 2499, First Series',
-    //   image: '/images/pattek/pattek-phillipe.png',
-    //   userBid: 2840000,
-    //   currentHighBid: 2840000,
-    //   timeLeft: { hours: 2, minutes: 14, seconds: 33 },
-    //   link: '/watch/1'
-    // },
-    // {
-    //   id: 'c1',
-    //   category: 'CIGARS',
-    //   title: 'Cohiba',
-    //   reference: 'Behike BHK 56',
-    //   image: '/images/cigars/cohiba/cohiba-main.png',
-    //   userBid: 4200,
-    //   currentHighBid: 4800,
-    //   timeLeft: { hours: 8, minutes: 4, seconds: 12 },
-    //   link: '/cigar/1'
-    // }
-  ]
+// const INITIAL_SELLINGLIST = [
+// {
+//   id: 'w1',
+//   category: 'WATCHES',
+//   title: 'Patek Philippe',
+//   reference: 'Ref. 2499, First Series',
+//   image: '/images/pattek/pattek-phillipe.png',
+//   userBid: 2840000,
+//   currentHighBid: 2840000,
+//   timeLeft: { hours: 2, minutes: 14, seconds: 33 },
+//   link: '/watch/1'
+// },
+// {
+//   id: 'c1',
+//   category: 'CIGARS',
+//   title: 'Cohiba',
+//   reference: 'Behike BHK 56',
+//   image: '/images/cigars/cohiba/cohiba-main.png',
+//   userBid: 4200,
+//   currentHighBid: 4800,
+//   timeLeft: { hours: 8, minutes: 4, seconds: 12 },
+//   link: '/cigar/1'
+// }
+// ]
+
+
+
 
 
 const VaultPage = () => {
   const [activeTab, setActiveTab] = useState('bids') // 'bids' | 'secured' | 'cart' | 'watchlist'
-  
+
   // State lists
   const [activeBids, setActiveBids] = useState(INITIAL_ACTIVE_BIDS)
   const [securedAssets, setSecuredAssets] = useState(INITIAL_SECURED_ASSETS)
   const [cartItems, setCartItems] = useState(INITIAL_CART_ITEMS)
   const [watchlist, setWatchlist] = useState(INITIAL_WATCHLIST)
-  const [sellingList, setSellingList] = useState(INITIAL_SELLINGLIST)
+  const [sellingList, setSellingList] = useState([])
 
   // Payment State
   const [isCheckingOut, setIsCheckingOut] = useState(false)
@@ -179,7 +186,7 @@ const VaultPage = () => {
 
   const formatTime = (time) => {
     const pad = (n) => String(n).padStart(2, '0')
-    return `${pad(time.hours)}:${pad(time.minutes)}:${pad(time.seconds)}`
+    return `${pad(time?.hours)}:${pad(time?.minutes)}:${pad(time?.seconds)}`
   }
 
   // Remove from watchlist
@@ -242,6 +249,40 @@ const VaultPage = () => {
     }, 2000)
   }
 
+  const showSoldItems = () => {
+    GetMySoldItems()
+      .then((res) => {
+        setSellingList(res?.data?.data)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+  }
+
+  useEffect(() => {
+    showSoldItems()
+  }, [])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   return (
     <div className="vault-page">
       <div className="vault-page__bg-overlay" />
@@ -278,7 +319,7 @@ const VaultPage = () => {
             SECURED ASSETS ({securedAssets.length})
             {activeTab === 'secured' && <span className="vault-tab-indicator" />}
           </button>
-          
+
           <button
             className={`vault-tab-btn ${activeTab === 'watchlist' ? 'vault-tab-btn--active' : ''}`}
             onClick={() => setActiveTab('watchlist')}
@@ -286,7 +327,7 @@ const VaultPage = () => {
             WATCHLIST ({watchlist.length})
             {activeTab === 'watchlist' && <span className="vault-tab-indicator" />}
           </button>
-          
+
           <button
             className={`vault-tab-btn ${activeTab === 'sellingList' ? 'vault-tab-btn--active' : ''}`}
             onClick={() => setActiveTab('sellingList')}
@@ -414,7 +455,7 @@ const VaultPage = () => {
             </div>
           )}
 
-          
+
 
           {/* 4. Watchlist Tab */}
           {activeTab === 'watchlist' && (
@@ -471,29 +512,29 @@ const VaultPage = () => {
               ) : (
                 <div className="vault-items-list">
                   {sellingList.map(item => (
-                    <div className="vault-item-card" key={item.id}>
+                    <div className="vault-item-card" key={item?.itemId}>
                       <div className="vault-item-card__image">
-                        <img src={item.image} alt={item.title} />
+                        <img src={item?.details?.boxLidBranding} alt={item?.details?.brand} />
                       </div>
                       <div className="vault-item-card__details">
-                        <span className="vault-item-cat">{item.category}</span>
-                        <h3 className="vault-item-title">{item.title} <span className="vault-item-ref">{item.reference}</span></h3>
+                        <span className="vault-item-cat">{item?.categoryName}</span>
+                        <h3 className="vault-item-title">{item?.details?.brand} <span className="vault-item-ref">{item?.details?.editionName}</span></h3>
                         <div className="vault-item-specs">
                           <div>
                             <span className="vault-spec-label">CURRENT BID</span>
-                            <span className="vault-spec-val">{formatCurrency(item.currentBid)}</span>
+                            <span className="vault-spec-val">{formatCurrency(item?.currentPrice)}</span>
                           </div>
                           <div>
                             <span className="vault-spec-label">TIME REMAINING</span>
-                            <span className="vault-spec-val vault-spec-val--timer">{formatTime(item.timeLeft)}</span>
+                            <span className="vault-spec-val vault-spec-val--timer">{formatTime(item?.auctionEndDate)}</span>
                           </div>
                         </div>
                       </div>
                       <div className="vault-item-card__action-zone">
-                        <button className="vault-cart-remove-btn" style={{ marginBottom: '10px' }} onClick={() => handleRemoveSellingList(item.id)}>
+                        <button className="vault-cart-remove-btn" style={{ marginBottom: '10px' }} onClick={() => handleRemoveSellingList(item?.itemId)}>
                           REMOVE FROM LISTING
                         </button>
-                        <Link to={item.link} className="vault-action-btn">
+                        <Link to={item?.link} className="vault-action-btn">
                           VIEW LISTING
                         </Link>
                       </div>

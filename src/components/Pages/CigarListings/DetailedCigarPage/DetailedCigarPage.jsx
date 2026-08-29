@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { FaSpinner } from 'react-icons/fa'
+import { getApprovedListing } from '../../../../services/sellingServices/getSellListings/getSellListings'
 import cigarData from '../../../../data/CigarData'
 import './DetailedCigarPage.css'
 
@@ -175,16 +177,27 @@ const cigarEnrichments = {
     },
 }
 
+const calculateTimeLeft = (endDateStr) => {
+    if (!endDateStr) return { days: 0, hours: 0, minutes: 0, seconds: 0 }
+    const difference = +new Date(endDateStr) - +new Date()
+    if (difference <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 }
+    return {
+        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((difference / 1000 / 60) % 60),
+        seconds: Math.floor((difference / 1000) % 60)
+    }
+}
+
 const DetailedCigarPage = () => {
     const { id } = useParams()
-    const cigar = cigarData.find(c => c.id === Number(id))
-    const enrichment = cigarEnrichments[Number(id)] || {}
-    const item = cigar ? { ...cigar, ...enrichment } : null
+    const [item, setItem] = useState(null)
+    const [loading, setLoading] = useState(true)
 
     const [activeTab, setActiveTab] = useState('provenance')
-    const [currentBid, setCurrentBid] = useState(item ? item.currentBidNumber : 0)
-    const [bids, setBids] = useState(item ? (item.liveActivity || []) : [])
-    const [biddersCount, setBiddersCount] = useState(item ? (item.activeBidders || 10) : 10)
+    const [currentBid, setCurrentBid] = useState(0)
+    const [bids, setBids] = useState([])
+    const [biddersCount, setBiddersCount] = useState(10)
     const [isFavorited, setIsFavorited] = useState(false)
     const [isAutoBidding, setIsAutoBidding] = useState(false)
 
@@ -208,40 +221,99 @@ const DetailedCigarPage = () => {
         setMagnifier(prev => ({ ...prev, visible: false }))
     }, [])
 
-    const [mainImage, setMainImage] = useState(item ? item.image : '')
+    const [mainImage, setMainImage] = useState('')
     const [activeThumbIdx, setActiveThumbIdx] = useState(0)
 
     const [showBidModal, setShowBidModal] = useState(false)
-    const [customBidAmount, setCustomBidAmount] = useState(item ? (item.currentBidNumber + item.bidIncrement) : 0)
+    const [customBidAmount, setCustomBidAmount] = useState(0)
     const [bidError, setBidError] = useState('')
     const [successMessage, setSuccessMessage] = useState('')
     const [termsAccepted, setTermsAccepted] = useState(false)
     const [modalAutoBid, setModalAutoBid] = useState(false)
 
     const [timeLeft, setTimeLeft] = useState({
-        days: item?.initialTime?.days || 0,
-        hours: item?.initialTime?.hours || 4,
-        minutes: item?.initialTime?.minutes || 18,
-        seconds: item?.initialTime?.seconds || 40
+        days: 0,
+        hours: 0,
+        minutes: 0,
+        seconds: 0
     })
 
     useEffect(() => {
-        const timer = setInterval(() => {
-            setTimeLeft(prev => {
-                if (prev.days === 0 && prev.hours === 0 && prev.minutes === 0 && prev.seconds === 0) {
-                    clearInterval(timer)
-                    return prev
+        setLoading(true)
+        getApprovedListing(1)
+            .then((res) => {
+                const list = res?.data?.data || []
+                const found = list.find(c => c.itemId === Number(id))
+                if (found) {
+                    const mappedItem = {
+                        id: found.itemId,
+                        itemId: found.itemId,
+                        title: found.details?.brand || found.categoryName || "Cigar",
+                        reference: found.details?.editionName || "",
+                        description: found.details?.commercialShape || "",
+                        detailedDescription: found.details?.commercialShape || "",
+                        image: found.details?.openBox || found.details?.boxLidBranding || "",
+                        angles: [found.details?.boxLidBranding, found.details?.boxBottom, found.details?.cigarBand].filter(Boolean),
+                        currentBidNumber: found.currentPrice || found.expectedPrice || 568,
+                        bidIncrement: found.bidIncreament || 500,
+                        activeBidders: 10,
+                        auctionEndDate: found.auctionEndDate,
+                        liveActivity: [
+                            { id: 1, member: 'MEMBER #7***3', timeAgo: '2 minutes ago', timestamp: Date.now() - 120000, amount: `$${found.currentPrice || found.expectedPrice || 568}`, amountNumber: found.currentPrice || found.expectedPrice || 568 }
+                        ],
+                        provenance: {
+                            title: found.details?.origin || 'Premium Origin',
+                            description: `This exceptional cigar collection has been authenticated and stored in pristine conditions in our vaults.`,
+                            timeline: [
+                                { period: found.details?.boxYear || 'N/A', detail: 'Acquired and preserved in verified conditions' },
+                                { period: 'PRESENT', detail: 'Opulenza Authenticated Custody' }
+                            ]
+                        },
+                        authentication: 'Authenticated and verified. Complete chain of custody documented.',
+                        conditionReport: {
+                            label: ['WRAPPER', 'ORIGIN', 'BOX YEAR', 'SIZE'],
+                            value: [
+                                'Pristine wrapper condition',
+                                found.details?.origin || '—',
+                                found.details?.boxYear || '—',
+                                found.details?.length || '—'
+                            ]
+                        },
+                        details: [
+                            { label: 'BRAND', value: found.details?.brand },
+                            { label: 'ORIGIN', value: found.details?.origin },
+                            { label: 'SIZE', value: found.details?.length },
+                            { label: 'RARITY', value: found.details?.packagingType || '—' }
+                        ]
+                    }
+                    setItem(mappedItem)
                 }
-                let s = prev.seconds - 1, m = prev.minutes, h = prev.hours, d = prev.days
-                if (s < 0) { s = 59; m -= 1 }
-                if (m < 0) { m = 59; h -= 1 }
-                if (h < 0) { h = 23; d -= 1 }
-                if (d < 0) { d = 0 }
-                return { days: d, hours: h, minutes: m, seconds: s }
+                setLoading(false)
             })
+            .catch((err) => {
+                console.error(err)
+                setLoading(false)
+            })
+    }, [id])
+
+    useEffect(() => {
+        if (item) {
+            setCurrentBid(item.currentBidNumber)
+            setBids(item.liveActivity || [])
+            setBiddersCount(item.activeBidders || 10)
+            setMainImage(item.image)
+            setCustomBidAmount(item.currentBidNumber + item.bidIncrement)
+            setTimeLeft(item.auctionEndDate ? calculateTimeLeft(item.auctionEndDate) : { days: 1, hours: 4, minutes: 18, seconds: 40 })
+        }
+    }, [item])
+
+    useEffect(() => {
+        if (!item || !item.auctionEndDate) return
+        const timer = setInterval(() => {
+            setTimeLeft(calculateTimeLeft(item.auctionEndDate))
         }, 1000)
         return () => clearInterval(timer)
-    }, [])
+    }, [item])
 
     useEffect(() => {
         let simInterval
@@ -268,6 +340,17 @@ const DetailedCigarPage = () => {
         }
         return () => { if (simInterval) clearInterval(simInterval) }
     }, [isAutoBidding, item?.bidIncrement, item])
+
+    if (loading) {
+        return (
+            <div className="cigar-not-found">
+                <div className="container text-center py-5">
+                    <FaSpinner className="ap-spin" size={32} color="#d6a54d" />
+                    <p style={{ marginTop: '16px', color: 'rgba(255,255,255,0.6)' }}>Loading details...</p>
+                </div>
+            </div>
+        )
+    }
 
     if (!item) {
         return (
@@ -503,7 +586,7 @@ const DetailedCigarPage = () => {
 
                                 {/* Secondary Actions */}
                                 <div className="detailed-page__action-row">
-                                    <button
+                                    {/* <button
                                         className={`action-btn-secondary ${isAutoBidding ? 'action-btn-secondary--active' : ''}`}
                                         onClick={() => setIsAutoBidding(!isAutoBidding)}
                                     >
@@ -511,7 +594,7 @@ const DetailedCigarPage = () => {
                                             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                                         </svg>
                                         {isAutoBidding ? 'AUTO BID ACTIVE' : 'AUTO BID'}
-                                    </button>
+                                    </button> */}
                                     <button
                                         className={`action-btn-secondary ${isFavorited ? 'action-btn-secondary--active' : ''}`}
                                         onClick={() => setIsFavorited(!isFavorited)}
@@ -685,7 +768,7 @@ const DetailedCigarPage = () => {
                                     </div>
                                     <div className="modal-bid-stat modal-bid-stat--right">
                                         <span className="modal-bid-stat-label">MIN. NEXT BID</span>
-                                        <span className="modal-bid-stat-value modal-bid-stat-value--gold">{formatCurrency(currentBid + item.bidIncrement)}</span>
+                                        <span className="modal-bid-stat-value modal-bid-stat-value--gold">${item.bidIncrement}</span>
                                     </div>
                                 </div>
                                 <div className="modal-input-section">
@@ -695,7 +778,7 @@ const DetailedCigarPage = () => {
                                         <input
                                             type="number"
                                             className="modal-bid-input"
-                                            value={customBidAmount}
+                                            value={item.bidIncrement}
                                             onChange={(e) => setCustomBidAmount(Number(e.target.value))}
                                             min={currentBid + item.bidIncrement}
                                             step={item.bidIncrement}
@@ -705,7 +788,7 @@ const DetailedCigarPage = () => {
                                     </div>
                                     {bidError && <p className="modal-error-msg">{bidError}</p>}
                                 </div>
-                                <div className="modal-autobid-row">
+                                {/* <div className="modal-autobid-row">
                                     <div className="modal-autobid-text">
                                         <span className="modal-autobid-title">Auto Bid</span>
                                         <span className="modal-autobid-sub">OPULENZA WILL BID UP TO YOUR LIMIT</span>
@@ -718,7 +801,7 @@ const DetailedCigarPage = () => {
                                     >
                                         <span className="modal-toggle-knob" />
                                     </button>
-                                </div>
+                                </div> */}
                                 <label className="modal-terms-row">
                                     <input
                                         type="checkbox"

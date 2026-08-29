@@ -18,6 +18,7 @@ import PenListings from "./components/Pages/PensListings/PenListings";
 import ProfilePage from "./components/Pages/ProfilePage/ProfilePage";
 import SellPage from "./components/Pages/SellPage/SellPage";
 import TermsPage from "./components/Pages/TermsPage/TermsPage";
+import PolicyPage from "./components/Pages/PolicyPage/PolicyPage";
 import VaultPage from "./components/Pages/VaultPage/VaultPage";
 import DetailedPage from "./components/Pages/WatchListings/DetailedPage/DetailedPage";
 import WatchListing from "./components/Pages/WatchListings/WatchListing";
@@ -63,6 +64,7 @@ const AppLayout = () => {
         <Route path="/about" element={<About />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/terms-and-conditions" element={<TermsPage />} />
+        <Route path="/policy" element={<PolicyPage />} />
         <Route
           path="/concierge"
           element={

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   MdSearch,
-  MdEdit,
   MdDelete,
   MdAddCircleOutline,
   MdChevronLeft,
@@ -10,22 +9,14 @@ import {
   MdClose,
   MdFileDownload,
   MdOpenInNew,
-  MdPictureAsPdf,
   MdDescription,
   MdImage,
-  MdLock,
-  MdLockOpen,
 } from "react-icons/md";
 import {
   getSellListing,
   approveSellListing,
   getItemMedia,
 } from "../../../services/sellingServices/getSellListings/getSellListings";
-import {
-  decryptFile,
-  getEncryptionSecret,
-  base64ToBuffer,
-} from "../../../utils/fileEncryption";
 import { FaCheckCircle, FaSpinner } from "react-icons/fa";
 
 const CATEGORIES = [
@@ -109,7 +100,7 @@ const ListingManagement = () => {
     document.body.removeChild(a);
   };
 
-  const handleFetchAndDecrypt = async (media, action = "view") => {
+  const handleFetchMedia = async (media, action = "view") => {
     const mediaId = media?.id;
     const itemId = media?.itemId || selectedListing?.itemId;
     if (!itemId || !mediaId) return;
@@ -140,36 +131,36 @@ const ListingManagement = () => {
     try {
       const res = await getItemMedia(itemId, mediaId);
       const rawPayload =
-        res?.data?.data?.encryptedFile ||
-        res?.data?.encryptedFile ||
-        res?.data?.data ||
-        res?.data;
+        res?.data?.data ??
+        res?.data ??
+        res;
 
       let blob;
-      if (media.salt && media.iv) {
-        const secret = getEncryptionSecret();
-        const decryptedBuffer = await decryptFile(
-          rawPayload,
-          secret,
-          media.salt,
-          media.iv,
-        );
-        blob = new Blob([decryptedBuffer], {
+      if (rawPayload instanceof Blob) {
+        blob = rawPayload;
+      } else if (typeof rawPayload === "string") {
+        // Treat as a direct URL if it looks like one, otherwise wrap in blob
+        if (rawPayload.startsWith("http")) {
+          setMediaCache((prev) => ({
+            ...prev,
+            [mediaId]: { loading: false, url: rawPayload, error: null },
+          }));
+          if (action === "download") {
+            triggerDownload(rawPayload, media.originalFileName || `media_${mediaId}`);
+          } else if (action === "preview-image") {
+            setPreviewImage({ url: rawPayload, name: media.originalFileName || `Image #${mediaId}` });
+          } else if (action === "view") {
+            window.open(rawPayload, "_blank");
+          }
+          return;
+        }
+        blob = new Blob([rawPayload], {
           type: media.contentType || "application/octet-stream",
         });
       } else {
-        if (typeof rawPayload === "string") {
-          const buffer = base64ToBuffer(rawPayload);
-          blob = new Blob([buffer], {
-            type: media.contentType || "application/octet-stream",
-          });
-        } else if (rawPayload instanceof Blob) {
-          blob = rawPayload;
-        } else {
-          blob = new Blob([rawPayload], {
-            type: media.contentType || "application/octet-stream",
-          });
-        }
+        blob = new Blob([rawPayload], {
+          type: media.contentType || "application/octet-stream",
+        });
       }
 
       const objectUrl = URL.createObjectURL(blob);
@@ -193,19 +184,19 @@ const ListingManagement = () => {
         window.open(objectUrl, "_blank");
       }
     } catch (err) {
-      console.error(`Decryption failed for media #${mediaId}:`, err);
+      console.error(`Failed to fetch media #${mediaId}:`, err);
       setMediaCache((prev) => ({
         ...prev,
         [mediaId]: {
           loading: false,
           url: null,
-          error: err.message || "Failed to decrypt media",
+          error: err.message || "Failed to load media",
         },
       }));
     }
   };
 
-  // Auto-fetch & decrypt all documents and images as soon as a listing modal is opened
+  // Auto-fetch all documents and images as soon as a listing modal is opened
   useEffect(() => {
     if (!selectedListing?.details) return;
 
@@ -224,7 +215,7 @@ const ListingManagement = () => {
         !mediaCache[media.id]?.url &&
         !mediaCache[media.id]?.loading
       ) {
-        handleFetchAndDecrypt(media, "preload");
+        handleFetchMedia(media, "preload");
       }
     });
   }, [selectedListing]);
@@ -651,255 +642,174 @@ const ListingManagement = () => {
                   </div>
                 )}
 
-              {/* Uploaded Documents Section */}
-              <div className="ap-modal-section">
-                <div className="ap-modal-section-header">
-                  <h4 className="ap-modal-section-title">
-                    Uploaded Documents (
-                    {Array.isArray(selectedListing?.details?.documents)
-                      ? selectedListing.details.documents.length
-                      : 0}
-                    )
-                  </h4>
-                </div>
-                {Array.isArray(selectedListing?.details?.documents) &&
-                selectedListing.details.documents.length > 0 ? (
-                  <div className="ap-doc-grid">
-                    {selectedListing.details.documents.map((doc) => {
-                      const state = mediaCache[doc.id] || {};
-                      const isPdf =
-                        doc.contentType === "application/pdf" ||
-                        doc.originalFileName?.toLowerCase().endsWith(".pdf");
-                      const isImage =
-                        doc.contentType?.startsWith("image/") ||
-                        /\.(jpg|jpeg|png|webp|gif|bmp)$/i.test(
-                          doc.originalFileName || "",
-                        );
-                      const ext =
-                        doc.originalFileName?.split(".").pop()?.toUpperCase() ||
-                        (isPdf ? "PDF" : "DOC");
+              {/* ── derive flat lists of docs & images from details URL strings ── */}
+              {(() => {
+                const details = selectedListing?.details || {};
+                const allMedia = Object.entries(details)
+                  .filter(([, v]) => typeof v === "string" && /^https?:\/\//i.test(v));
 
-                      return (
-                        <div key={doc.id} className="ap-doc-card">
-                          <div
-                            className="ap-doc-thumb-wrap"
-                            onClick={() => {
-                              if (state.url) {
-                                window.open(state.url, "_blank");
-                              }
-                            }}
-                          >
-                            {state.url ? (
-                              isPdf ? (
-                                <div className="ap-doc-embed-wrap">
-                                  <iframe
-                                    src={`${state.url}#toolbar=0&navpanes=0&scrollbar=0&view=Fit`}
-                                    className="ap-doc-iframe-preview"
-                                    title={doc.originalFileName}
-                                    scrolling="no"
-                                  />
-                                  <div className="ap-doc-overlay-cover">
+                const docEntries = allMedia.filter(([, url]) =>
+                  /\/Items\/Documents\//i.test(url)
+                );
+                const imgEntries = allMedia.filter(([, url]) =>
+                  /\/Items\/Images\//i.test(url)
+                );
+
+                const isPdfUrl = (url) => /\.pdf(\?|$)/i.test(url);
+                const isImgUrl = (url) => /\.(jpe?g|png|webp|gif|bmp|svg)(\?|$)/i.test(url);
+                const extFromUrl = (url) =>
+                  (url.split("?")[0].split(".").pop() || "FILE").toUpperCase();
+
+                return (
+                  <>
+                    {/* Uploaded Documents Section */}
+                    <div className="ap-modal-section">
+                      <div className="ap-modal-section-header">
+                        <h4 className="ap-modal-section-title">
+                          Uploaded Documents ({docEntries.length})
+                        </h4>
+                      </div>
+                      {docEntries.length > 0 ? (
+                        <div className="ap-doc-grid">
+                          {docEntries.map(([key, url]) => {
+                            const pdf = isPdfUrl(url);
+                            const img = isImgUrl(url);
+                            const ext = extFromUrl(url);
+                            const label = key.replace(/([A-Z])/g, " $1").trim();
+                            return (
+                              <div key={key} className="ap-doc-card">
+                                <div
+                                  className="ap-doc-thumb-wrap"
+                                  onClick={() => window.open(url, "_blank")}
+                                >
+                                  {pdf ? (
+                                    <div className="ap-doc-embed-wrap">
+                                      <iframe
+                                        src={`${url}#toolbar=0&navpanes=0&scrollbar=0&view=Fit`}
+                                        className="ap-doc-iframe-preview"
+                                        title={label}
+                                        scrolling="no"
+                                      />
+                                      <div className="ap-doc-overlay-cover">
+                                        <div className="ap-image-thumb-overlay">
+                                          <MdOpenInNew size={18} />
+                                          <span>Full View</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ) : img ? (
+                                    <>
+                                      <img
+                                        src={url}
+                                        alt={label}
+                                        className="ap-image-thumb"
+                                      />
+                                      <div className="ap-image-thumb-overlay">
+                                        <MdOpenInNew size={18} />
+                                        <span>Full View</span>
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <div className="ap-doc-paper-preview">
+                                        <div className="ap-doc-paper-icon">
+                                          <MdDescription size={46} color="#c5a059" />
+                                        </div>
+                                        <span className="ap-doc-type-pill">{ext}</span>
+                                      </div>
+                                      <div className="ap-image-thumb-overlay">
+                                        <MdOpenInNew size={18} />
+                                        <span>Full View</span>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                                <div className="ap-doc-card__body">
+                                  <div className="ap-doc-card__name" title={label}>
+                                    {label}
+                                  </div>
+                                  <div className="ap-doc-card__actions">
+                                    <button
+                                      type="button"
+                                      className="ap-media-btn ap-media-btn--gold"
+                                      onClick={() => triggerDownload(url, `${key}.${ext.toLowerCase()}`)}
+                                      title="Download Document"
+                                    >
+                                      <MdFileDownload size={14} /> Download
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="ap-media-empty">
+                          No documents uploaded for this listing.
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Uploaded Images Section */}
+                    <div className="ap-modal-section">
+                      <div className="ap-modal-section-header">
+                        <h4 className="ap-modal-section-title">
+                          Uploaded Images ({imgEntries.length})
+                        </h4>
+                      </div>
+                      {imgEntries.length > 0 ? (
+                        <div className="ap-image-grid">
+                          {imgEntries.map(([key, url]) => {
+                            const label = key.replace(/([A-Z])/g, " $1").trim();
+                            return (
+                              <div key={key} className="ap-image-card">
+                                <div
+                                  className="ap-image-thumb-wrap"
+                                  onClick={() =>
+                                    setPreviewImage({ url, name: label })
+                                  }
+                                >
+                                  <>
+                                    <img
+                                      src={url}
+                                      alt={label}
+                                      className="ap-image-thumb"
+                                    />
                                     <div className="ap-image-thumb-overlay">
-                                      <MdOpenInNew size={18} />
+                                      <MdVisibility size={18} />
                                       <span>Full View</span>
                                     </div>
+                                  </>
+                                </div>
+                                <div className="ap-image-card__body">
+                                  <div className="ap-image-card__name" title={label}>
+                                    {label}
+                                  </div>
+                                  <div className="ap-image-card__actions">
+                                    <button
+                                      type="button"
+                                      className="ap-media-btn ap-media-btn--gold"
+                                      onClick={() => triggerDownload(url, `${key}.jpg`)}
+                                      title="Download Image"
+                                    >
+                                      <MdFileDownload size={14} /> Download
+                                    </button>
                                   </div>
                                 </div>
-                              ) : isImage ? (
-                                <>
-                                  <img
-                                    src={state.url}
-                                    alt={
-                                      doc.originalFileName ||
-                                      `Document #${doc.id}`
-                                    }
-                                    className="ap-image-thumb"
-                                  />
-                                  <div className="ap-image-thumb-overlay">
-                                    <MdOpenInNew size={18} />
-                                    <span>Full View</span>
-                                  </div>
-                                </>
-                              ) : (
-                                <>
-                                  <div className="ap-doc-paper-preview">
-                                    <div className="ap-doc-paper-icon">
-                                      <MdDescription
-                                        size={46}
-                                        color="#c5a059"
-                                      />
-                                    </div>
-                                    <span className="ap-doc-type-pill">
-                                      {ext}
-                                    </span>
-                                  </div>
-                                  <div className="ap-image-thumb-overlay">
-                                    <MdOpenInNew size={18} />
-                                    <span>Full View</span>
-                                  </div>
-                                </>
-                              )
-                            ) : state.loading ? (
-                              <div className="ap-image-thumb-placeholder">
-                                <FaSpinner
-                                  className="ap-spin"
-                                  size={22}
-                                  color="#d6a54d"
-                                />
-                                <span>Decrypting Document...</span>
                               </div>
-                            ) : (
-                              <div className="ap-image-thumb-placeholder">
-                                <MdDescription size={32} color="#c5a059" />
-                                <span>Ready to Decrypt</span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="ap-doc-card__body">
-                            <div
-                              className="ap-doc-card__name"
-                              title={
-                                doc.originalFileName || `Document #${doc.id}`
-                              }
-                            >
-                              {doc.originalFileName || `Document #${doc.id}`}
-                            </div>
-
-                            {state.error && (
-                              <span className="ap-media-error-text">
-                                {state.error}
-                              </span>
-                            )}
-                            <div className="ap-doc-card__actions">
-                              <button
-                                type="button"
-                                className="ap-media-btn ap-media-btn--gold"
-                                disabled={!state.url}
-                                onClick={() =>
-                                  triggerDownload(
-                                    state.url,
-                                    doc.originalFileName ||
-                                      `document_${doc.id}.pdf`,
-                                  )
-                                }
-                                title="Download Decrypted Document"
-                              >
-                                <MdFileDownload size={14} /> Download
-                              </button>
-                            </div>
-                          </div>
+                            );
+                          })}
                         </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="ap-media-empty">
-                    No documents uploaded for this listing.
-                  </div>
-                )}
-              </div>
-
-              {/* Uploaded Images Section */}
-              <div className="ap-modal-section">
-                <div className="ap-modal-section-header">
-                  <h4 className="ap-modal-section-title">
-                    Uploaded Images (
-                    {Array.isArray(selectedListing?.details?.images)
-                      ? selectedListing.details.images.length
-                      : 0}
-                    )
-                  </h4>
-                </div>
-                {Array.isArray(selectedListing?.details?.images) &&
-                selectedListing.details.images.length > 0 ? (
-                  <div className="ap-image-grid">
-                    {selectedListing.details.images.map((img) => {
-                      const state = mediaCache[img.id] || {};
-                      return (
-                        <div key={img.id} className="ap-image-card">
-                          <div
-                            className="ap-image-thumb-wrap"
-                            onClick={() => {
-                              if (state.url) {
-                                setPreviewImage({
-                                  url: state.url,
-                                  name:
-                                    img.originalFileName || `Image #${img.id}`,
-                                });
-                              }
-                            }}
-                          >
-                            {state.url ? (
-                              <>
-                                <img
-                                  src={state.url}
-                                  alt={
-                                    img.originalFileName || `Image #${img.id}`
-                                  }
-                                  className="ap-image-thumb"
-                                />
-                                <div className="ap-image-thumb-overlay">
-                                  <MdVisibility size={18} />
-                                  <span>Full View</span>
-                                </div>
-                              </>
-                            ) : state.loading ? (
-                              <div className="ap-image-thumb-placeholder">
-                                <FaSpinner
-                                  className="ap-spin"
-                                  size={22}
-                                  color="#d6a54d"
-                                />
-                                <span>Decrypting Image...</span>
-                              </div>
-                            ) : (
-                              <div className="ap-image-thumb-placeholder">
-                                <MdImage size={30} color="#c5a059" />
-                                <span>Ready to Decrypt</span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="ap-image-card__body">
-                            <div
-                              className="ap-image-card__name"
-                              title={img.originalFileName || `Image #${img.id}`}
-                            >
-                              {img.originalFileName || `Image #${img.id}`}
-                            </div>
-
-                            {state.error && (
-                              <span className="ap-media-error-text">
-                                {state.error}
-                              </span>
-                            )}
-                            <div className="ap-image-card__actions">
-                              <button
-                                type="button"
-                                className="ap-media-btn ap-media-btn--gold"
-                                disabled={!state.url}
-                                onClick={() =>
-                                  triggerDownload(
-                                    state.url,
-                                    img.originalFileName ||
-                                      `image_${img.id}.jpg`,
-                                  )
-                                }
-                                title="Download Decrypted Image"
-                              >
-                                <MdFileDownload size={14} /> Download
-                              </button>
-                            </div>
-                          </div>
+                      ) : (
+                        <div className="ap-media-empty">
+                          No images uploaded for this listing.
                         </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="ap-media-empty">
-                    No images uploaded for this listing.
-                  </div>
-                )}
-              </div>
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
+
             </div>
 
             <div className="ap-modal-footer">
@@ -940,7 +850,7 @@ const ListingManagement = () => {
                 <MdImage size={18} color="#d6a54d" />
                 <span className="ap-lightbox-title">{previewImage.name}</span>
                 <span className="ap-media-badge ap-media-badge--decrypted">
-                  Decrypted Full View
+                  Full View
                 </span>
               </div>
               <div className="ap-lightbox-actions">

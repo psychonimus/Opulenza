@@ -5,13 +5,12 @@ import CommonBackdrop from '../../CommonBackdrop/CommonBackdrop';
 
 const documentTypes = [
   "Passport",
-  "Aadhaar Card",
-  "PAN Card",
+  // "Aadhaar Card",
+  // "PAN Card",
   "Driving License",
-  "Utility Bill",
-  "Proof of Address",
-  "Financial Statement",
-  "Other"
+  "National Identity Card",
+  "Residence Permits",
+  
 ];
 
 function AddDocuments({ show, onClose, onSuccess }) {

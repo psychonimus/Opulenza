@@ -127,7 +127,7 @@ const AllWatches = () => {
   }, [])
 
 
-  console.log(watches)
+  // console.log(watches)
 
   return (
     <div className="watch-listing-page">
@@ -162,7 +162,7 @@ const AllWatches = () => {
             <div className="watch-card" key={watch.itemId}>
               {/* Image Section */}
               <div className="watch-card__image-container">
-                <img src={watch.details?.images[0]} alt={watch.details?.editionName} className="watch-card__image" />
+                <img src={watch.details?.images} alt={watch.details?.editionName} className="watch-card__image" />
                 <div className="watch-card__gradient-overlay"></div>
 
                 {/* Dossier Badge */}
