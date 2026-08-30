@@ -1,415 +1,23 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
-import whiskyData from "../../../../data/WhiskyData";
+// import whiskyData from "../../../../data/WhiskyData";
+import { getApprovedListing } from '../../../../services/sellingServices/getSellListings/getSellListings'
+import { AddBid } from '../../../../services/biddingServices/BiddingServices'
 import "./Whisky.css";
-
-/* ── Whisky-specific enrichments not present in the base data ── */
-const whiskyEnrichments = {
-  1: {
-    currentBidNumber: 2310000,
-    bidIncrement: 25000,
-    activeBidders: 18,
-    reserveMet: true,
-    detailedDescription:
-      "The Macallan 1926 Fine & Rare is widely considered the holy grail of Scotch whisky. One of only 40 bottles ever released, it was distilled in 1926 and bottled in 1986 after 60 years maturing in a sherry cask. A singular expression of patience, provenance, and mastery.",
-    liveActivity: [
-      {
-        id: 1,
-        member: "MEMBER #9***2",
-        timeAgo: "1 minute ago",
-        timestamp: Date.now() - 60000,
-        amount: "$2,310,000",
-        amountNumber: 2310000,
-      },
-      {
-        id: 2,
-        member: "MEMBER #4***7",
-        timeAgo: "9 minutes ago",
-        timestamp: Date.now() - 540000,
-        amount: "$2,285,000",
-        amountNumber: 2285000,
-      },
-      {
-        id: 3,
-        member: "MEMBER #1***5",
-        timeAgo: "22 minutes ago",
-        timestamp: Date.now() - 1320000,
-        amount: "$2,260,000",
-        amountNumber: 2260000,
-      },
-    ],
-    provenance: {
-      title: "Sixty Years in the Cask",
-      description:
-        "Distilled at Easter Elchies House on 23 April 1926, the spirit spent 60 years in a single hand-selected sherry hogshead before being decanted in 1986. One of only 40 bottles ever released to the world.",
-      timeline: [
-        {
-          period: "1926",
-          detail: "Distilled at Macallan Distillery, Speyside",
-        },
-        {
-          period: "1926–1986",
-          detail: "Matured in Oloroso Sherry cask, Warehouse No. 1",
-        },
-        { period: "1986", detail: "Bottled and certified by The Macallan" },
-        {
-          period: "1986–PRESENT",
-          detail: "Private European Cellar, single ownership",
-        },
-      ],
-    },
-    authentication:
-      "Authenticated by The Macallan Heritage Archive. Wax seal, label condition, and fill-level are consistent with known Fine & Rare releases. Accompanied by original presentation box and distillery certification letter.",
-    conditionReport: {
-      label: ["BOTTLE", "LABEL", "WAX SEAL", "FILL LEVEL"],
-      value: [
-        "Pristine — no chips or cloudiness",
-        "Near Mint — original graphics intact",
-        "Unbroken, original colour",
-        "Upper shoulder — no ullage",
-      ],
-    },
-  },
-  2: {
-    currentBidNumber: 1480000,
-    bidIncrement: 15000,
-    activeBidders: 12,
-    reserveMet: true,
-    detailedDescription:
-      "The Dalmore 62-Year-Old decanter is one of the most extraordinary expressions ever released, combining spirit from casks dating as far back as 1868. Presented in a bespoke Caithness crystal decanter, it is a work of art in both form and liquid.",
-    liveActivity: [
-      {
-        id: 1,
-        member: "MEMBER #3***1",
-        timeAgo: "3 minutes ago",
-        timestamp: Date.now() - 180000,
-        amount: "$1,480,000",
-        amountNumber: 1480000,
-      },
-      {
-        id: 2,
-        member: "MEMBER #8***6",
-        timeAgo: "14 minutes ago",
-        timestamp: Date.now() - 840000,
-        amount: "$1,465,000",
-        amountNumber: 1465000,
-      },
-      {
-        id: 3,
-        member: "MEMBER #5***4",
-        timeAgo: "31 minutes ago",
-        timestamp: Date.now() - 1860000,
-        amount: "$1,450,000",
-        amountNumber: 1450000,
-      },
-    ],
-    provenance: {
-      title: "A Blend of Centuries",
-      description:
-        "Blended from five casks, the oldest containing spirit distilled in 1868. This decanter was commissioned for a private buyer and subsequently passed to one of Europe's foremost whisky collections.",
-      timeline: [
-        {
-          period: "1868",
-          detail: "Earliest spirit distilled, The Dalmore, Scotland",
-        },
-        {
-          period: "1942",
-          detail: "Final cask distilled and selected for blending",
-        },
-        {
-          period: "2002",
-          detail: "Vatted, decanted, and certified at The Dalmore",
-        },
-        {
-          period: "2002–PRESENT",
-          detail: "Private Cellar Collection, Edinburgh",
-        },
-      ],
-    },
-    authentication:
-      "Authenticated by The Dalmore Distillery Cellar Master. Crystal decanter, stopper, and casing are all original. Accompanied by the numbered certificate of authenticity signed by Richard Paterson.",
-    conditionReport: {
-      label: ["DECANTER", "STOPPER", "LIQUID", "PRESENTATION CASE"],
-      value: [
-        "Perfect — hand-blown Caithness crystal",
-        "Original, unchipped and secure",
-        "Brilliant amber, no cloudiness",
-        "Mint — original velvet lining intact",
-      ],
-    },
-  },
-  3: {
-    currentBidNumber: 965000,
-    bidIncrement: 10000,
-    activeBidders: 21,
-    reserveMet: true,
-    detailedDescription:
-      "Yamazaki 55-Year-Old is Japan's oldest commercially released single malt, distilled in 1960 and matured in rare Mizunara oak. Each bottle carries the unmistakable incense and sandalwood complexity unique to this sacred Japanese timber.",
-    liveActivity: [
-      {
-        id: 1,
-        member: "MEMBER #2***9",
-        timeAgo: "5 minutes ago",
-        timestamp: Date.now() - 300000,
-        amount: "$965,000",
-        amountNumber: 965000,
-      },
-      {
-        id: 2,
-        member: "MEMBER #6***3",
-        timeAgo: "18 minutes ago",
-        timestamp: Date.now() - 1080000,
-        amount: "$955,000",
-        amountNumber: 955000,
-      },
-      {
-        id: 3,
-        member: "MEMBER #4***8",
-        timeAgo: "37 minutes ago",
-        timestamp: Date.now() - 2220000,
-        amount: "$945,000",
-        amountNumber: 945000,
-      },
-    ],
-    provenance: {
-      title: "Japan's Oldest Single Malt",
-      description:
-        "Distilled at Suntory's Yamazaki Distillery in 1960 and matured for 55 years in a single Mizunara oak cask, this expression embodies the pinnacle of Japanese whisky philosophy — patience, harmony, and reverence for nature.",
-      timeline: [
-        {
-          period: "1960",
-          detail: "Distilled at Yamazaki Distillery, Osaka Prefecture",
-        },
-        { period: "1960–2015", detail: "Aged in single Mizunara oak cask" },
-        {
-          period: "2015",
-          detail: "Bottled by Suntory; 100 bottles released globally",
-        },
-        { period: "2015–PRESENT", detail: "Private Collection, Singapore" },
-      ],
-    },
-    authentication:
-      "Authenticated by Suntory Whisky. Accompanied by original Suntory certificate of authenticity with individual bottle number, and the personal signature of Chief Blender Shinji Fukuyo.",
-    conditionReport: {
-      label: ["BOTTLE", "LABEL", "CAPSULE", "PRESENTATION BOX"],
-      value: [
-        "Pristine — hand-crafted Japanese glass",
-        "Mint — traditional Suntory washi paper",
-        "Intact — original gold foil",
-        "Near Mint — paulownia wood box",
-      ],
-    },
-  },
-  4: {
-    currentBidNumber: 742000,
-    bidIncrement: 7500,
-    activeBidders: 9,
-    reserveMet: false,
-    detailedDescription:
-      "Black Bowmore 1964 First Edition is the inaugural release from one of Islay's most revered distilleries. Matured in Oloroso sherry casks for 29 years, it offers an incomparable depth of dark fruit, volcanic peat and dried fig that has never been replicated.",
-    liveActivity: [
-      {
-        id: 1,
-        member: "MEMBER #7***1",
-        timeAgo: "11 minutes ago",
-        timestamp: Date.now() - 660000,
-        amount: "$742,000",
-        amountNumber: 742000,
-      },
-      {
-        id: 2,
-        member: "MEMBER #3***5",
-        timeAgo: "28 minutes ago",
-        timestamp: Date.now() - 1680000,
-        amount: "$734,500",
-        amountNumber: 734500,
-      },
-      {
-        id: 3,
-        member: "MEMBER #9***2",
-        timeAgo: "52 minutes ago",
-        timestamp: Date.now() - 3120000,
-        amount: "$727,000",
-        amountNumber: 727000,
-      },
-    ],
-    provenance: {
-      title: "The First of the Black Legend",
-      description:
-        "Distilled in the legendary year of 1964 at Bowmore on Islay, this was the first expression released in the iconic Black Bowmore series. It helped define what Islay whisky could be at its most profound and complex.",
-      timeline: [
-        {
-          period: "1964",
-          detail: "Distilled at Bowmore Distillery, Isle of Islay",
-        },
-        { period: "1964–1993", detail: "Matured in Oloroso Sherry Butts" },
-        {
-          period: "1993",
-          detail: "Bottled as Black Bowmore First Edition — 827 bottles",
-        },
-        {
-          period: "1993–PRESENT",
-          detail: "Private Archive Collection, London",
-        },
-      ],
-    },
-    authentication:
-      "Authenticated by Bowmore Distillery. Wax seal is unbroken and shows original colour. Label is in original condition. Accompanied by original presentation box and numbered distillery certificate.",
-    conditionReport: {
-      label: ["BOTTLE", "WAX SEAL", "LABEL", "FILL LEVEL"],
-      value: [
-        "Excellent — original hand-blown glass",
-        "Unbroken, original deep black",
-        "Very Good — minor age-related patina",
-        "Into neck — no significant ullage",
-      ],
-    },
-  },
-  5: {
-    currentBidNumber: 1120000,
-    bidIncrement: 12500,
-    activeBidders: 15,
-    reserveMet: true,
-    detailedDescription:
-      "The Glenfiddich 1937 Rare Collection is among the oldest whiskies in the world ever committed to bottle. Drawn from a single sherry butt, it spent over 64 years accumulating the extraordinary complexity that could only emerge from one of Scotland's longest uninterrupted distillery histories.",
-    liveActivity: [
-      {
-        id: 1,
-        member: "MEMBER #5***4",
-        timeAgo: "6 minutes ago",
-        timestamp: Date.now() - 360000,
-        amount: "$1,120,000",
-        amountNumber: 1120000,
-      },
-      {
-        id: 2,
-        member: "MEMBER #2***8",
-        timeAgo: "21 minutes ago",
-        timestamp: Date.now() - 1260000,
-        amount: "$1,107,500",
-        amountNumber: 1107500,
-      },
-      {
-        id: 3,
-        member: "MEMBER #7***6",
-        timeAgo: "44 minutes ago",
-        timestamp: Date.now() - 2640000,
-        amount: "$1,095,000",
-        amountNumber: 1095000,
-      },
-    ],
-    provenance: {
-      title: "Pre-War Speyside Rarity",
-      description:
-        "Distilled on the eve of the Second World War at Glenfiddich's historic Dufftown distillery, this cask has outlasted generations. The cask was identified, preserved, and monitored through Glenfiddich's Rare Collection program before bottling in 2001.",
-      timeline: [
-        {
-          period: "1937",
-          detail: "Distilled at Glenfiddich Distillery, Dufftown, Scotland",
-        },
-        { period: "1937–2001", detail: "Matured in European Oak Sherry Butt" },
-        {
-          period: "2001",
-          detail: "Bottled as part of the Rare Collection — 61 bottles",
-        },
-        { period: "2001–PRESENT", detail: "Private European Collection" },
-      ],
-    },
-    authentication:
-      "Authenticated by Glenfiddich Distillery. Accompanied by the hand-signed William Grant & Sons certificate of authenticity. Case and bottle are original and numbered.",
-    conditionReport: {
-      label: ["BOTTLE", "LABEL", "LEAD CAPSULE", "PRESENTATION CASE"],
-      value: [
-        "Pristine — original lead glass",
-        "Near Mint — slight yellowing of paper",
-        "Intact — original, uncut seal",
-        "Excellent — rosewood box, fully intact",
-      ],
-    },
-  },
-  6: {
-    currentBidNumber: 528000,
-    bidIncrement: 5000,
-    activeBidders: 11,
-    reserveMet: true,
-    detailedDescription:
-      "The Hibiki 35-Year-Old is a transcendent blend of malts and grains from Suntory's three distilleries — Yamazaki, Hakushu, and Chita — united by the rare harmony that defines the Hibiki philosophy. Presented in the iconic 35-facet crystal decanter, it is as much sculpture as spirit.",
-    liveActivity: [
-      {
-        id: 1,
-        member: "MEMBER #8***3",
-        timeAgo: "8 minutes ago",
-        timestamp: Date.now() - 480000,
-        amount: "$528,000",
-        amountNumber: 528000,
-      },
-      {
-        id: 2,
-        member: "MEMBER #1***7",
-        timeAgo: "24 minutes ago",
-        timestamp: Date.now() - 1440000,
-        amount: "$523,000",
-        amountNumber: 523000,
-      },
-      {
-        id: 3,
-        member: "MEMBER #4***9",
-        timeAgo: "48 minutes ago",
-        timestamp: Date.now() - 2880000,
-        amount: "$518,000",
-        amountNumber: 518000,
-      },
-    ],
-    provenance: {
-      title: "The Harmony of Three Houses",
-      description:
-        "Crafted by Chief Blender Shinji Fukuyo, this 35-Year-Old expression draws from Suntory's three distilleries to create a blend of supreme elegance. Each of the 35 facets on the bottle represents a season in Japanese whisky tradition.",
-      timeline: [
-        {
-          period: "1986",
-          detail: "Youngest grain component distilled at Chita",
-        },
-        {
-          period: "1978",
-          detail: "Oldest malt component distilled at Yamazaki",
-        },
-        { period: "2021", detail: "Blended, bottled, and numbered at Suntory" },
-        { period: "2021–PRESENT", detail: "Private Collection, Hong Kong" },
-      ],
-    },
-    authentication:
-      "Authenticated by Suntory Whisky. Each bottle is individually numbered and accompanied by a certificate signed by Chief Blender Shinji Fukuyo. The 35-facet crystal decanter is verified original.",
-    conditionReport: {
-      label: ["DECANTER", "STOPPER", "LABEL", "OUTER CASE"],
-      value: [
-        "Perfect — original Suntory crystal",
-        "Original — secure and unchipped",
-        "Mint — gold foil and paper pristine",
-        "Near Mint — original gifting box",
-      ],
-    },
-  },
-};
 
 const DetailedWhiskyPage = () => {
   const { id } = useParams();
-  const whisky = whiskyData.find((item) => item.id === Number(id));
-  const enrichment = whiskyEnrichments[Number(id)] || {};
-
-  // Merge base data with enrichment
-  const item = whisky ? { ...whisky, ...enrichment } : null;
+  const [item, setItem] = useState(null);
+  const [whiskyDataList, setWhiskyDataList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Tab State
   const [activeTab, setActiveTab] = useState("provenance");
 
   // Bidding States
-  const [currentBid, setCurrentBid] = useState(
-    item ? item.currentBidNumber : 0,
-  );
-  const [bids, setBids] = useState(item ? item.liveActivity || [] : []);
-  const [biddersCount, setBiddersCount] = useState(
-    item ? item.activeBidders || 10 : 10,
-  );
+  const [currentBid, setCurrentBid] = useState(0);
+  const [bids, setBids] = useState([]);
+  const [biddersCount, setBiddersCount] = useState(10);
   const [isFavorited, setIsFavorited] = useState(false);
   const [isAutoBidding, setIsAutoBidding] = useState(false);
 
@@ -454,14 +62,12 @@ const DetailedWhiskyPage = () => {
   }, []);
 
   // Image gallery state
-  const [mainImage, setMainImage] = useState(item ? item.image : "");
+  const [mainImage, setMainImage] = useState("");
   const [activeThumbIdx, setActiveThumbIdx] = useState(0);
 
   // Modal / bid state
   const [showBidModal, setShowBidModal] = useState(false);
-  const [customBidAmount, setCustomBidAmount] = useState(
-    item ? item.currentBidNumber + item.bidIncrement : 0,
-  );
+  const [customBidAmount, setCustomBidAmount] = useState(0);
   const [bidError, setBidError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -469,48 +75,156 @@ const DetailedWhiskyPage = () => {
 
   // Countdown timer
   const [timeLeft, setTimeLeft] = useState({
-    days: item?.initialTime?.days || 0,
-    hours: item?.initialTime?.hours || 4,
-    minutes: item?.initialTime?.minutes || 18,
-    seconds: item?.initialTime?.seconds || 40,
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
   });
 
+  const calculateTimeLeft = (endDateStr) => {
+    if (!endDateStr) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+    const difference = +new Date(endDateStr) - +new Date();
+    if (difference <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+    return {
+      days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+      hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+      minutes: Math.floor((difference / 1000 / 60) % 60),
+      seconds: Math.floor((difference / 1000) % 60),
+    };
+  };
+
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (
-          prev.days === 0 &&
-          prev.hours === 0 &&
-          prev.minutes === 0 &&
-          prev.seconds === 0
-        ) {
-          clearInterval(timer);
-          return prev;
+    setLoading(true);
+    Promise.all([getApprovedListing(2), getApprovedListing(6)])
+      .then(([whiskyRes, caskRes]) => {
+        const whiskyList = whiskyRes?.data?.data || [];
+        const caskList = caskRes?.data?.data || [];
+        const list = [...whiskyList, ...caskList];
+        setWhiskyDataList(list);
+        
+        const found = list.find((w) => w.itemId === Number(id));
+        if (found) {
+          const isCask = found.categoryId === 6 || found.categoryName?.toLowerCase() === 'cask';
+          
+          let mappedItem = {
+            id: found.itemId,
+            itemId: found.itemId,
+            categoryId: found.categoryId,
+            categoryName: found.categoryName,
+            currency: found.currency || 'USD',
+            auctionEndDate: found.auctionEndDate,
+            bidIncrement: found.bidIncreament || 500,
+            currentBidNumber: found.currentPrice || found.orignalPrice || found.expectedPrice || 1000,
+            activeBidders: 15,
+            liveActivity: [
+              {
+                id: 1,
+                member: "MEMBER #7***3",
+                timeAgo: "2 minutes ago",
+                timestamp: Date.now() - 120000,
+                amount: `$${found.currentPrice || found.orignalPrice || found.expectedPrice || 1000}`,
+                amountNumber: found.currentPrice || found.orignalPrice || found.expectedPrice || 1000
+              }
+            ]
+          };
+
+          if (isCask) {
+            mappedItem.title = found.details?.caskType || "Rare Cask";
+            mappedItem.reference = found.details?.distillesy || "";
+            mappedItem.description = `Distillery: ${found.details?.distillesy || 'N/A'} | Cask Type: ${found.details?.caskType || 'N/A'}`;
+            mappedItem.detailedDescription = `This is a premium Cask Lot featuring a ${found.details?.caskType || 'cask'} from the renowned ${found.details?.distillesy || 'distillery'}. Number of bottles: ${found.details?.noOfBottles || 'N/A'}, ABV: ${found.details?.abv || 'N/A'}%.`;
+            mappedItem.image = found.details?.frontLabel || "";
+            mappedItem.angles = [found.details?.backLabel, found.details?.fillLevel, found.details?.originalCase].filter(Boolean);
+            mappedItem.provenance = {
+              title: "Cask Provenance & History",
+              description: `Matured at the ${found.details?.distillesy || 'distillery'} in a ${found.details?.caskType || 'N/A'} cask. The lot includes the original sale documentation and cask registry extract.`,
+              timeline: [
+                { period: found.details?.ays || "N/A", detail: "Cask filled / distilled" },
+                { period: "PRESENT", detail: "Opulenza Authenticated Vault Custody" }
+              ]
+            };
+            mappedItem.authentication = `This cask has been fully authenticated. Original receipts/documents: ${found.details?.receipt ? 'Included' : 'Verified'}. Distillery check: ${found.details?.distillesy ? 'Confirmed' : 'Pending'}. Certificates: ${found.details?.certificate ? 'Included' : 'Verified by cellar masters'}.`;
+            mappedItem.conditionReport = {
+              label: ["CASK TYPE", "ABV", "NO. OF BOTTLES", "FILL LEVEL"],
+              value: [
+                found.details?.caskType || "N/A",
+                found.details?.abv ? `${found.details.abv}% ABV` : "N/A",
+                found.details?.noOfBottles || "N/A",
+                found.details?.fillLevel ? "Pristine - Verified" : "Verified"
+              ]
+            };
+            mappedItem.details = [
+              { label: "DISTILLERY", value: found.details?.distillesy || "—" },
+              { label: "DISTILLED", value: found.details?.ays || "—" },
+              { label: "CASK", value: found.details?.caskType || "—" },
+              { label: "RARITY", value: found.details?.noOfBottles ? `${found.details.noOfBottles} Bottles` : "—" },
+            ];
+          } else {
+            // Whisky
+            mappedItem.title = found.details?.producerName || found.categoryName || "Rare Whisky";
+            mappedItem.reference = found.details?.bottlingName || "";
+            mappedItem.description = `Producer: ${found.details?.producerName || 'N/A'} | Region: ${found.details?.region || 'N/A'}`;
+            mappedItem.detailedDescription = `This is an exceptional bottle of ${found.details?.producerName || 'whisky'} (${found.details?.bottlingName || 'N/A'}). Matured for ${found.details?.age || 'N/A'} years, distilled in ${found.details?.vintageYear || 'N/A'}, strength is ${found.details?.proof || 'N/A'}% ABV. Region: ${found.details?.region || 'N/A'}.`;
+            mappedItem.image = found.details?.frontLabel || "";
+            mappedItem.angles = [found.details?.backLabel, found.details?.fillLevel, found.details?.originalCase].filter(Boolean);
+            mappedItem.provenance = {
+              title: "Whisky Provenance & History",
+              description: `Produced by ${found.details?.producerName || 'N/A'} in the ${found.details?.region || 'N/A'} region. Stored under ${found.details?.storageCondition || 'excellent'} storage conditions.`,
+              timeline: [
+                { period: found.details?.vintageYear || "N/A", detail: "Distilled and casked" },
+                { period: "PRESENT", detail: "Opulenza Authenticated Vault Custody" }
+              ]
+            };
+            mappedItem.authentication = `This bottle has been fully authenticated. Producer: ${found.details?.producerName || 'N/A'}. Bottle code and front/back labels checked: ${found.details?.frontLabel ? 'Verified' : 'Yes'}.`;
+            mappedItem.conditionReport = {
+              label: ["VINTAGE", "AGE", "STRENGTH", "BOTTLE SIZE"],
+              value: [
+                found.details?.vintageYear || "N/A",
+                found.details?.age ? `${found.details.age} Years` : "N/A",
+                found.details?.proof ? `${found.details.proof}% ABV` : "N/A",
+                found.details?.bottle || "N/A"
+              ]
+            };
+            mappedItem.details = [
+              { label: "DISTILLERY", value: found.details?.producerName || "—" },
+              { label: "DISTILLED", value: found.details?.vintageYear || "—" },
+              { label: "CASK", value: found.details?.productionType || "—" },
+              { label: "RARITY", value: found.details?.age ? `${found.details.age} Years Aged` : "—" },
+            ];
+          }
+          setItem(mappedItem);
         }
-        let s = prev.seconds - 1,
-          m = prev.minutes,
-          h = prev.hours,
-          d = prev.days;
-        if (s < 0) {
-          s = 59;
-          m -= 1;
-        }
-        if (m < 0) {
-          m = 59;
-          h -= 1;
-        }
-        if (h < 0) {
-          h = 23;
-          d -= 1;
-        }
-        if (d < 0) {
-          d = 0;
-        }
-        return { days: d, hours: h, minutes: m, seconds: s };
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
       });
+  }, [id]);
+
+  useEffect(() => {
+    if (item) {
+      setCurrentBid(item.currentBidNumber);
+      setBids(item.liveActivity || []);
+      setBiddersCount(item.activeBidders || 10);
+      setMainImage(item.image);
+      setActiveThumbIdx(0);
+      setCustomBidAmount(item.currentBidNumber + item.bidIncrement);
+      setTimeLeft(
+        item.auctionEndDate
+          ? calculateTimeLeft(item.auctionEndDate)
+          : { days: 1, hours: 4, minutes: 18, seconds: 40 }
+      );
+    }
+  }, [item]);
+
+  useEffect(() => {
+    if (!item || !item.auctionEndDate) return;
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft(item.auctionEndDate));
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [item]);
 
   // Auto-bid simulation
   useEffect(() => {
@@ -540,6 +254,17 @@ const DetailedWhiskyPage = () => {
       if (simInterval) clearInterval(simInterval);
     };
   }, [isAutoBidding, item?.bidIncrement, item]);
+
+  // Handle loading state
+  if (loading) {
+    return (
+      <div className="whisky-not-found">
+        <div className="container text-center py-5">
+          <span className="ap-spin" style={{ color: "#e1af4a" }}>Loading details...</span>
+        </div>
+      </div>
+    );
+  }
 
   if (!item) {
     return (
@@ -583,20 +308,34 @@ const DetailedWhiskyPage = () => {
       setBidError(`Bid must be at least ${formatCurrency(minRequired)}`);
       return;
     }
-    const newBidObj = {
-      id: Date.now(),
-      member: `MEMBER #YOU***${Math.floor(Math.random() * 9 + 1)}`,
-      timeAgo: "Just now",
-      timestamp: Date.now(),
-      amount: formatCurrency(amt),
-      amountNumber: amt,
+
+    const payload = {
+      ItemId: item.itemId,
+      BidAmount: amt,
+      Currency: item.currency
     };
-    setCurrentBid(amt);
-    setBids((prev) => [newBidObj, ...prev]);
-    setBiddersCount((prev) => prev + 1);
-    setShowBidModal(false);
-    setSuccessMessage(`Bid of ${formatCurrency(amt)} placed successfully!`);
-    setTimeout(() => setSuccessMessage(""), 4000);
+
+    AddBid(payload)
+      .then(() => {
+        const newBidObj = {
+          id: Date.now(),
+          member: `MEMBER #YOU***${Math.floor(Math.random() * 9 + 1)}`,
+          timeAgo: "Just now",
+          timestamp: Date.now(),
+          amount: formatCurrency(amt),
+          amountNumber: amt,
+        };
+        setCurrentBid(amt);
+        setBids((prev) => [newBidObj, ...prev]);
+        setBiddersCount((prev) => prev + 1);
+        setShowBidModal(false);
+        setSuccessMessage(`Bid of ${formatCurrency(amt)} placed successfully!`);
+        setTimeout(() => setSuccessMessage(""), 4000);
+      })
+      .catch((err) => {
+        console.error(err);
+        setBidError(err?.response?.data?.message || err?.message || 'Failed to place bid. Please try again.');
+      });
   };
 
   // Extract distillery and cask details from details array
@@ -1051,10 +790,7 @@ const DetailedWhiskyPage = () => {
                   <p className="modal-asset-name">
                     {item.title} <span>{item.reference}</span>
                   </p>
-                  <p className="modal-asset-lot">
-                    Lot #{String(item.id).padStart(3, "0")} · Distilled{" "}
-                    {distilled}
-                  </p>
+                  
                 </div>
               </div>
 
@@ -1096,22 +832,7 @@ const DetailedWhiskyPage = () => {
                   {bidError && <p className="modal-error-msg">{bidError}</p>}
                 </div>
 
-                <div className="modal-autobid-row">
-                  <div className="modal-autobid-text">
-                    <span className="modal-autobid-title">Auto Bid</span>
-                    <span className="modal-autobid-sub">
-                      OPLUENZA WILL BID UP TO YOUR LIMIT
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    className={`modal-toggle${modalAutoBid ? " modal-toggle--on" : ""}`}
-                    onClick={() => setModalAutoBid((v) => !v)}
-                    aria-label="Toggle auto bid"
-                  >
-                    <span className="modal-toggle-knob" />
-                  </button>
-                </div>
+                
 
                 <label className="modal-terms-row">
                   <input
@@ -1167,38 +888,47 @@ const DetailedWhiskyPage = () => {
               </Link>
             </div>
             <div className="recommended-grid">
-              {whiskyData
-                .filter((w) => w.id !== item.id)
+              {whiskyDataList
+                .filter((w) => w.itemId !== item.itemId)
                 .slice(0, 3)
-                .map((rec) => (
-                  <Link
-                    to={`/whisky/${rec.id}`}
-                    key={rec.id}
-                    className="recommended-card-link"
-                  >
-                    <div className="recommended-card">
-                      <div className="recommended-card__image-container">
-                        <img
-                          src={rec.image}
-                          alt={`${rec.title} ${rec.reference}`}
-                          className="recommended-card__image"
-                        />
-                        <div className="recommended-card__gradient-overlay"></div>
+                .map((rec) => {
+                  const isCask = rec.categoryId === 6 || rec.categoryName?.toLowerCase() === 'cask';
+                  const recTitle = isCask ? (rec.details?.caskType || "Rare Cask") : (rec.details?.producerName || rec.categoryName || "Rare Whisky");
+                  const recReference = isCask ? (rec.details?.distillesy || "") : (rec.details?.bottlingName || "");
+                  const recImage = rec.details?.frontLabel || "";
+                  const recBid = rec.currentPrice || rec.orignalPrice || rec.expectedPrice || 1000;
+                  const linkPath = isCask ? `/cask/${rec.itemId}` : `/whisky/${rec.itemId}`;
+
+                  return (
+                    <Link
+                      to={linkPath}
+                      key={rec.itemId}
+                      className="recommended-card-link"
+                    >
+                      <div className="recommended-card">
+                        <div className="recommended-card__image-container">
+                          <img
+                            src={recImage}
+                            alt={`${recTitle} ${recReference}`}
+                            className="recommended-card__image"
+                          />
+                          <div className="recommended-card__gradient-overlay"></div>
+                        </div>
+                        <div className="recommended-card__info">
+                          <span className="recommended-card__badge">
+                            {isCask ? "CASK LOT" : "LIVE"}
+                          </span>
+                          <h3 className="recommended-card__title">
+                            {recTitle} — {recReference}
+                          </h3>
+                          <p className="recommended-card__estimate">
+                            Current Bid: {formatCurrency(recBid)}
+                          </p>
+                        </div>
                       </div>
-                      <div className="recommended-card__info">
-                        <span className="recommended-card__badge">
-                          {rec.badge}
-                        </span>
-                        <h3 className="recommended-card__title">
-                          {rec.title} — {rec.reference}
-                        </h3>
-                        <p className="recommended-card__estimate">
-                          Current Bid: {rec.currentBid}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  );
+                })}
             </div>
           </div>
         </div>

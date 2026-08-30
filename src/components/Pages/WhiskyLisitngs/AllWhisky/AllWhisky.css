@@ -177,6 +177,23 @@
     margin-bottom: 1.25rem;
 }
 
+
+.whisky-card__badge{
+  font-family: "Inter", sans-serif;
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: #926319;
+    background-color: rgba(146, 99, 25, 0.15);
+    border-radius: 4px;
+    padding: 2px 8px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    margin-top: 5px;
+}
+
 /* Meta grid */
 .whisky-card__meta {
     display: grid;

@@ -122,6 +122,14 @@ const AppLayout = () => {
           }
         />
         <Route
+          path="/cask/:id"
+          element={
+            <ProtectedRoute>
+              <DetailedWhiskyPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/profile"
           element={
             <ProtectedRoute>

@@ -1,31 +1,30 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import pensData from '../../../../data/PensData'
+// import pensData from '../../../../data/PensData'
+import { getApprovedListing } from '../../../../services/sellingServices/getSellListings/getSellListings'
 import './AllPens.css'
 
-const CountdownTimer = ({ days, hours, minutes, seconds }) => {
-    const [timeLeft, setTimeLeft] = useState({ days, hours, minutes, seconds })
+const CountdownTimer = ({ endDate }) => {
+    const calculateTimeLeft = (endDateStr) => {
+        if (!endDateStr) return { days: 0, hours: 0, minutes: 0, seconds: 0 }
+        const difference = +new Date(endDateStr) - +new Date()
+        if (difference <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 }
+        return {
+            days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+            hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+            minutes: Math.floor((difference / 1000 / 60) % 60),
+            seconds: Math.floor((difference / 1000) % 60)
+        }
+    }
+
+    const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(endDate))
 
     useEffect(() => {
         const timer = setInterval(() => {
-            setTimeLeft(prev => {
-                if (prev.days === 0 && prev.hours === 0 && prev.minutes === 0 && prev.seconds === 0) {
-                    clearInterval(timer)
-                    return prev
-                }
-                let s = prev.seconds - 1
-                let m = prev.minutes
-                let h = prev.hours
-                let d = prev.days
-                if (s < 0) { s = 59; m -= 1 }
-                if (m < 0) { m = 59; h -= 1 }
-                if (h < 0) { h = 23; d -= 1 }
-                if (d < 0) { d = 0 }
-                return { days: d, hours: h, minutes: m, seconds: s }
-            })
+            setTimeLeft(calculateTimeLeft(endDate))
         }, 1000)
         return () => clearInterval(timer)
-    }, [])
+    }, [endDate])
 
     const formatNum = (num) => String(num).padStart(2, '0')
 
@@ -49,6 +48,26 @@ const AllPens = () => {
         setFavorites(prev => ({ ...prev, [id]: !prev[id] }))
     }
 
+
+    const [pens, setPens] = useState([])
+
+
+    const getPensListings = () => {
+    
+        getApprovedListing(4)
+          .then((res) => {
+            setPens(res?.data.data)
+          })
+          .catch((err) => {
+            console.log(err)
+          })
+      }
+
+    
+      useEffect(() => {
+        getPensListings()
+      }, [])
+
     return (
         <div className="pen-listing-page">
             <div className="container">
@@ -62,7 +81,7 @@ const AllPens = () => {
                     </Link>
                 </div>
 
-                {pensData.length === 0 ? (
+                {pens?.length === 0 ? (
                   <div className="listings-empty-state">
                     <div className="listings-empty-state__icon">
                       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
@@ -78,54 +97,59 @@ const AllPens = () => {
                   </div>
                 ) : (
                 <div className="pen-grid">
-                    {pensData.map(pen => (
-                        <div className="pen-card" key={pen.id}>
+                    {pens?.map(pen => (
+                        <div className="pen-card" key={pen?.itemId}>
 
                             {/* Image */}
                             <div className="pen-card__image-container">
-                                <img src={pen.image} alt={pen.title} className="pen-card__image" />
+                                <img src={pen?.details?.capped} alt={pen?.details?.brand} className="pen-card__image" />
                                 <div className="pen-card__gradient-overlay" />
 
-                                {pen.badge && (
-                                    <div className="pen-card__dossier-badge">
-                                        <span className="pen-card__dossier-dot" />
-                                        {pen.badge}
-                                    </div>
-                                )}
+                                
 
-                                <div className="pen-card__bid-overlay">
+                                {/* <div className="pen-card__bid-overlay">
                                     <div className="pen-card__bid-label">CURRENT BID</div>
-                                    <div className="pen-card__bid-value">{pen.currentBid}</div>
-                                </div>
+                                    <div className="pen-card__bid-value">{pen?.currentPrice}</div>
+                                </div> */}
                             </div>
 
                             {/* Info */}
                             <div className="pen-card__info">
                                 <div className="pen-card__header-row">
                                     <h3 className="pen-card__title">
-                                        {pen.title} <span className="pen-card__reference">{pen.reference}</span>
+                                        {pen?.details?.brand} <span className="pen-card__reference">{pen?.details?.penType}</span>
                                     </h3>
                                     <button
-                                        className={`pen-card__favorite-btn ${favorites[pen.id] ? 'pen-card__favorite-btn--active' : ''}`}
-                                        onClick={() => toggleFavorite(pen.id)}
+                                        className={`pen-card__favorite-btn ${favorites[pen?.itemId] ? 'pen-card__favorite-btn--active' : ''}`}
+                                        onClick={() => toggleFavorite(pen?.itemId)}
                                         aria-label="Add to wishlist"
                                     >
-                                        <svg viewBox="0 0 24 24" fill={favorites[pen.id] ? '#D4AF37' : 'none'} stroke={favorites[pen.id] ? '#D4AF37' : 'currentColor'} strokeWidth="1.5" className="pen-card__heart-icon">
+                                        <svg viewBox="0 0 24 24" fill={favorites[pen?.itemId] ? '#D4AF37' : 'none'} stroke={favorites[pen?.itemId] ? '#D4AF37' : 'currentColor'} strokeWidth="1.5" className="pen-card__heart-icon">
                                             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                                         </svg>
                                     </button>
                                 </div>
 
-                                <p className="pen-card__description">{pen.description}</p>
+                                {/* <p className="pen-card__description">{pen?.details?.description}</p> */}
 
                                 <div className="pen-card__divider" />
 
                                 <div className="pen-card__details-grid">
-                                    {pen.details.map((detail, idx) => (
+                                    {[
+                                        { label: 'BRAND', value: pen?.details?.brand },
+                                        { label: 'TYPE', value: pen?.details?.penType },
+                                        { label: 'MANUFACTURING YEAR', value: pen?.details?.manifacturingYear},
+                                        { label: 'LIMITED EDITION', value: pen?.details?.limitedEditionRegistry },
+                                        { label: 'BODY MATERIAL', value: pen?.details?.bodyMaterial },
+                                        // { label: 'BODY COLOR', value: pen?.details?.bodyColor },
+                                        { label: 'CONDITION', value: pen?.details?.condition },
+                                        
+                                        
+                                    ].map((detail, idx) => (
                                         <div className="pen-card__detail-item" key={idx}>
                                             <div className="pen-card__detail-label">{detail.label}</div>
-                                            <div className={`pen-card__detail-value ${detail.isGold ? 'pen-card__detail-value--accent' : ''}`}>
-                                                {detail.value}
+                                            <div className="pen-card__detail-value">
+                                                {detail.value || "—"}
                                             </div>
                                         </div>
                                     ))}
@@ -135,15 +159,15 @@ const AllPens = () => {
 
                                 <div className="pen-card__footer">
                                     <div className="pen-card__closes-container">
-                                        <div className="pen-card__closes-label">CLOSES IN</div>
+                                        {/* <div className="pen-card__closes-label">CLOSES IN</div>
                                         <CountdownTimer
-                                            days={pen.initialTime.days}
-                                            hours={pen.initialTime.hours}
-                                            minutes={pen.initialTime.minutes}
-                                            seconds={pen.initialTime.seconds}
-                                        />
+                                            endDate={pen?.auctionEndDate}
+                                        /> */}
+
+                                         <div className="pen-card__bid-label">CURRENT BID</div>
+                                    <div className="pen-card__bid-value">$ {pen?.currentPrice}</div>
                                     </div>
-                                    <Link to={`/pen/${pen.id}`} style={{ textDecoration: 'none' }}>
+                                    <Link to={`/pen/${pen?.itemId}`} style={{ textDecoration: 'none' }}>
                                         <button className="pen-card__bid-btn">PLACE A BID</button>
                                     </Link>
                                 </div>

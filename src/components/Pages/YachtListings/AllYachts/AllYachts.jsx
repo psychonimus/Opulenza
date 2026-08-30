@@ -3,26 +3,44 @@ import { Link } from 'react-router-dom'
 import yachtData from '../../../../data/YachtData'
 import './AllYachts.css'
 
-const CountdownTimer = ({ days, hours, minutes, seconds }) => {
-    const [timeLeft, setTimeLeft] = useState({ days, hours, minutes, seconds })
+const CountdownTimer = ({ days, hours, minutes, seconds, endDate }) => {
+    const calculateTimeLeft = () => {
+        if (endDate) {
+            const difference = +new Date(endDate) - +new Date()
+            if (difference <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 }
+            return {
+                days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+                hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+                minutes: Math.floor((difference / 1000 / 60) % 60),
+                seconds: Math.floor((difference / 1000) % 60)
+            }
+        }
+        return { days: days || 0, hours: hours || 0, minutes: minutes || 0, seconds: seconds || 0 }
+    }
+
+    const [timeLeft, setTimeLeft] = useState(calculateTimeLeft())
 
     useEffect(() => {
         const timer = setInterval(() => {
-            setTimeLeft(prev => {
-                if (prev.days === 0 && prev.hours === 0 && prev.minutes === 0 && prev.seconds === 0) {
-                    clearInterval(timer)
-                    return prev
-                }
-                let s = prev.seconds - 1, m = prev.minutes, h = prev.hours, d = prev.days
-                if (s < 0) { s = 59; m -= 1 }
-                if (m < 0) { m = 59; h -= 1 }
-                if (h < 0) { h = 23; d -= 1 }
-                if (d < 0) { d = 0 }
-                return { days: d, hours: h, minutes: m, seconds: s }
-            })
+            if (endDate) {
+                setTimeLeft(calculateTimeLeft())
+            } else {
+                setTimeLeft(prev => {
+                    if (prev.days === 0 && prev.hours === 0 && prev.minutes === 0 && prev.seconds === 0) {
+                        clearInterval(timer)
+                        return prev
+                    }
+                    let s = prev.seconds - 1, m = prev.minutes, h = prev.hours, d = prev.days
+                    if (s < 0) { s = 59; m -= 1 }
+                    if (m < 0) { m = 59; h -= 1 }
+                    if (h < 0) { h = 23; d -= 1 }
+                    if (d < 0) { d = 0 }
+                    return { days: d, hours: h, minutes: m, seconds: s }
+                })
+            }
         }, 1000)
         return () => clearInterval(timer)
-    }, [])
+    }, [endDate, days, hours, minutes, seconds])
 
     const formatNum = (num) => String(num).padStart(2, '0')
 
@@ -136,10 +154,11 @@ const AllYachts = () => {
                                     <div className="yacht-card__closes-container">
                                         <div className="yacht-card__closes-label">CLOSES IN</div>
                                         <CountdownTimer
-                                            days={yacht.initialTime.days}
-                                            hours={yacht.initialTime.hours}
-                                            minutes={yacht.initialTime.minutes}
-                                            seconds={yacht.initialTime.seconds}
+                                            days={yacht.initialTime?.days}
+                                            hours={yacht.initialTime?.hours}
+                                            minutes={yacht.initialTime?.minutes}
+                                            seconds={yacht.initialTime?.seconds}
+                                            endDate={yacht.auctionEndDate}
                                         />
                                     </div>
                                     <Link to={`/yacht/${yacht.id}`} style={{ textDecoration: 'none' }}>

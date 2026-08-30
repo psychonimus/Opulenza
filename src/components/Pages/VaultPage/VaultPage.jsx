@@ -143,6 +143,7 @@ const VaultPage = () => {
   const [cartItems, setCartItems] = useState(INITIAL_CART_ITEMS)
   const [watchlist, setWatchlist] = useState(INITIAL_WATCHLIST)
   const [sellingList, setSellingList] = useState([])
+  const [secondsTick, setSecondsTick] = useState(0)
 
   // Payment State
   const [isCheckingOut, setIsCheckingOut] = useState(false)
@@ -153,6 +154,7 @@ const VaultPage = () => {
   // Countdown logic for active bids & watchlist items
   useEffect(() => {
     const interval = setInterval(() => {
+      setSecondsTick(t => t + 1)
       // Tick active bids
       setActiveBids(prev =>
         prev.map(item => {
@@ -185,8 +187,51 @@ const VaultPage = () => {
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val)
 
   const formatTime = (time) => {
+    if (!time) return '00:00:00'
     const pad = (n) => String(n).padStart(2, '0')
-    return `${pad(time?.hours)}:${pad(time?.minutes)}:${pad(time?.seconds)}`
+
+    // If it's a string, calculate difference dynamically
+    if (typeof time === 'string') {
+      const difference = +new Date(time) - +new Date()
+      if (difference <= 0) return '00:00:00'
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24))
+      const hours = Math.floor((difference / (1000 * 60 * 60)) % 24)
+      const minutes = Math.floor((difference / 1000 / 60) % 60)
+      const seconds = Math.floor((difference / 1000) % 60)
+      
+      if (days > 0) {
+        return `${days}d ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+      }
+      return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+    }
+
+    // Otherwise, assume it's the old { hours, minutes, seconds } object
+    return `${pad(time?.hours || 0)}:${pad(time?.minutes || 0)}:${pad(time?.seconds || 0)}`
+  }
+
+  const getItemLink = (item) => {
+    if (!item) return '#'
+    const categoryId = item.categoryId
+    const categoryName = item.categoryName?.toLowerCase()
+    if (categoryId === 1 || categoryName?.includes('cigar')) {
+      return `/cigar/${item.itemId}`
+    }
+    if (categoryId === 2 || categoryName?.includes('whisky')) {
+      return `/whisky/${item.itemId}`
+    }
+    if (categoryId === 3 || categoryName?.includes('watch')) {
+      return `/watch/${item.itemId}`
+    }
+    if (categoryId === 4 || categoryName?.includes('pen')) {
+      return `/pen/${item.itemId}`
+    }
+    if (categoryId === 5 || categoryName?.includes('yacht')) {
+      return `/yacht/${item.itemId}`
+    }
+    if (categoryId === 6 || categoryName?.includes('cask')) {
+      return `/cask/${item.itemId}`
+    }
+    return `/watch/${item.itemId}`
   }
 
   // Remove from watchlist
@@ -299,7 +344,7 @@ const VaultPage = () => {
               <span className="vault-dot" />
               SECURE DEPOSIT ACTIVE
             </div>
-            <p className="vault-user-signature">CLIENT DOSSIER: #OP-88240-X</p>
+            {/* <p className="vault-user-signature">CLIENT DOSSIER: #OP-88240-X</p> */}
           </div>
         </div>
 
@@ -534,7 +579,7 @@ const VaultPage = () => {
                         <button className="vault-cart-remove-btn" style={{ marginBottom: '10px' }} onClick={() => handleRemoveSellingList(item?.itemId)}>
                           REMOVE FROM LISTING
                         </button>
-                        <Link to={item?.link} className="vault-action-btn">
+                        <Link to={getItemLink(item)} className="vault-action-btn">
                           VIEW LISTING
                         </Link>
                       </div>

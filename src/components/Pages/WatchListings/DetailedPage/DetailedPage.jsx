@@ -656,7 +656,6 @@ const DetailedPage = () => {
                                 <div className="modal-asset-info">
                                     <span className="modal-asset-label">CURRENT ASSET</span>
                                     <p className="modal-asset-name">{watch.title} <span>{watch.reference}</span></p>
-                                    <p className="modal-asset-lot">Lot #{watch.id ? String(watch.id).padStart(3, '0') + String(Math.floor(Math.random() * 900) + 100) : '4421967'} — {watch.year || new Date().getFullYear()} Model</p>
                                 </div>
                             </div>
 

@@ -485,7 +485,6 @@ const DetailedYachtPage = () => {
                                 <div className="yacht-modal-asset-info">
                                     <span className="yacht-modal-asset-label">CURRENT ASSET</span>
                                     <p className="yacht-modal-asset-name">{yacht.title} <span>{yacht.reference}</span></p>
-                                    <p className="yacht-modal-asset-lot">Lot #{yacht.id ? String(yacht.id).padStart(3, '0') + String(Math.floor(Math.random() * 900) + 100) : '0012401'}</p>
                                 </div>
                             </div>
                             <form onSubmit={submitCustomBid} className="yacht-modal-form">
@@ -516,7 +515,7 @@ const DetailedYachtPage = () => {
                                     </div>
                                     {bidError && <p className="yacht-modal-error-msg">{bidError}</p>}
                                 </div>
-                                <div className="yacht-modal-autobid-row">
+                                {/* <div className="yacht-modal-autobid-row">
                                     <div className="yacht-modal-autobid-text">
                                         <span className="yacht-modal-autobid-title">Auto Bid</span>
                                         <span className="yacht-modal-autobid-sub">OPULENZA WILL BID UP TO YOUR LIMIT</span>
@@ -529,7 +528,7 @@ const DetailedYachtPage = () => {
                                     >
                                         <span className="yacht-modal-toggle-knob" />
                                     </button>
-                                </div>
+                                </div> */}
                                 <label className="yacht-modal-terms-row">
                                     <input
                                         type="checkbox"

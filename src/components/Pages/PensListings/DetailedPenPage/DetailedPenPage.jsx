@@ -1,19 +1,25 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import pensData from '../../../../data/PensData'
+import { getApprovedListing } from '../../../../services/sellingServices/getSellListings/getSellListings'
+import { AddBid } from '../../../../services/biddingServices/BiddingServices'
 import './DetailedPenPage.css'
 
 const DetailedPenPage = () => {
     const { id } = useParams()
-    const pen = pensData.find(p => p.id === Number(id))
+    const [pen, setPen] = useState(null)
+    const [pensList, setPensList] = useState([])
+    const [loading, setLoading] = useState(true)
 
     const [activeTab, setActiveTab] = useState('history')
-    const [currentBid, setCurrentBid] = useState(pen ? pen.currentBidNumber : 0)
-    const [bids, setBids] = useState(pen ? (pen.liveActivity || []) : [])
-    const [biddersCount, setBiddersCount] = useState(pen ? (pen.activeBidders || 10) : 10)
+
+    // Bidding States
+    const [currentBid, setCurrentBid] = useState(0)
+    const [bids, setBids] = useState([])
+    const [biddersCount, setBiddersCount] = useState(10)
     const [isFavorited, setIsFavorited] = useState(false)
     const [isAutoBidding, setIsAutoBidding] = useState(false)
 
+    // Magnifier state
     const magnifierRef = useRef(null)
     const [magnifier, setMagnifier] = useState({ visible: false, x: 0, y: 0, bgX: 0, bgY: 0, wrapperW: 0, wrapperH: 0 })
     const LENS_SIZE = 160
@@ -34,49 +40,131 @@ const DetailedPenPage = () => {
         setMagnifier(prev => ({ ...prev, visible: false }))
     }, [])
 
-    const [mainImage, setMainImage] = useState(pen ? pen.image : '')
+    const [mainImage, setMainImage] = useState('')
     const [activeThumbIdx, setActiveThumbIdx] = useState(0)
 
     const [showBidModal, setShowBidModal] = useState(false)
-    const [customBidAmount, setCustomBidAmount] = useState(pen ? (pen.currentBidNumber + pen.bidIncrement) : 0)
+    const [customBidAmount, setCustomBidAmount] = useState(0)
     const [bidError, setBidError] = useState('')
     const [successMessage, setSuccessMessage] = useState('')
     const [termsAccepted, setTermsAccepted] = useState(false)
     const [modalAutoBid, setModalAutoBid] = useState(false)
 
     const [timeLeft, setTimeLeft] = useState({
-        days: pen?.initialTime?.days || 0,
-        hours: pen?.initialTime?.hours || 4,
-        minutes: pen?.initialTime?.minutes || 18,
-        seconds: pen?.initialTime?.seconds || 40
+        days: 0,
+        hours: 0,
+        minutes: 0,
+        seconds: 0
     })
 
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setTimeLeft(prev => {
-                if (prev.days === 0 && prev.hours === 0 && prev.minutes === 0 && prev.seconds === 0) {
-                    clearInterval(timer)
-                    return prev
-                }
-                let s = prev.seconds - 1, m = prev.minutes, h = prev.hours, d = prev.days
-                if (s < 0) { s = 59; m -= 1 }
-                if (m < 0) { m = 59; h -= 1 }
-                if (h < 0) { h = 23; d -= 1 }
-                if (d < 0) { d = 0 }
-                return { days: d, hours: h, minutes: m, seconds: s }
-            })
-        }, 1000)
-        return () => clearInterval(timer)
-    }, [])
+    const calculateTimeLeft = (endDateStr) => {
+        if (!endDateStr) return { days: 0, hours: 0, minutes: 0, seconds: 0 }
+        const difference = +new Date(endDateStr) - +new Date()
+        if (difference <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 }
+        return {
+            days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+            hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+            minutes: Math.floor((difference / 1000 / 60) % 60),
+            seconds: Math.floor((difference / 1000) % 60)
+        }
+    }
 
     useEffect(() => {
-        let simInterval
+        setLoading(true)
+        getApprovedListing(4)
+            .then((res) => {
+                const list = res?.data?.data || []
+                setPensList(list)
+                const found = list.find(p => p.itemId === Number(id))
+                if (found) {
+                    const mappedPen = {
+                        id: found.itemId,
+                        itemId: found.itemId,
+                        title: found.details?.brand || found.categoryName || "Premium Pen",
+                        reference: found.details?.penType || "",
+                        description: `Brand: ${found.details?.brand || 'N/A'} | Type: ${found.details?.penType || 'N/A'}`,
+                        detailedDescription: `This is an exceptional ${found.details?.brand || 'writing instrument'} (${found.details?.penType || 'N/A'}). Body material: ${found.details?.bodyMaterial || 'N/A'}, Manufacturing year: ${found.details?.manifacturingYear || 'N/A'}, Condition: ${found.details?.condition || 'N/A'}, Limited Edition Registry: ${found.details?.limitedEditionRegistry || 'N/A'}.`,
+                        image: found.details?.capped || "",
+                        angles: [found.details?.uncapped, found.details?.nib, found.details?.boxAndPapers].filter(Boolean),
+                        currentBidNumber: found.currentPrice || found.orignalPrice || found.expectedPrice || 1000,
+                        bidIncrement: found.bidIncreament || 200,
+                        currency: found.currency || 'USD',
+                        auctionEndDate: found.auctionEndDate,
+                        activeBidders: 10,
+                        liveActivity: [
+                            {
+                                id: 1,
+                                member: 'MEMBER #7***3',
+                                timeAgo: '2 minutes ago',
+                                timestamp: Date.now() - 120000,
+                                amount: `$${found.currentPrice || found.orignalPrice || found.expectedPrice || 1000}`,
+                                amountNumber: found.currentPrice || found.orignalPrice || found.expectedPrice || 1000
+                            }
+                        ],
+                        details: [
+                            { label: 'BRAND', value: found.details?.brand || '—' },
+                            { label: 'TYPE', value: found.details?.penType || '—' },
+                            { label: 'YEAR', value: found.details?.manifacturingYear || '—' },
+                            { label: 'BODY MATERIAL', value: found.details?.bodyMaterial || '—' },
+                        ],
+                        ownershipHistory: {
+                            title: 'Provenance & History',
+                            description: `Meticulously preserved writing instrument of the ${found.details?.brand || 'N/A'} series. It is in ${found.details?.condition || 'pristine'} condition.`,
+                            timeline: [
+                                { period: found.details?.manifacturingYear || 'N/A', detail: 'Manufactured / Registered' },
+                                { period: 'PRESENT', detail: 'Opulenza Authenticated Vault Custody' }
+                            ]
+                        },
+                        authentication: `Every writing instrument undergoes physical validation. Original capped casing: ${found.details?.capped ? 'Verified' : 'N/A'}, Nib: ${found.details?.nib ? 'Verified' : 'N/A'}, Box & papers: ${found.details?.boxAndPapers ? 'Verified' : 'N/A'}.`,
+                        conditionReport: {
+                            label: ['BODY MATERIAL', 'CONDITION', 'LIMITED EDITION REGISTRY', 'CAPPED STATUS'],
+                            value: [
+                                found.details?.bodyMaterial || 'N/A',
+                                found.details?.condition || 'N/A',
+                                found.details?.limitedEditionRegistry || 'N/A',
+                                found.details?.capped ? 'Pristine' : 'N/A'
+                            ]
+                        }
+                    }
+                    setPen(mappedPen)
+                }
+                setLoading(false)
+            })
+            .catch((err) => {
+                console.error(err)
+                setLoading(false)
+            })
+    }, [id])
+
+    useEffect(() => {
+        if (pen) {
+            setCurrentBid(pen.currentBidNumber)
+            setBids(pen.liveActivity || [])
+            setBiddersCount(pen.activeBidders || 10)
+            setMainImage(pen.image)
+            setActiveThumbIdx(0)
+            setCustomBidAmount(pen.currentBidNumber + pen.bidIncrement)
+            setTimeLeft(pen.auctionEndDate ? calculateTimeLeft(pen.auctionEndDate) : { days: 1, hours: 4, minutes: 18, seconds: 40 })
+        }
+    }, [pen])
+
+    useEffect(() => {
+        if (!pen || !pen.auctionEndDate) return
+        const timer = setInterval(() => {
+            setTimeLeft(calculateTimeLeft(pen.auctionEndDate))
+        }, 1000)
+        return () => clearInterval(timer)
+    }, [pen])
+
+    // Auto-bid simulation background loop
+    useEffect(() => {
+        let simInterval;
         if (isAutoBidding && pen) {
             simInterval = setInterval(() => {
                 if (Math.random() < 0.35) {
-                    const increment = pen.bidIncrement
+                    const increment = pen.bidIncrement;
                     setCurrentBid(prev => {
-                        const newAmt = prev + increment
+                        const newAmt = prev + increment;
                         const newBidObj = {
                             id: Date.now(),
                             member: `MEMBER #${Math.floor(Math.random() * 9 + 1)}***${Math.floor(Math.random() * 9 + 1)}`,
@@ -84,16 +172,30 @@ const DetailedPenPage = () => {
                             timestamp: Date.now(),
                             amount: formatCurrency(newAmt),
                             amountNumber: newAmt
-                        }
-                        setBids(prevList => [newBidObj, ...prevList])
-                        setBiddersCount(bc => bc + 1)
-                        return newAmt
-                    })
+                        };
+                        setBids(prevList => [newBidObj, ...prevList]);
+                        setBiddersCount(bc => bc + 1);
+                        return newAmt;
+                    });
                 }
-            }, 7000)
+            }, 7000);
         }
-        return () => { if (simInterval) clearInterval(simInterval) }
-    }, [isAutoBidding, pen?.bidIncrement, pen])
+
+        return () => {
+            if (simInterval) clearInterval(simInterval);
+        };
+    }, [isAutoBidding, pen?.bidIncrement, pen]);
+
+    // Handle loading state
+    if (loading) {
+        return (
+            <div className="pen-not-found">
+                <div className="container text-center py-5">
+                    <span className="ap-spin" style={{ color: '#d6a54d' }}>Loading details...</span>
+                </div>
+            </div>
+        )
+    }
 
     if (!pen) {
         return (
@@ -128,20 +230,34 @@ const DetailedPenPage = () => {
             setBidError(`Bid must be at least ${formatCurrency(minRequired)}`)
             return
         }
-        const newBidObj = {
-            id: Date.now(),
-            member: `MEMBER #YOU***${Math.floor(Math.random() * 9 + 1)}`,
-            timeAgo: 'Just now',
-            timestamp: Date.now(),
-            amount: formatCurrency(amt),
-            amountNumber: amt
+
+        const payload = {
+            ItemId: pen.itemId,
+            BidAmount: amt,
+            Currency: pen.currency
         }
-        setCurrentBid(amt)
-        setBids(prev => [newBidObj, ...prev])
-        setBiddersCount(prev => prev + 1)
-        setShowBidModal(false)
-        setSuccessMessage(`Bid of ${formatCurrency(amt)} placed successfully!`)
-        setTimeout(() => setSuccessMessage(''), 4000)
+
+        AddBid(payload)
+            .then(() => {
+                const newBidObj = {
+                    id: Date.now(),
+                    member: `MEMBER #YOU***${Math.floor(Math.random() * 9 + 1)}`,
+                    timeAgo: 'Just now',
+                    timestamp: Date.now(),
+                    amount: formatCurrency(amt),
+                    amountNumber: amt
+                }
+                setCurrentBid(amt)
+                setBids(prev => [newBidObj, ...prev])
+                setBiddersCount(prev => prev + 1)
+                setShowBidModal(false)
+                setSuccessMessage(`Bid of ${formatCurrency(amt)} placed successfully!`)
+                setTimeout(() => setSuccessMessage(''), 4000)
+            })
+            .catch((err) => {
+                console.error(err)
+                setBidError(err?.response?.data?.message || err?.message || 'Failed to place bid. Please try again.')
+            })
     }
 
     return (
@@ -485,7 +601,6 @@ const DetailedPenPage = () => {
                                 <div className="pen-modal-asset-info">
                                     <span className="pen-modal-asset-label">CURRENT ASSET</span>
                                     <p className="pen-modal-asset-name">{pen.title} <span>{pen.reference}</span></p>
-                                    <p className="pen-modal-asset-lot">Lot #{pen.id ? String(pen.id).padStart(3, '0') + String(Math.floor(Math.random() * 900) + 100) : '0012401'}</p>
                                 </div>
                             </div>
                             <form onSubmit={submitCustomBid} className="pen-modal-form">
@@ -516,7 +631,7 @@ const DetailedPenPage = () => {
                                     </div>
                                     {bidError && <p className="pen-modal-error-msg">{bidError}</p>}
                                 </div>
-                                <div className="pen-modal-autobid-row">
+                                {/* <div className="pen-modal-autobid-row">
                                     <div className="pen-modal-autobid-text">
                                         <span className="pen-modal-autobid-title">Auto Bid</span>
                                         <span className="pen-modal-autobid-sub">OPULENZA WILL BID UP TO YOUR LIMIT</span>
@@ -529,7 +644,7 @@ const DetailedPenPage = () => {
                                     >
                                         <span className="pen-modal-toggle-knob" />
                                     </button>
-                                </div>
+                                </div> */}
                                 <label className="pen-modal-terms-row">
                                     <input
                                         type="checkbox"
@@ -568,23 +683,30 @@ const DetailedPenPage = () => {
                             </Link>
                         </div>
                         <div className="pen-recommended-grid">
-                            {pensData
-                                .filter(p => p.id !== pen.id)
+                            {pensList
+                                .filter(p => p.itemId !== pen.itemId)
                                 .slice(0, 3)
-                                .map(rec => (
-                                    <Link to={`/pen/${rec.id}`} key={rec.id} className="pen-recommended-card-link">
-                                        <div className="pen-recommended-card">
-                                            <div className="pen-recommended-card__image-container">
-                                                <img src={rec.image} alt={`${rec.title} ${rec.reference}`} className="pen-recommended-card__image" />
-                                                <div className="pen-recommended-card__gradient-overlay" />
+                                .map(rec => {
+                                    const recTitle = rec.details?.brand || rec.categoryName || "Premium Pen";
+                                    const recReference = rec.details?.penType || "";
+                                    const recImage = rec.details?.capped || "";
+                                    const recBid = rec.currentPrice || rec.orignalPrice || rec.expectedPrice || 1000;
+
+                                    return (
+                                        <Link to={`/pen/${rec.itemId}`} key={rec.itemId} className="pen-recommended-card-link">
+                                            <div className="pen-recommended-card">
+                                                <div className="pen-recommended-card__image-container">
+                                                    <img src={recImage} alt={`${recTitle} ${recReference}`} className="pen-recommended-card__image" />
+                                                    <div className="pen-recommended-card__gradient-overlay" />
+                                                </div>
+                                                <div className="pen-recommended-card__info">
+                                                    <h3 className="pen-recommended-card__title">{recTitle} — <em>{recReference}</em></h3>
+                                                    <p className="pen-recommended-card__estimate">Current Bid: {formatCurrency(recBid)}</p>
+                                                </div>
                                             </div>
-                                            <div className="pen-recommended-card__info">
-                                                <h3 className="pen-recommended-card__title">{rec.title} — <em>{rec.reference}</em></h3>
-                                                <p className="pen-recommended-card__estimate">Current Bid: {rec.currentBid}</p>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                ))}
+                                        </Link>
+                                    );
+                                })}
                         </div>
                     </div>
                 </div>

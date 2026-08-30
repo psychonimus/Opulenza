@@ -7,7 +7,17 @@ import { getApprovedListing } from '../../../../services/sellingServices/getSell
 
 const CigarListingsBody = () => {
 
+
+    const [favorites, setFavorites] = useState({})
     const [cigars, setCigars] = useState([])
+
+
+     const toggleFavorite = (id) => {
+    setFavorites(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }))
+  }
 
     const getCigarListings = () => {
         getApprovedListing(1)
@@ -42,72 +52,87 @@ const CigarListingsBody = () => {
                 </div>
 
                 {cigars.length === 0 ? (
-                  <div className="listings-empty-state">
-                    <div className="listings-empty-state__icon">
-                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
-                        <circle cx="11" cy="11" r="8" />
-                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                        <line x1="11" y1="8" x2="11" y2="14" />
-                        <line x1="8" y1="11" x2="14" y2="11" />
-                      </svg>
+                    <div className="listings-empty-state">
+                        <div className="listings-empty-state__icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
+                                <circle cx="11" cy="11" r="8" />
+                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                <line x1="11" y1="8" x2="11" y2="14" />
+                                <line x1="8" y1="11" x2="14" y2="11" />
+                            </svg>
+                        </div>
+                        <h3 className="listings-empty-state__title">No Listings at the Moment</h3>
+                        <p className="listings-empty-state__sub">Our specialists are curating rare cigar collections. Check back soon or list your own humidor.</p>
+                        <Link to="/sell" className="listings-empty-state__cta">Submit an Asset</Link>
                     </div>
-                    <h3 className="listings-empty-state__title">No Listings at the Moment</h3>
-                    <p className="listings-empty-state__sub">Our specialists are curating rare cigar collections. Check back soon or list your own humidor.</p>
-                    <Link to="/sell" className="listings-empty-state__cta">Submit an Asset</Link>
-                  </div>
                 ) : (
-                <div className="all-cigar-grid">
-                    {cigars.map((item) => {
-                        return (
-                            <Link
-                                to={`/cigar/${item.itemId}`}
-                                key={item.itemId}
-                                className="cigar-card-link"
-                            >
-                                <div className="cigar-card">
-                                    <div className="cigar-card__image-wrapper">
-                                        <img
-                                            src={item.details?.openBox}
-                                            alt={`${item.brand} ${item.details.editionName}`}
-                                            className="cigar-card__image"
-                                        />
-                                        <div className="cigar-card__overlay" />
-                                    </div>
-                                    <div className="cigar-card__body">
-                                        <h3 className="cigar-card__title">{item.details?.brand}</h3>
-                                        <p className="cigar-card__reference">{item.details?.editionName}</p>
-                                        <p className="cigar-card__desc">{item.details?.commercialShape}</p>
-                                        <div className="cigar-card__meta">
-                                            <div className="cigar-card__meta-item">
-                                                <span className="cigar-card__meta-label">BRAND</span>
-                                                <span className="cigar-card__meta-value">{item.details?.brand}</span>
+                    <div className="all-cigar-grid">
+                        {cigars.map((item) => {
+                            return (
+                                
+                                    <div className="cigar-card">
+                                        <div className="cigar-card__image-wrapper">
+                                            <img
+                                                src={item.details?.openBox}
+                                                alt={`${item.brand} ${item.details.editionName}`}
+                                                className="cigar-card__image"
+                                            />
+                                            <div className="cigar-card__overlay" />
+                                        </div>
+                                        <div className="cigar-card__body">
+                                            <div className="d-flex justify-content-between">
+                                                <div>
+                                                    <h3 className="cigar-card__title">{item.details?.brand}</h3>
+                                                    <p className="cigar-card__reference">{item.details?.editionName}</p>
+                                                </div>
+                                                <button
+                                                    className={`watch-card__favorite-btn ${favorites[item.itemId] ? 'watch-card__favorite-btn--active' : ''}`}
+                                                    onClick={() => toggleFavorite(item.itemId)}
+                                                    aria-label="Add to wishlist"
+                                                >
+                                                    <svg viewBox="0 0 24 24" fill={favorites[item.itemId] ? '#D4AF37' : 'none'} stroke={favorites[item.itemId] ? '#D4AF37' : 'currentColor'} strokeWidth="1.5" className="watch-card__heart-icon">
+                                                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                                                    </svg>
+                                                </button>
                                             </div>
-                                            <div className="cigar-card__meta-item">
-                                                <span className="cigar-card__meta-label">ORIGIN</span>
-                                                <span className="cigar-card__meta-value">{item.details?.origin}</span>
+                                            <p className="cigar-card__desc">{item.details?.commercialShape}</p>
+                                            <div className="cigar-card__meta">
+                                                <div className="cigar-card__meta-item">
+                                                    <span className="cigar-card__meta-label">BRAND</span>
+                                                    <span className="cigar-card__meta-value">{item.details?.brand}</span>
+                                                </div>
+                                                <div className="cigar-card__meta-item">
+                                                    <span className="cigar-card__meta-label">ORIGIN</span>
+                                                    <span className="cigar-card__meta-value">{item.details?.origin}</span>
+                                                </div>
+                                                <div className="cigar-card__meta-item">
+                                                    <span className="cigar-card__meta-label">SIZE</span>
+                                                    <span className="cigar-card__meta-value">{item.details?.length}</span>
+                                                </div>
+                                                <div className="cigar-card__meta-item">
+                                                    <span className="cigar-card__meta-label">BOX YEAR</span>
+                                                    <span className="cigar-card__meta-value">{item.details?.boxYear}</span>
+                                                </div>
                                             </div>
-                                            <div className="cigar-card__meta-item">
-                                                <span className="cigar-card__meta-label">SIZE</span>
-                                                <span className="cigar-card__meta-value">{item.details?.length}</span>
-                                            </div>
-                                            <div className="cigar-card__meta-item">
-                                                <span className="cigar-card__meta-label">BOX YEAR</span>
-                                                <span className="cigar-card__meta-value">{item.details?.boxYear}</span>
+                                            <div className="cigar-card__footer">
+                                                <div className="cigar-card__bid">
+                                                    <span className="cigar-card__bid-label">CURRENT BID</span>
+                                                    <span className="cigar-card__bid-value">${item.currentPrice}</span>
+                                                </div>
+
+                                                <Link
+                                                to={`/cigar/${item.itemId}`}
+                                                className="cigar-card-link">
+                                                    <span className="cigar-card__cta">BID NOW →</span>
+                                                </Link>
+
                                             </div>
                                         </div>
-                                        <div className="cigar-card__footer">
-                                            <div className="cigar-card__bid">
-                                                <span className="cigar-card__bid-label">CURRENT BID</span>
-                                                <span className="cigar-card__bid-value">${item.currentPrice}</span>
-                                            </div>
-                                            <span className="cigar-card__cta">BID NOW →</span>
-                                        </div>
                                     </div>
-                                </div>
-                            </Link>
-                        )
-                    })}
-                </div>
+                                
+                            )
+                        })}
+                    </div>
                 )}
 
                 {/* <div className="all-cigar-grid">

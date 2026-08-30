@@ -636,7 +636,7 @@ const ProfilePage = () => {
                     <div className="prof-listing-row">
                     <div className="prof-listing-dot" data-status="live" />
                     <div className="prof-listing-info">
-                      <p className="prof-listing-title">Peferred Assets</p>
+                      <p className="prof-listing-title">Preferred Assets</p>
                       <p className="prof-listing-date">
                         {userInfo?.preferences?.interestedInWatches ? "Watches" : ""}{" "}
                         {userInfo?.preferences?.interestedInWhisky ? "Whisky" : ""}{" "}
