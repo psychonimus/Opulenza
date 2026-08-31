@@ -7,6 +7,7 @@ import CigarData from '../../../data/CigarData'
 import PensData from '../../../data/PensData'
 import YachtData from '../../../data/YachtData'
 import './Explore.css'
+import { getApprovedListing } from '../../../services/sellingServices/getSellListings/getSellListings'
 
 const CountdownTimer = ({ days, hours, minutes, seconds, endDate }) => {
   const calculateTimeLeft = () => {
@@ -64,7 +65,112 @@ const CountdownTimer = ({ days, hours, minutes, seconds, endDate }) => {
 
 const Explore = () => {
   const [favorites, setFavorites] = useState({})
-  const [activeCategory, setActiveCategory] = useState('ALL')
+  const [activeCategory, setActiveCategory] = useState('All')
+
+  const [cigarData, setCigarData] = useState([]);
+  const [whiskyData, setWhiskyData] = useState([]);
+  const [caskData, setCaskData] = useState([]);
+  const [watchData, setWatchData] = useState([]);
+  const [penData, setPenData] = useState([]);
+  const [yachtData, setYachtData] = useState([]);
+
+
+  const getCigarData = () => {
+
+    getApprovedListing(1)
+      .then((res) => {
+        setCigarData(res?.data.data)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+  }
+
+
+  const getWhiskyListings = () => {
+
+    getApprovedListing(2)
+      .then((res) => {
+        setWhiskyData(res?.data.data)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+  }
+
+
+  const getCasksListings = () => {
+
+    getApprovedListing(6)
+      .then((res) => {
+        setCaskData(res?.data.data)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+  }
+
+
+  const getWatchListings = () => {
+
+    getApprovedListing(3)
+      .then((res) => {
+        setWatchData(res?.data.data)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+  }
+
+  const getPensListings = () => {
+
+    getApprovedListing(4)
+      .then((res) => {
+        setPenData(res?.data.data)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+  }
+
+
+  const getYachtListings = () => {
+
+    getApprovedListing(5)
+      .then((res) => {
+        setYachtData(res?.data.data)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+  }
+
+
+  useEffect(() => {
+    getCigarData()
+    getWhiskyListings()
+    getCasksListings()
+    getWatchListings()
+    getPensListings()
+    getYachtListings()
+  }, [])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   const toggleFavorite = (key) => {
     setFavorites(prev => ({
@@ -75,27 +181,38 @@ const Explore = () => {
 
   // Combine all items and shuffle them randomly so that they are mixed together in the "ALL" tab
   const allItems = useMemo(() => {
-    const watches = watchData.map(item => ({ ...item, category: 'WATCHES', link: `/watch/${item.id}` }))
-    const whiskies = WhiskyData.map(item => ({ ...item, category: 'WHISKIES', link: `/whisky/${item.id}` }))
-    const cigars = CigarData.map(item => ({ ...item, category: 'CIGARS', link: `/cigar/${item.id}` }))
-    const pens = PensData.map(item => ({ ...item, category: 'PENS', link: `/pen/${item.id}` }))
-    const yachts = YachtData.map(item => ({ ...item, category: 'YACHTS', link: `/yacht/${item.id}` }))
-    const combined = [...watches, ...whiskies, ...cigars, ...pens, ...yachts]
-    
+    const watches = watchData.map(item => ({ ...item, category: 'WATCHES', link: `/watch/${item.itemId}` }))
+    const whiskies = whiskyData.map(item => ({ ...item, category: 'WHISKIES', link: `/whisky/${item.itemId}` }))
+    const casks = caskData.map(item => ({ ...item, category: 'CASK', link: `/cask/${item.itemId}` }))
+    const cigars = cigarData.map(item => ({ ...item, category: 'CIGARS', link: `/cigar/${item.itemId}` }))
+    const pens = penData.map(item => ({ ...item, category: 'PENS', link: `/pen/${item.itemId}` }))
+    const yachts = yachtData.map(item => ({ ...item, category: 'YACHTS', link: `/yacht/${item.itemId}` }))
+    const combined = [...watches, ...whiskies, ...casks, ...cigars, ...pens, ...yachts]
+
     // Stable Fisher-Yates shuffle
     for (let i = combined.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [combined[i], combined[j]] = [combined[j], combined[i]];
     }
     return combined
-  }, [])
+  }, [watchData, whiskyData, caskData, cigarData, penData, yachtData])
 
   // Filter items based on active category
-  const filteredItems = activeCategory === 'ALL' 
-    ? allItems 
-    : allItems.filter(item => item.category === activeCategory)
+  const filteredItems = activeCategory === 'All'
+    ? allItems
+    : allItems.filter(item => {
+        const itemCat = (item.categoryName || item.category || '').toLowerCase();
+        const activeCat = activeCategory.toLowerCase();
+        if (activeCat === 'watches' && (itemCat.includes('watch') || itemCat.includes('clock'))) return true;
+        if (activeCat === 'whisky' && (itemCat.includes('whisky') || itemCat.includes('whiskies'))) return true;
+        if (activeCat === 'cask' && itemCat.includes('cask')) return true;
+        if (activeCat === 'cigars' && (itemCat.includes('cigar') || itemCat.includes('cigars'))) return true;
+        if (activeCat === 'luxury pens' && (itemCat.includes('pen') || itemCat.includes('pens'))) return true;
+        if (activeCat === 'yachts' && (itemCat.includes('yacht') || itemCat.includes('yachts'))) return true;
+        return itemCat.includes(activeCat) || activeCat.includes(itemCat);
+      })
 
-  const categories = ['ALL', 'WATCHES', 'WHISKIES', 'CIGARS', 'PENS', 'YACHTS']
+  const categories = ['All', 'Cigars', 'Whisky', 'Cask', 'Watches', 'Luxury Pens', 'Yachts']
 
   return (
     <div className="explore-page">
@@ -136,31 +253,75 @@ const Explore = () => {
       {/* Product Grid Section */}
       <section className="explore-grid-section">
         <div className="container">
-          {filteredItems.length === 0 ? (
+          {filteredItems?.length === 0 ? (
             <div className="explore-no-results text-center py-5">
               <h3>No assets found in this category.</h3>
             </div>
           ) : (
             <div className="explore-grid">
-              {filteredItems.map(item => {
-                const uniqueKey = `${item.category}-${item.id}`
+              {filteredItems?.map(item => {
+                const uniqueKey = `${item?.categoryName}-${item?.itemId}`
+                const catName = item?.categoryName?.toLowerCase() || '';
+                const isWatch = catName.includes('watch') || item?.categoryId === 3;
+                const isWhisky = catName === 'whisky' || item?.categoryId === 2;
+                const isCask = catName.includes('cask') || item?.categoryId === 6;
+                const isCigar = catName.includes('cigar') || item?.categoryId === 1;
+                const isPen = catName.includes('pen') || item?.categoryId === 4;
+                const isYacht = catName.includes('yacht') || item?.categoryId === 5;
+
+                let cardImage = item?.image;
+                if (isWatch && item?.details?.front) cardImage = item.details.front;
+                if (isCigar && item?.details?.openBox) cardImage = item.details.openBox;
+                if ((isWhisky || isCask) && item?.details?.frontLabel) cardImage = item.details.frontLabel;
+                if (isPen && item?.details?.capped) cardImage = item.details.capped;
+
+                let cardTitle = item?.title;
+                let cardSub = item?.details?.editionName || item?.reference;
+                let cardDesc = item?.description;
+
+                if (isWatch) {
+                  cardTitle = item?.details?.brand || item?.title;
+                  cardSub = item?.details?.model;
+                  cardDesc = item?.details?.editionName || item?.description;
+                } else if (isCigar) {
+                  cardTitle = item?.details?.brand || item?.title;
+                  cardSub = item?.details?.editionName;
+                  cardDesc = item?.details?.commercialShape || item?.description;
+                } else if (isWhisky) {
+                  cardTitle = item?.details?.producerName || item?.title;
+                  cardSub = item?.details?.bottlingName;
+                  cardDesc = item?.details?.storageCondition || item?.description;
+                } else if (isCask) {
+                  cardTitle = item?.details?.caskType || item?.title;
+                  cardSub = item?.details?.distillesy;
+                  cardDesc = item?.details?.storageCondition || item?.description;
+                } else if (isPen) {
+                  cardTitle = item?.details?.brand || item?.title;
+                  cardSub = item?.details?.penType;
+                  cardDesc = item?.details?.limitedEditionRegistry || item?.description;
+                } else if (isYacht) {
+                  cardTitle = item?.title;
+                  cardSub = item?.details?.builder;
+                  cardDesc = item?.description;
+                }
+
                 return (
                   <div className="explore-card" key={uniqueKey}>
                     {/* Image Container */}
                     <div className="explore-card__image-container">
-                      <img src={item.image} alt={item.title} className="explore-card__image" />
+                      <img src={cardImage} alt={cardTitle} className="explore-card__image" />
                       <div className="explore-card__gradient-overlay"></div>
 
                       {/* Dossier Category Badge */}
                       <div className="explore-card__category-badge">
                         <span className="explore-card__category-dot"></span>
-                        {item.badge || item.category}
+                        {item?.badge || item?.categoryName}
                       </div>
 
                       {/* Current Bid Overlay */}
                       <div className="explore-card__bid-overlay">
                         <div className="explore-card__bid-label">CURRENT BID</div>
-                        <div className="explore-card__bid-value">{item.currentBid}</div>
+                        <div className="explore-card__bid-value">${item.currentPrice}</div>
                       </div>
                     </div>
 
@@ -168,7 +329,7 @@ const Explore = () => {
                     <div className="explore-card__info">
                       <div className="explore-card__header-row">
                         <h3 className="explore-card__title">
-                          {item.title} <span className="explore-card__reference">{item.reference}</span>
+                          {cardTitle} {cardSub && <span className="explore-card__reference">{cardSub}</span>}
                         </h3>
                         <button
                           className={`explore-card__favorite-btn ${favorites[uniqueKey] ? 'explore-card__favorite-btn--active' : ''}`}
@@ -181,20 +342,132 @@ const Explore = () => {
                         </button>
                       </div>
 
-                      <p className="explore-card__description">{item.description}</p>
+                      <p className="explore-card__description">{cardDesc}</p>
 
                       <div className="explore-card__divider"></div>
 
                       {/* Details Grid */}
-                      <div className="explore-card__details-grid">
-                        {item.details?.slice(0, 4).map((detail, idx) => (
-                          <div className="explore-card__detail-item" key={idx}>
-                            <div className="explore-card__detail-label">{detail.label}</div>
-                            <div className={`explore-card__detail-value ${detail.isGold ? 'explore-card__detail-value--gold' : ''}`}>
-                              {detail.value}
+                      <div className="explore-card__details-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.75rem' }}>
+                        {isWatch && (
+                          <>
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">CASE SIZE</div>
+                              <div className="explore-card__detail-value">{item.details?.caseSize || "—"}</div>
                             </div>
-                          </div>
-                        ))}
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">YEAR</div>
+                              <div className="explore-card__detail-value">{item.details?.year || "—"}</div>
+                            </div>
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">REF NUMBER</div>
+                              <div className="explore-card__detail-value">{item.details?.referenceNumber || "—"}</div>
+                            </div>
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">CONDITION</div>
+                              <div className="explore-card__detail-value">{item.details?.condition || "—"}</div>
+                            </div>
+                          </>
+                        )}
+                        {isCigar && (
+                          <>
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">ORIGIN</div>
+                              <div className="explore-card__detail-value">{item.details?.origin || "—"}</div>
+                            </div>
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">LENGTH</div>
+                              <div className="explore-card__detail-value">{item.details?.length || "—"}</div>
+                            </div>
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">BOX YEAR</div>
+                              <div className="explore-card__detail-value">{item.details?.boxYear || "—"}</div>
+                            </div>
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">SHAPE</div>
+                              <div className="explore-card__detail-value">{item.details?.commercialShape || "—"}</div>
+                            </div>
+                          </>
+                        )}
+                        {isWhisky && (
+                          <>
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">DISTILLERY STATUS</div>
+                              <div className="explore-card__detail-value">{item.details?.distilleryStatus || "—"}</div>
+                            </div>
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">VINTAGE</div>
+                              <div className="explore-card__detail-value">{item.details?.vintageYear || "—"}</div>
+                            </div>
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">AGE</div>
+                              <div className="explore-card__detail-value">{item.details?.age ? `${item.details.age} Years` : "—"}</div>
+                            </div>
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">STRENGTH</div>
+                              <div className="explore-card__detail-value">{item.details?.proof ? `${item.details.proof}% ABV` : "—"}</div>
+                            </div>
+                          </>
+                        )}
+                        {isCask && (
+                          <>
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">DISTILLERY</div>
+                              <div className="explore-card__detail-value">{item.details?.distillesy || "—"}</div>
+                            </div>
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">CASK TYPE</div>
+                              <div className="explore-card__detail-value">{item.details?.caskType || "—"}</div>
+                            </div>
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">VINTAGE</div>
+                              <div className="explore-card__detail-value">{item.details?.vintageYear || "—"}</div>
+                            </div>
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">CAPACITY</div>
+                              <div className="explore-card__detail-value">{item.details?.capacity || "—"}</div>
+                            </div>
+                          </>
+                        )}
+                        {isPen && (
+                          <>
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">TYPE</div>
+                              <div className="explore-card__detail-value">{item.details?.penType || "—"}</div>
+                            </div>
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">YEAR</div>
+                              <div className="explore-card__detail-value">{item.details?.manifacturingYear || "—"}</div>
+                            </div>
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">BODY MATERIAL</div>
+                              <div className="explore-card__detail-value">{item.details?.bodyMaterial || "—"}</div>
+                            </div>
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">CONDITION</div>
+                              <div className="explore-card__detail-value">{item.details?.condition || "—"}</div>
+                            </div>
+                          </>
+                        )}
+                        {isYacht && (
+                          <>
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">BUILDER</div>
+                              <div className="explore-card__detail-value">{item.details?.builder || "—"}</div>
+                            </div>
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">LENGTH</div>
+                              <div className="explore-card__detail-value">{item.details?.length || "—"}</div>
+                            </div>
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">YEAR</div>
+                              <div className="explore-card__detail-value">{item.details?.year || "—"}</div>
+                            </div>
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">MATERIAL</div>
+                              <div className="explore-card__detail-value">{item.details?.material || "—"}</div>
+                            </div>
+                          </>
+                        )}
                       </div>
 
                       <div className="explore-card__divider"></div>
