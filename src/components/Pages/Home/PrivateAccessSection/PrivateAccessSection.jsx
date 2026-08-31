@@ -23,7 +23,7 @@ export const getFlagEmoji = (countryCode) => {
   return String.fromCodePoint(...codePoints);
 };
 
-const DEFAULT_COUNTRY_CODES = [
+export const DEFAULT_COUNTRY_CODES = [
   { dialCode: "+1", code: "US", name: "United States", flag: "🇺🇸" },
   { dialCode: "+44", code: "GB", name: "United Kingdom", flag: "🇬🇧" },
   { dialCode: "+91", code: "IN", name: "India", flag: "🇮🇳" },
@@ -42,7 +42,7 @@ const DEFAULT_COUNTRY_CODES = [
   { dialCode: "+1", code: "CA", name: "Canada", flag: "🇨🇦" },
 ];
 
-const SearchableCountrySelect = ({ countries, selectedDialCode, onSelect }) => {
+export const SearchableCountrySelect = ({ countries, selectedDialCode, onSelect }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const dropdownRef = useRef(null);
@@ -756,6 +756,7 @@ const PrivateAccessSection = () => {
   const [pendingInviteCode, setPending] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [code, setCode] = useState([
     "O",
     "P",
@@ -862,6 +863,7 @@ const PrivateAccessSection = () => {
     setLoginStep("email");
     setEmail("");
     setPassword("");
+    setShowPassword(false);
     setCode(["O", "P", "I", "-", "", "", "", "", "", ""]);
     setError("");
   };
@@ -987,15 +989,25 @@ const PrivateAccessSection = () => {
 
                 <div className="pa-field">
                   <label className="pa-field-label">PASSWORD</label>
-                  <input
-                    type="password"
-                    className="pa-field-input"
-                    placeholder="••••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    autoFocus
-                  />
+                  <div className="pa-password-wrapper">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      className="pa-field-input"
+                      placeholder="••••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      className="pa-password-toggle-btn"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <FaEyeSlash /> : <FaEye />}
+                    </button>
+                  </div>
                 </div>
 
                 {error && <p className="pa-error-msg">{error}</p>}

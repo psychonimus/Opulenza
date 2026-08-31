@@ -13,6 +13,8 @@ import AddDocuments from "./AddDocuments";
 import AddPreferencesModal from "./AddPreferences";
 import { MdDeleteForever } from "react-icons/md";
 import "./ProfilePage.css";
+import { SearchableCountrySelect, DEFAULT_COUNTRY_CODES, getFlagEmoji } from "../Home/PrivateAccessSection/PrivateAccessSection";
+import "../Home/PrivateAccessSection/PrivateAccessSection.css";
 
 // ── Helpers ──────────────────────────────────────────────
 const getInitials = (name = "") =>
@@ -300,14 +302,52 @@ const ProfilePage = () => {
     getMyInvitations();
   }, []);
 
+  const [countryCodes, setCountryCodes] = useState(DEFAULT_COUNTRY_CODES);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetch("https://countriesnow.space/api/v0.1/countries/codes")
+      .then((res) => res.json())
+      .then((resData) => {
+        if (
+          isMounted &&
+          resData &&
+          !resData.error &&
+          Array.isArray(resData.data)
+        ) {
+          const formatted = resData.data
+            .filter((c) => c.dial_code && c.code)
+            .map((c) => {
+              const codeClean = c.code.trim().toUpperCase();
+              return {
+                dialCode: c.dial_code.trim(),
+                code: codeClean,
+                name: c.name.trim(),
+                flag: getFlagEmoji(codeClean),
+              };
+            });
+          if (formatted.length > 0) {
+            setCountryCodes(formatted);
+          }
+        }
+      })
+      .catch((err) => console.log(err));
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const [newAddress, setNewAddress] = useState({
     AddressType: "",
+    RecipientName: "",
     AddressLine1: "",
     AddressLine2: "",
     City: "",
     StateProvince: "",
     Country: "",
     PostalCode: "",
+    PhoneCountryCode: "",
+    PhoneNumber: "",
   });
 
   const handleAddSubmit = (e) => {
@@ -321,12 +361,15 @@ const ProfilePage = () => {
           setIsAddModalOpen(false);
           setNewAddress({
             AddressType: "",
+            RecipientName: "",
             AddressLine1: "",
             AddressLine2: "",
             City: "",
             StateProvince: "",
             Country: "",
             PostalCode: "",
+            PhoneCountryCode: "",
+            PhoneNumber: "",
           });
           GetAddressDetails();
           console.log("function finished");
@@ -464,11 +507,21 @@ const ProfilePage = () => {
                         <div className="prof-listing-dot" data-status="live" />
                         <div className="prof-listing-info">
                           <p className="prof-listing-title">
+                            {(addr.recipientName || addr.RecipientName) && (
+                              <strong style={{ color: "var(--gold)", marginRight: "6px" }}>
+                                {addr.recipientName || addr.RecipientName}:
+                              </strong>
+                            )}
                             {addr.addressLine1}, {addr.addressLine2}
                           </p>
                           <p className="prof-listing-date">
                             {addr.city}, {addr.stateProvince}, {addr.postalCode}{" "}
                             · {addr.country}
+                            {(addr.phoneNumber || addr.PhoneNumber) && (
+                              <>
+                                {" "}· Phone: {addr.phoneCountryCode || addr.PhoneCountryCode || ""} {addr.phoneNumber || addr.PhoneNumber}
+                              </>
+                            )}
                           </p>
                         </div>
                         <div className="prof-listing-right">
@@ -790,7 +843,7 @@ const ProfilePage = () => {
 
       {/* ── Add Data Modal ────────────────────────────── */}
       {isAddModalOpen && modalType === "address" && (
-        <div className="prof-modal-overlay">
+        <div className="prof-modal-overlay" data-lenis-prevent="true">
           <div
             className="prof-modal-card"
             style={{ maxWidth: "640px" }}
@@ -851,6 +904,22 @@ const ProfilePage = () => {
                     <option value="Shipping Address">Shipping Address</option>
                     <option value="Other">Other</option>
                   </select>
+                </div>
+                <div className="prof-settings-field">
+                  <label>Recipient Name</label>
+                  <input
+                    type="text"
+                    name="RecipientName"
+                    value={newAddress.RecipientName}
+                    onChange={(e) =>
+                      setNewAddress({
+                        ...newAddress,
+                        RecipientName: e.target.value,
+                      })
+                    }
+                    required
+                    placeholder="e.g. John Doe"
+                  />
                 </div>
                 <div className="prof-settings-field">
                   <label>Address Line 1</label>
@@ -925,10 +994,7 @@ const ProfilePage = () => {
                     }
                   />
                 </div>
-                <div
-                  className="prof-settings-field"
-                  style={{ gridColumn: "span 2" }}
-                >
+                <div className="prof-settings-field">
                   <label>Postal Code</label>
                   <input
                     type="text"
@@ -943,6 +1009,35 @@ const ProfilePage = () => {
                       })
                     }
                   />
+                </div>
+                <div className="prof-settings-field" style={{ gridColumn: "span 2" }}>
+                  <label>Phone Number</label>
+                  <div style={{ display: "flex", gap: "12px", alignItems: "flex-end" }}>
+                    <SearchableCountrySelect
+                      countries={countryCodes}
+                      selectedDialCode={newAddress.PhoneCountryCode}
+                      onSelect={(code) =>
+                        setNewAddress({
+                          ...newAddress,
+                          PhoneCountryCode: code,
+                        })
+                      }
+                    />
+                    <input
+                      type="tel"
+                      name="PhoneNumber"
+                      value={newAddress.PhoneNumber}
+                      onChange={(e) =>
+                        setNewAddress({
+                          ...newAddress,
+                          PhoneNumber: e.target.value,
+                        })
+                      }
+                      required
+                      placeholder="e.g. 12345678"
+                      style={{ flex: 1 }}
+                    />
+                  </div>
                 </div>
               </div>
 
