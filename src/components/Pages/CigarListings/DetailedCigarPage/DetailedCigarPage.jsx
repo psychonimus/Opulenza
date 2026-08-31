@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { FaSpinner } from 'react-icons/fa'
 import { getApprovedListing } from '../../../../services/sellingServices/getSellListings/getSellListings'
 import cigarData from '../../../../data/CigarData'
-import { AddBid } from '../../../../services/biddingServices/BiddingServices'
+import { AddBid, getLatestBid } from '../../../../services/biddingServices/BiddingServices'
 import './DetailedCigarPage.css'
 
 /* ── Cigar-specific enrichments ─────────────────────────────── */
@@ -29,7 +29,7 @@ const DetailedCigarPage = () => {
     const [activeTab, setActiveTab] = useState('provenance')
     const [currentBid, setCurrentBid] = useState(0)
     const [bids, setBids] = useState([])
-    const [biddersCount, setBiddersCount] = useState(10)
+    const [biddersCount, setBiddersCount] = useState()
     const [isFavorited, setIsFavorited] = useState(false)
     const [isAutoBidding, setIsAutoBidding] = useState(false)
 
@@ -62,6 +62,7 @@ const DetailedCigarPage = () => {
     const [successMessage, setSuccessMessage] = useState('')
     const [termsAccepted, setTermsAccepted] = useState(false)
     const [modalAutoBid, setModalAutoBid] = useState(false)
+    const [latestBidData, setLatestBidData] = useState([])
 
     const [timeLeft, setTimeLeft] = useState({
         days: 0,
@@ -69,6 +70,8 @@ const DetailedCigarPage = () => {
         minutes: 0,
         seconds: 0
     })
+
+
 
     useEffect(() => {
         setLoading(true)
@@ -85,14 +88,14 @@ const DetailedCigarPage = () => {
                         description: found.details?.commercialShape || "",
                         detailedDescription: found.details?.commercialShape || "",
                         image: found.details?.openBox || found.details?.boxLidBranding || "",
-                        angles: [found.details?.boxLidBranding, found.details?.boxBottom, found.details?.cigarBand].filter(Boolean),
+                        angles: [found.details?.boxLidBranding, found.details?.boxBottom, found.details?.cubanWarrantySeal, found.details?.cigarBand].filter(Boolean),
                         currentBidNumber: found.currentPrice || found.expectedPrice || 568,
                         bidIncrement: found.bidIncreament || 500,
-                        activeBidders: 10,
+                        // activeBidders: 0,
                         auctionEndDate: found.auctionEndDate,
-                        liveActivity: [
-                            { id: 1, member: 'MEMBER #7***3', timeAgo: '2 minutes ago', timestamp: Date.now() - 120000, amount: `$${found.currentPrice || found.expectedPrice || 568}`, amountNumber: found.currentPrice || found.expectedPrice || 568 }
-                        ],
+                        // liveActivity: [
+                        //     { id: 1, member: 'MEMBER #7***3', timeAgo: '2 minutes ago', timestamp: Date.now() - 120000, amount: `$${found.currentPrice || found.expectedPrice || 568}`, amountNumber: found.currentPrice || found.expectedPrice || 568 }
+                        // ],
                         provenance: {
                             title: found.details?.origin || 'Premium Origin',
                             description: `This exceptional cigar collection has been authenticated and stored in pristine conditions in our vaults.`,
@@ -128,12 +131,46 @@ const DetailedCigarPage = () => {
             })
     }, [id])
 
+
+    // console.log("this is the item", item)
+
+    const fetchLatestBid = () => {
+        getLatestBid(item?.itemId)
+            .then((res) => {
+                // setLatestBidData(res?.data);
+                for (let i = 0; i < res?.data?.length; i++) {
+                    if (item?.itemId === res?.data[i].itemId) {
+                        setItem((prev) => ({ ...prev, currentBidNumber: res?.data[i].bidData?.currentBid, bidIncrement: res?.data[i].bidData?.nextBid, activeBidders: res?.data[i].countOfBidders }))
+                    }
+
+                }
+                setBiddersCount(res?.data.data.countOfBidders);
+                setBids(res?.data.data.latestBids);
+
+            })
+            .catch((err) => {
+                console.error(err);
+            })
+    }
+
+    useEffect(() => {
+        if (item?.itemId) {
+            fetchLatestBid()
+        }
+    }, [item?.itemId])
+
+    useEffect(() => {
+        if (item?.image) {
+            setMainImage(item.image)
+            setActiveThumbIdx(0)
+        }
+    }, [item?.itemId])
+
     useEffect(() => {
         if (item) {
             setCurrentBid(item.currentBidNumber)
-            setBids(item.liveActivity || [])
-            setBiddersCount(item.activeBidders || 10)
-            setMainImage(item.image)
+            // setBids(item.liveActivity || [])
+            // setBiddersCount(item?.activeBidders)
             setCustomBidAmount(item.currentBidNumber + item.bidIncrement)
             setTimeLeft(item.auctionEndDate ? calculateTimeLeft(item.auctionEndDate) : { days: 1, hours: 4, minutes: 18, seconds: 40 })
         }
@@ -173,6 +210,11 @@ const DetailedCigarPage = () => {
         return () => { if (simInterval) clearInterval(simInterval) }
     }, [isAutoBidding, item?.bidIncrement, item])
 
+
+    // console.log("the item id is", item?.itemId)
+
+
+
     if (loading) {
         return (
             <div className="cigar-not-found">
@@ -203,10 +245,10 @@ const DetailedCigarPage = () => {
 
     const thumbnails = [item.image, ...(item.angles || [])]
 
-    const brand   = item.details?.find(d => d.label === 'BRAND')?.value  || item.title
-    const origin  = item.details?.find(d => d.label === 'ORIGIN')?.value || '—'
-    const size    = item.details?.find(d => d.label === 'SIZE')?.value   || '—'
-    const rarity  = item.details?.find(d => d.label === 'RARITY')?.value || '—'
+    const brand = item.details?.find(d => d.label === 'BRAND')?.value || item.title
+    const origin = item.details?.find(d => d.label === 'ORIGIN')?.value || '—'
+    const size = item.details?.find(d => d.label === 'SIZE')?.value || '—'
+    const rarity = item.details?.find(d => d.label === 'RARITY')?.value || '—'
 
     const handlePlaceBidClick = () => {
         setCustomBidAmount(item?.bidIncrement || 0)
@@ -226,7 +268,7 @@ const DetailedCigarPage = () => {
         const payload = {
             ItemId: item.itemId,
             BidAmount: amt,
-            Currency : item.currency
+            Currency: item.currency
         }
 
         AddBid(payload)
@@ -251,6 +293,8 @@ const DetailedCigarPage = () => {
                 setBidError(err?.response?.data?.message || err?.message || 'Failed to place bid. Please try again.')
             })
     }
+
+
 
     return (
         <>
@@ -291,7 +335,7 @@ const DetailedCigarPage = () => {
                                 onMouseMove={handleMagnifierMove}
                                 onMouseLeave={handleMagnifierLeave}
                             >
-                                <img src={mainImage} alt={item.title} className="cigar-detailed-page__main-image" />
+                                <img src={mainImage} alt={item?.title} className="cigar-detailed-page__main-image" />
                                 <div className="detailed-page__image-glow" />
 
                                 {magnifier.visible && (
@@ -302,7 +346,7 @@ const DetailedCigarPage = () => {
                                             height: LENS_SIZE,
                                             left: magnifier.x - LENS_SIZE / 2,
                                             top: magnifier.y - LENS_SIZE / 2,
-                                            backgroundImage: `url(${mainImage})`,
+                                            backgroundImage: `url("${mainImage}")`,
                                             backgroundSize: `${magnifier.wrapperW * ZOOM}px ${magnifier.wrapperH * ZOOM}px`,
                                             backgroundPosition: `${magnifier.bgX}px ${magnifier.bgY}px`,
                                         }}
@@ -462,12 +506,12 @@ const DetailedCigarPage = () => {
                                     </div>
                                     <div className="live-activity-list">
                                         {bids.map((bid, index) => (
-                                            <div className="live-bid-item" key={bid.id || index}>
+                                            <div className="live-bid-item" key={bid.bidId}>
                                                 <div className="bid-user-info">
-                                                    <span className="bid-username">{index + 1}. {bid.member}</span>
-                                                    <span className="bid-timestamp">{bid.timeAgo || 'Just now'}</span>
+                                                    <span className="bid-username">{index + 1}. {bid.name}</span>
+                                                    <span className="bid-timestamp">{bid.bidDate}</span>
                                                 </div>
-                                                <div className="bid-amount-value">{bid.amount}</div>
+                                                <div className="bid-amount-value">$ {bid.bidAmount}</div>
                                             </div>
                                         ))}
                                     </div>
@@ -603,7 +647,7 @@ const DetailedCigarPage = () => {
                                 <div className="modal-asset-info">
                                     <span className="modal-asset-label">CURRENT ASSET</span>
                                     <p className="modal-asset-name">{item.title} <span>{item.reference}</span></p>
-                                     </div>
+                                </div>
                             </div>
                             <form onSubmit={submitCustomBid} className="modal-form">
                                 <div className="modal-bid-row">
