@@ -9,8 +9,20 @@ export const approveSellListing = (dataObject) => {
     return api.post(`api/item/ItemRequestApprove`, dataObject);
 };
 
-export const getApprovedListing = (selectedCat) => {
-    return api.get(`api/item/ItemList?PageSize=10&PageNumber=1&CategoryId=${selectedCat}`);    
+
+export const updateListingItemImage = (dataObject) => {
+    return api.post(`api/item/EditImages`, dataObject);
+};
+
+
+
+
+
+
+
+
+export const getApprovedListing = (selectedCat, pageNumber = 1) => {
+    return api.get(`api/item/ItemList?PageSize=10&PageNumber=${pageNumber}&CategoryId=${selectedCat}`);    
 };
 
 export const getItemMedia = (itemId, mediaId) => {

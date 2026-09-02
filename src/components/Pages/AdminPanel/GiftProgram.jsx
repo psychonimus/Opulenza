@@ -1,13 +1,8 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { MdAdd, MdEdit, MdDelete, MdCardGiftcard } from 'react-icons/md'
+import { getGiftingList } from '../../../services/giftForm/GiftForm';
 
-const gifts = [
-  { id: 1, recipient: 'James Whitmore', occasion: 'Milestone Purchase', item: 'Opulenza Gold Card', value: '$5,000', sent: 'Jul 10, 2024', status: 'Claimed' },
-  { id: 2, recipient: 'Elena Vasquez', occasion: 'Top Seller Award', item: 'Crystal Decanter Set', value: '$1,200', sent: 'Jul 12, 2024', status: 'Delivered' },
-  { id: 3, recipient: 'Sophia Chen', occasion: 'Anniversary', item: 'Leather Portfolio', value: '$380', sent: 'Jul 15, 2024', status: 'Pending' },
-  { id: 4, recipient: 'Ricardo Montoya', occasion: 'Referral Reward', item: 'Opulenza Credit $500', value: '$500', sent: 'Jul 8, 2024', status: 'Claimed' },
-  { id: 5, recipient: 'Isabelle Laurent', occasion: '1-Year Membership', item: 'Concierge Upgrade', value: '$2,000', sent: 'Jul 5, 2024', status: 'Delivered' },
-]
+
 
 const statusColor = {
   Claimed: { bg: '#dcfce7', color: '#15803d' },
@@ -16,6 +11,30 @@ const statusColor = {
 }
 
 const GiftProgram = () => {
+
+  const [giftList, setGiftList] = useState([]);
+
+  const getGiftListings = () => {
+    getGiftingList()
+      .then((res) => {
+        setGiftList(res?.data?.data)
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+  }
+
+  console.log(giftList)
+
+
+
+  useEffect(() => {
+    getGiftListings();
+  }, [])
+
+
+
+
   return (
     <div className="ap-page">
       <div className="ap-page-header">
@@ -43,17 +62,21 @@ const GiftProgram = () => {
       <div className="ap-table-card">
         <table className="ap-table">
           <thead>
-            <tr><th>Recipient</th><th>Occasion</th><th>Gift</th><th>Value</th><th>Sent</th><th>Status</th><th>Actions</th></tr>
+            <tr><th>Gift Id</th><th>Member Id</th><th>Full Name</th><th>Address</th><th>City</th><th>State</th><th>Country</th><th>Postal Code</th><th>Phone</th><th>Status</th><th>Actions</th></tr>
           </thead>
           <tbody>
-            {gifts.map(g => (
+            {giftList.map(g => (
               <tr key={g.id}>
-                <td className="ap-user-cell__name">{g.recipient}</td>
-                <td className="ap-table__muted">{g.occasion}</td>
-                <td className="ap-table__muted">{g.item}</td>
-                <td className="ap-table__value">{g.value}</td>
-                <td className="ap-table__muted">{g.sent}</td>
-                <td><span className="ap-badge" style={statusColor[g.status]}>{g.status}</span></td>
+                <td className="ap-user-cell__name">{g.gifts?.welcomeGiftId}</td>
+                <td className="ap-table__muted">{g?.gifts?.memberId}</td>
+                <td className="ap-table__muted">{g?.gifts?.fullName}</td>
+                <td className="ap-table__value">{g?.gifts?.address}</td>
+                <td className="ap-table__muted">{g.gifts?.city}</td>
+                <td className="ap-table__muted">{g.gifts?.state}</td>
+                <td className="ap-table__muted">{g.gifts?.country}</td>
+                <td className="ap-table__muted">{g.gifts?.postalCode}</td>
+                <td className="ap-table__muted">{g.gifts?.phoneNumber}</td>
+                <td><span className="ap-badge" style={statusColor[g?.gifts?.isDelivered === true ? "Delivered" : "Pending"]}>{g.gifts?.isDelivered === true ? "Delivered" : "Pending"}</span></td>
                 <td>
                   <div className="ap-action-group">
                     <button className="ap-icon-btn"><MdEdit size={15} /></button>

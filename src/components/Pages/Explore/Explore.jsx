@@ -270,10 +270,10 @@ const Explore = () => {
                 const isYacht = catName.includes('yacht') || item?.categoryId === 5;
 
                 let cardImage = item?.image;
-                if (isWatch && item?.details?.front) cardImage = item.details.front;
-                if (isCigar && item?.details?.openBox) cardImage = item.details.openBox;
-                if ((isWhisky || isCask) && item?.details?.frontLabel) cardImage = item.details.frontLabel;
-                if (isPen && item?.details?.capped) cardImage = item.details.capped;
+                if (isWatch && item?.details?.thumbnail) cardImage = item.details.thumbnail;
+                if (isCigar && item?.details?.thumbnail) cardImage = item.details.thumbnail;
+                if ((isWhisky || isCask) && item?.details?.thumbnail) cardImage = item.details.thumbnail;
+                if (isPen && item?.details?.thumbnail) cardImage = item.details.thumbnail;
 
                 let cardTitle = item?.title;
                 let cardSub = item?.details?.editionName || item?.reference;

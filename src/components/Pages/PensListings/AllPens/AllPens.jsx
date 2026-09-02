@@ -43,30 +43,54 @@ const CountdownTimer = ({ endDate }) => {
 
 const AllPens = () => {
     const [favorites, setFavorites] = useState({})
+    const [pens, setPens] = useState([])
+    const [currentPage, setCurrentPage] = useState(1)
+    const [totalPages, setTotalPages] = useState(1)
+    const [loading, setLoading] = useState(false)
 
     const toggleFavorite = (id) => {
         setFavorites(prev => ({ ...prev, [id]: !prev[id] }))
     }
 
+    const getPensListings = (page = currentPage) => {
+        setLoading(true)
+        getApprovedListing(4, page)
+            .then((res) => {
+                const list =
+                    res?.data?.data ||
+                    res?.data?.items ||
+                    res?.data?.paginated ||
+                    (Array.isArray(res?.data) ? res.data : [])
+                setPens(Array.isArray(list) ? list : [])
 
-    const [pens, setPens] = useState([])
+                const totalCount = res?.data?.totalCount || res?.data?.total || res?.data?.totalRecords
+                if (res?.data?.totalPages) {
+                    setTotalPages(res?.data.totalPages)
+                } else if (totalCount) {
+                    setTotalPages(Math.max(1, Math.ceil(totalCount / 10)))
+                } else {
+                    setTotalPages(page + (list.length === 10 ? 1 : 0))
+                }
+            })
+            .catch((err) => {
+                console.log(err)
+                setPens([])
+            })
+            .finally(() => {
+                setLoading(false)
+            })
+    }
 
+    useEffect(() => {
+        getPensListings(currentPage)
+    }, [currentPage])
 
-    const getPensListings = () => {
-    
-        getApprovedListing(4)
-          .then((res) => {
-            setPens(res?.data.data)
-          })
-          .catch((err) => {
-            console.log(err)
-          })
-      }
-
-    
-      useEffect(() => {
-        getPensListings()
-      }, [])
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1 && newPage <= totalPages && newPage !== currentPage) {
+            setCurrentPage(newPage)
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+        }
+    }
 
     return (
         <div className="pen-listing-page">
@@ -102,7 +126,7 @@ const AllPens = () => {
 
                             {/* Image */}
                             <div className="pen-card__image-container">
-                                <img src={pen?.details?.capped} alt={pen?.details?.brand} className="pen-card__image" />
+                                <img src={pen?.details?.thumbnail || pen.details?.image1} alt={pen?.details?.brand} className="pen-card__image" />
                                 <div className="pen-card__gradient-overlay" />
 
                                 
@@ -159,13 +183,8 @@ const AllPens = () => {
 
                                 <div className="pen-card__footer">
                                     <div className="pen-card__closes-container">
-                                        {/* <div className="pen-card__closes-label">CLOSES IN</div>
-                                        <CountdownTimer
-                                            endDate={pen?.auctionEndDate}
-                                        /> */}
-
-                                         <div className="pen-card__bid-label">CURRENT BID</div>
-                                    <div className="pen-card__bid-value">$ {pen?.currentPrice}</div>
+                                        <div className="pen-card__bid-label">CURRENT BID</div>
+                                        <div className="pen-card__bid-value">$ {pen?.currentPrice}</div>
                                     </div>
                                     <Link to={`/pen/${pen?.itemId}`} style={{ textDecoration: 'none' }}>
                                         <button className="pen-card__bid-btn">PLACE A BID</button>
@@ -176,6 +195,52 @@ const AllPens = () => {
                         </div>
                     ))}
                 </div>
+                )}
+
+                {/* Pen Pagination */}
+                {pens?.length > 0 && (
+                    <div className="pen-pagination">
+                        <button
+                            type="button"
+                            className="pen-pagination__btn pen-pagination__btn--nav"
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1 || loading}
+                            aria-label="Previous Page"
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="pen-pagination__arrow">
+                                <path d="M15 19l-7-7 7-7" />
+                            </svg>
+                            <span>Previous</span>
+                        </button>
+
+                        <div className="pen-pagination__pages">
+                            {Array.from({ length: Math.max(1, totalPages) }, (_, i) => i + 1).map((page) => (
+                                <button
+                                    key={page}
+                                    type="button"
+                                    className={`pen-pagination__btn pen-pagination__btn--page ${currentPage === page ? 'pen-pagination__btn--active' : ''}`}
+                                    onClick={() => handlePageChange(page)}
+                                    disabled={loading}
+                                    aria-label={`Go to page ${page}`}
+                                >
+                                    {page}
+                                </button>
+                            ))}
+                        </div>
+
+                        <button
+                            type="button"
+                            className="pen-pagination__btn pen-pagination__btn--nav"
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === Math.max(1, totalPages) || loading}
+                            aria-label="Next Page"
+                        >
+                            <span>Next</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="pen-pagination__arrow">
+                                <path d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
                 )}
             </div>
         </div>

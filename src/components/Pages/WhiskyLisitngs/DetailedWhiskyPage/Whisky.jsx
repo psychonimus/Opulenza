@@ -133,8 +133,8 @@ const DetailedWhiskyPage = () => {
             mappedItem.reference = found.details?.distillesy || "";
             mappedItem.description = `Distillery: ${found.details?.distillesy || 'N/A'} | Cask Type: ${found.details?.caskType || 'N/A'}`;
             mappedItem.detailedDescription = `This is a premium Cask Lot featuring a ${found.details?.caskType || 'cask'} from the renowned ${found.details?.distillesy || 'distillery'}. Number of bottles: ${found.details?.noOfBottles || 'N/A'}, ABV: ${found.details?.abv || 'N/A'}%.`;
-            mappedItem.image = found.details?.frontLabel || "";
-            mappedItem.angles = [found.details?.backLabel, found.details?.fillLevel, found.details?.originalCase].filter(Boolean);
+            mappedItem.image = found.details?.thumbnail || found.details?.image1;
+            mappedItem.angles = [found.details?.image1, found.details?.image2, found.details?.image3, found.details?.image4].filter(Boolean);
             mappedItem.provenance = {
               title: "Cask Provenance & History",
               description: `Matured at the ${found.details?.distillesy || 'distillery'} in a ${found.details?.caskType || 'N/A'} cask. The lot includes the original sale documentation and cask registry extract.`,
@@ -165,8 +165,8 @@ const DetailedWhiskyPage = () => {
             mappedItem.reference = found.details?.bottlingName || "";
             mappedItem.description = `Producer: ${found.details?.producerName || 'N/A'} | Region: ${found.details?.region || 'N/A'}`;
             mappedItem.detailedDescription = `This is an exceptional bottle of ${found.details?.producerName || 'whisky'} (${found.details?.bottlingName || 'N/A'}). Matured for ${found.details?.age || 'N/A'} years, distilled in ${found.details?.vintageYear || 'N/A'}, strength is ${found.details?.proof || 'N/A'}% ABV. Region: ${found.details?.region || 'N/A'}.`;
-            mappedItem.image = found.details?.frontLabel || "";
-            mappedItem.angles = [found.details?.backLabel, found.details?.fillLevel, found.details?.originalCase].filter(Boolean);
+            mappedItem.image = found.details?.thumbnail || found.details?.image1;
+            mappedItem.angles = [found.details?.image2, found.details?.image3, found.details?.image4,].filter(Boolean);
             mappedItem.provenance = {
               title: "Whisky Provenance & History",
               description: `Produced by ${found.details?.producerName || 'N/A'} in the ${found.details?.region || 'N/A'} region. Stored under ${found.details?.storageCondition || 'excellent'} storage conditions.`,

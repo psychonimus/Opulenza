@@ -107,16 +107,26 @@ const GiftClaimModal = ({ isOpen, onClose }) => {
         }
     };
 
+    const [submitting, setSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState('');
+
     const onSubmit = (data) => {
+        setSubmitting(true);
+        setSubmitError('');
         GiftForm(data)
             .then((response) => {
                 console.log(response);
                 setIsSubmitted(true);
-                refreshUser();
-                navigate('/concierge');
+                if (refreshUser) {
+                    refreshUser();
+                }
             })
             .catch((error) => {
                 console.error(error);
+                setSubmitError(error?.response?.data?.message || error?.message || 'Failed to submit gift claim. Please try again.');
+            })
+            .finally(() => {
+                setSubmitting(false);
             });
     };
 
@@ -270,9 +280,15 @@ const GiftClaimModal = ({ isOpen, onClose }) => {
                                 <div className="gift-form-group half-width empty-slot"></div>
                             </div>
 
+                            {submitError && (
+                                <div style={{ color: '#ff4a4a', fontSize: '0.8rem', textAlign: 'center', marginTop: '0.5rem' }}>
+                                    {submitError}
+                                </div>
+                            )}
+
                             <div className="gift-submit-container">
-                                <button type="submit" className="gift-submit-btn">
-                                    CONTINUE
+                                <button type="submit" className="gift-submit-btn" disabled={submitting}>
+                                    {submitting ? 'PROCESSING...' : 'CONTINUE'}
                                 </button>
                             </div>
                         </form>
@@ -289,13 +305,20 @@ const GiftClaimModal = ({ isOpen, onClose }) => {
                                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
                             </svg>
                         </div>
-                        <h3 className="gift-success-title">Gesture Registered</h3>
+                        <h3 className="gift-success-title">Your Gift Is On The Way</h3>
                         <p className="gift-success-message">
-                            Your welcome gift has been reserved. A courier will dispatch the item to your specified address shortly.
+                            Your welcome gift request has been confirmed and is on the way. Our private courier service will dispatch the item to your specified delivery address shortly.
                         </p>
                         <div className="gift-submit-container">
-                            <button className="gift-submit-btn" onClick={onClose}>
-                                CLOSE
+                            <button
+                                type="button"
+                                className="gift-submit-btn"
+                                onClick={() => {
+                                    onClose();
+                                    navigate('/concierge');
+                                }}
+                            >
+                                CONTINUE TO CONCIERGE
                             </button>
                         </div>
                     </div>

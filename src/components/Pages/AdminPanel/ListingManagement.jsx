@@ -11,11 +11,13 @@ import {
   MdOpenInNew,
   MdDescription,
   MdImage,
+  MdOutlineFileUpload,
 } from "react-icons/md";
 import {
   getSellListing,
   approveSellListing,
   getItemMedia,
+  updateListingItemImage,
 } from "../../../services/sellingServices/getSellListings/getSellListings";
 import { FaCheckCircle, FaSpinner } from "react-icons/fa";
 
@@ -80,6 +82,111 @@ const renderCellValue = (val) => {
   return String(val);
 };
 
+export const resolveListingImageSlots = (details = {}, replacedFiles = {}) => {
+  const allMedia = Object.entries(details).filter(
+    ([, v]) =>
+      (typeof v === "string" &&
+        v.trim() !== "" &&
+        (/^https?:\/\//i.test(v) ||
+          /^blob:/i.test(v) ||
+          /^data:image\//i.test(v))) ||
+      (typeof File !== "undefined" && v instanceof File),
+  );
+
+  const isPdfUrl = (url) => typeof url === "string" && /\.pdf(\?|$)/i.test(url);
+  const isImgUrl = (url) =>
+    typeof url === "string" && /\.(jpe?g|png|webp|gif|bmp|svg)(\?|$)/i.test(url);
+
+  const imgEntries = allMedia.filter(
+    ([key, url]) =>
+      (typeof url !== "string" && typeof File !== "undefined" && url instanceof File) ||
+      /\/Items\/Images\//i.test(url) ||
+      /^blob:/i.test(url) ||
+      /^data:image\//i.test(url) ||
+      (!/\/Items\/Documents\//i.test(url) &&
+        (isImgUrl(url) || /image|photo/i.test(key))),
+  );
+
+  const slots = [];
+  const usedEntryKeys = new Set();
+
+  for (let i = 1; i <= 5; i++) {
+    const defaultKey = `Image${i}`;
+    const lowerKey = `image${i}`;
+
+    let matchedKey = null;
+    let url = null;
+    let file = null;
+
+    // 1. Check if replacedFiles has this slot
+    if (replacedFiles[defaultKey]) {
+      matchedKey = defaultKey;
+      file = replacedFiles[defaultKey];
+      url = details[defaultKey] || (file ? URL.createObjectURL(file) : null);
+    } else if (replacedFiles[lowerKey]) {
+      matchedKey = lowerKey;
+      file = replacedFiles[lowerKey];
+      url = details[lowerKey] || (file ? URL.createObjectURL(file) : null);
+    } else if (details[defaultKey] && (typeof details[defaultKey] === "string" || details[defaultKey] instanceof File)) {
+      matchedKey = defaultKey;
+      url = typeof details[defaultKey] === "string" ? details[defaultKey] : URL.createObjectURL(details[defaultKey]);
+      if (details[defaultKey] instanceof File) file = details[defaultKey];
+    } else if (details[lowerKey] && (typeof details[lowerKey] === "string" || details[lowerKey] instanceof File)) {
+      matchedKey = lowerKey;
+      url = typeof details[lowerKey] === "string" ? details[lowerKey] : URL.createObjectURL(details[lowerKey]);
+      if (details[lowerKey] instanceof File) file = details[lowerKey];
+    }
+
+    if (matchedKey) {
+      usedEntryKeys.add(matchedKey);
+      const label = matchedKey.replace(/([A-Z])/g, " $1").trim();
+      slots.push({
+        slotNumber: i,
+        key: matchedKey,
+        url,
+        file: file || replacedFiles[matchedKey] || null,
+        hasImage: Boolean(url || file),
+        label: label.charAt(0).toUpperCase() + label.slice(1),
+      });
+      continue;
+    }
+
+    // 2. Check for unused imgEntries that don't match Image1..Image5
+    const nextUnusedEntry = imgEntries.find(
+      ([k]) => !usedEntryKeys.has(k) && !/^image[1-5]$/i.test(k)
+    );
+
+    if (nextUnusedEntry) {
+      const [k, v] = nextUnusedEntry;
+      usedEntryKeys.add(k);
+      const entryUrl = typeof v === "string" ? v : URL.createObjectURL(v);
+      const entryFile = replacedFiles[k] || (v instanceof File ? v : null);
+      const label = k.replace(/([A-Z])/g, " $1").trim();
+      slots.push({
+        slotNumber: i,
+        key: k,
+        url: entryUrl,
+        file: entryFile,
+        hasImage: Boolean(entryUrl || entryFile),
+        label: label.charAt(0).toUpperCase() + label.slice(1),
+      });
+      continue;
+    }
+
+    // 3. Slot is empty and ready for upload
+    slots.push({
+      slotNumber: i,
+      key: defaultKey,
+      url: null,
+      file: null,
+      hasImage: false,
+      label: `Image ${i}`,
+    });
+  }
+
+  return slots;
+};
+
 const ListingManagement = () => {
   const [search, setSearch] = useState("");
   const [selectedCat, setSelectedCat] = useState(0);
@@ -99,6 +206,83 @@ const ListingManagement = () => {
     a.click();
     document.body.removeChild(a);
   };
+
+  const handleImageReplace = (e, key) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const newUrl = URL.createObjectURL(file);
+
+    setSelectedListing((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        details: {
+          ...(prev.details || {}),
+          [key]: newUrl,
+        },
+        replacedFiles: {
+          ...(prev.replacedFiles || {}),
+          [key]: file,
+        },
+      };
+    });
+
+    setDataResult((prev) =>
+      prev.map((item) =>
+        item.itemId === selectedListing?.itemId
+          ? {
+              ...item,
+              details: {
+                ...(item.details || {}),
+                [key]: newUrl,
+              },
+              replacedFiles: {
+                ...(item.replacedFiles || {}),
+                [key]: file,
+              },
+            }
+          : item
+      )
+    );
+
+    e.target.value = "";
+  };
+
+  const handleImageRemove = (key) => {
+    setSelectedListing((prev) => {
+      if (!prev) return prev;
+      const nextDetails = { ...(prev.details || {}) };
+      delete nextDetails[key];
+      const nextReplaced = { ...(prev.replacedFiles || {}) };
+      delete nextReplaced[key];
+      return {
+        ...prev,
+        details: nextDetails,
+        replacedFiles: nextReplaced,
+      };
+    });
+
+    setDataResult((prev) =>
+      prev.map((item) => {
+        if (item.itemId === selectedListing?.itemId) {
+          const nextDetails = { ...(item.details || {}) };
+          delete nextDetails[key];
+          const nextReplaced = { ...(item.replacedFiles || {}) };
+          delete nextReplaced[key];
+          return {
+            ...item,
+            details: nextDetails,
+            replacedFiles: nextReplaced,
+          };
+        }
+        return item;
+      })
+    );
+  };
+
+
+  // console.log("selectedListing",selectedListing)
 
   const handleFetchMedia = async (media, action = "view") => {
     const mediaId = media?.id;
@@ -307,14 +491,41 @@ const ListingManagement = () => {
     fetchListings(appliedCat, currentPage);
   }, [currentPage]);
 
-  const handleApproval = (l) => {
+  const handleApproval = async (l) => {
     if (!l?.itemId) return;
     setApprovingId(l.itemId);
+
     const dataObj = {
       itemId: l.itemId,
       IsApproved: true,
       Reason: "Approved by Admin",
     };
+
+    const currentSlots = resolveListingImageSlots(
+      l.details || {},
+      l.replacedFiles || {}
+    );
+
+    // Send as FormData with ItemId and Image1 to Image5
+    const formData = new FormData();
+    formData.append("ItemId", l.itemId);
+    currentSlots.forEach((slot, idx) => {
+      const fieldName = `Image${idx + 1}`;
+      if (slot.file) {
+        formData.append(fieldName, slot.file);
+      } else if (slot.url) {
+        formData.append(fieldName, slot.url);
+      } else {
+        formData.append(fieldName, "");
+      }
+    });
+
+    try {
+      const res = await updateListingItemImage(formData);
+      console.log("Listing images updated successfully:", res);
+    } catch (error) {
+      console.error("Failed to update listing images:", error);
+    }
 
     approveSellListing(dataObj)
       .then((res) => {
@@ -610,7 +821,17 @@ const ListingManagement = () => {
                     <div className="ap-modal-grid">
                       {Object.entries(selectedListing.details)
                         .filter(
-                          ([key]) => key !== "documents" && key !== "images",
+                          ([key, val]) =>
+                            key !== "documents" &&
+                            key !== "images" &&
+                            !/^image[1-5]$/i.test(key) &&
+                            !/^document[1-5]$/i.test(key) &&
+                            !(
+                              typeof val === "string" &&
+                              (/^https?:\/\//i.test(val) ||
+                                /^blob:/i.test(val) ||
+                                /^data:image\//i.test(val))
+                            ),
                         )
                         .map(([key, val]) => {
                           const labelName = key
@@ -645,20 +866,41 @@ const ListingManagement = () => {
               {/* ── derive flat lists of docs & images from details URL strings ── */}
               {(() => {
                 const details = selectedListing?.details || {};
-                const allMedia = Object.entries(details)
-                  .filter(([, v]) => typeof v === "string" && /^https?:\/\//i.test(v));
-
-                const docEntries = allMedia.filter(([, url]) =>
-                  /\/Items\/Documents\//i.test(url)
+                const replacedFiles = selectedListing?.replacedFiles || {};
+                const allMedia = Object.entries(details).filter(
+                  ([, v]) =>
+                    (typeof v === "string" &&
+                      v.trim() !== "" &&
+                      (/^https?:\/\//i.test(v) ||
+                        /^blob:/i.test(v) ||
+                        /^data:image\//i.test(v))) ||
+                    (typeof File !== "undefined" && v instanceof File),
                 );
-                const imgEntries = allMedia.filter(([, url]) =>
-                  /\/Items\/Images\//i.test(url)
-                );
 
-                const isPdfUrl = (url) => /\.pdf(\?|$)/i.test(url);
-                const isImgUrl = (url) => /\.(jpe?g|png|webp|gif|bmp|svg)(\?|$)/i.test(url);
+                const isPdfUrl = (url) => typeof url === "string" && /\.pdf(\?|$)/i.test(url);
+                const isImgUrl = (url) =>
+                  typeof url === "string" &&
+                  /\.(jpe?g|png|webp|gif|bmp|svg)(\?|$)/i.test(url);
                 const extFromUrl = (url) =>
-                  (url.split("?")[0].split(".").pop() || "FILE").toUpperCase();
+                  typeof url === "string"
+                    ? (url.split("?")[0].split(".").pop() || "FILE").toUpperCase()
+                    : "FILE";
+
+                const docEntries = allMedia.filter(
+                  ([key, url]) =>
+                    typeof url === "string" &&
+                    (/\.(pdf|doc|docx|txt)(\?|$)/i.test(url) ||
+                      /\/Items\/Documents\//i.test(url) ||
+                      (!/\/Items\/Images\//i.test(url) &&
+                        !/^blob:/i.test(url) &&
+                        !/^data:image\//i.test(url) &&
+                        !/image|photo/i.test(key) &&
+                        isPdfUrl(url))),
+                );
+
+                const imageSlots = resolveListingImageSlots(details, replacedFiles);
+                const filledCount = imageSlots.filter((s) => s.hasImage).length;
+                const allFiveUploaded = filledCount === 5;
 
                 return (
                   <>
@@ -750,61 +992,128 @@ const ListingManagement = () => {
                       )}
                     </div>
 
-                    {/* Uploaded Images Section */}
+                    {/* Uploaded Images Section - Total 5 slots */}
                     <div className="ap-modal-section">
-                      <div className="ap-modal-section-header">
+                      <div
+                        className="ap-modal-section-header"
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          flexWrap: "wrap",
+                          gap: "8px",
+                        }}
+                      >
                         <h4 className="ap-modal-section-title">
-                          Uploaded Images ({imgEntries.length})
+                          Uploaded Images ({filledCount}/5)
                         </h4>
+                        <div className="ap-image-req-pill">
+                          {allFiveUploaded ? (
+                            <span className="ap-image-pill-complete">
+                              <FaCheckCircle size={13} /> 5 of 5 Images Ready
+                            </span>
+                          ) : (
+                            <span className="ap-image-pill-pending">
+                              {5 - filledCount} slot{5 - filledCount > 1 ? "s" : ""} left to upload
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      {imgEntries.length > 0 ? (
-                        <div className="ap-image-grid">
-                          {imgEntries.map(([key, url]) => {
-                            const label = key.replace(/([A-Z])/g, " $1").trim();
+
+                      <div className="ap-image-grid">
+                        {imageSlots.map((slot) => {
+                          if (slot.hasImage && slot.url) {
                             return (
-                              <div key={key} className="ap-image-card">
+                              <div key={slot.key || slot.slotNumber} className="ap-image-card">
                                 <div
                                   className="ap-image-thumb-wrap"
                                   onClick={() =>
-                                    setPreviewImage({ url, name: label })
+                                    setPreviewImage({ url: slot.url, name: slot.label })
                                   }
                                 >
-                                  <>
-                                    <img
-                                      src={url}
-                                      alt={label}
-                                      className="ap-image-thumb"
-                                    />
-                                    <div className="ap-image-thumb-overlay">
-                                      <MdVisibility size={18} />
-                                      <span>Full View</span>
-                                    </div>
-                                  </>
+                                  <img
+                                    src={slot.url}
+                                    alt={slot.label}
+                                    className="ap-image-thumb"
+                                  />
+                                  <div className="ap-image-thumb-overlay">
+                                    <MdVisibility size={18} />
+                                    <span>Full View</span>
+                                  </div>
+                                  <span className="ap-image-slot-badge">#{slot.slotNumber}</span>
                                 </div>
                                 <div className="ap-image-card__body">
-                                  <div className="ap-image-card__name" title={label}>
-                                    {label}
+                                  <div className="ap-image-card__name" title={slot.label}>
+                                    {slot.label}
                                   </div>
                                   <div className="ap-image-card__actions">
                                     <button
                                       type="button"
                                       className="ap-media-btn ap-media-btn--gold"
-                                      onClick={() => triggerDownload(url, `${key}.jpg`)}
+                                      onClick={() => triggerDownload(slot.url, `${slot.key}.jpg`)}
                                       title="Download Image"
                                     >
                                       <MdFileDownload size={14} /> Download
+                                    </button>
+                                    <label
+                                      className="ap-media-btn ap-media-btn--outline"
+                                      title="Replace Image"
+                                      style={{ cursor: "pointer", margin: 0 }}
+                                    >
+                                      <MdOutlineFileUpload size={14} /> Replace
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        style={{ display: "none" }}
+                                        onChange={(e) => handleImageReplace(e, slot.key)}
+                                      />
+                                    </label>
+                                    <button
+                                      type="button"
+                                      className="ap-media-btn ap-media-btn--danger"
+                                      onClick={() => handleImageRemove(slot.key)}
+                                      title="Remove Image"
+                                    >
+                                      <MdDelete size={14} />
                                     </button>
                                   </div>
                                 </div>
                               </div>
                             );
-                          })}
-                        </div>
-                      ) : (
-                        <div className="ap-media-empty">
-                          No images uploaded for this listing.
-                        </div>
-                      )}
+                          }
+
+                          return (
+                            <div
+                              key={`empty-slot-${slot.slotNumber}`}
+                              className="ap-image-card ap-image-card--empty"
+                            >
+                              <label
+                                className="ap-image-empty-dropzone"
+                                title={`Upload Image ${slot.slotNumber}`}
+                              >
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  style={{ display: "none" }}
+                                  onChange={(e) => handleImageReplace(e, slot.key)}
+                                />
+                                <div className="ap-image-empty-icon-wrap">
+                                  <MdOutlineFileUpload size={26} />
+                                </div>
+                                <span className="ap-image-empty-title">
+                                  Upload Image {slot.slotNumber}
+                                </span>
+                                <span className="ap-image-empty-subtitle">
+                                  Click to select image
+                                </span>
+                                <span className="ap-image-slot-badge ap-image-slot-badge--empty">
+                                  Slot #{slot.slotNumber} Empty
+                                </span>
+                              </label>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   </>
                 );
@@ -813,6 +1122,23 @@ const ListingManagement = () => {
             </div>
 
             <div className="ap-modal-footer">
+              <div className="ap-modal-footer-info">
+                {(() => {
+                  const slots = resolveListingImageSlots(
+                    selectedListing.details || {},
+                    selectedListing.replacedFiles || {}
+                  );
+                  const count = slots.filter((s) => s.hasImage).length;
+                  if (count < 5) {
+                    return (
+                      <span className="ap-footer-warning-text">
+                        * All 5 images required before approval ({count}/5 uploaded)
+                      </span>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
               <button
                 className="ap-btn ap-btn--ghost"
                 onClick={() => setSelectedListing(null)}
@@ -821,13 +1147,32 @@ const ListingManagement = () => {
               </button>
               <button
                 className="ap-btn ap-btn--success"
-                disabled={approvingId === selectedListing.itemId}
+                disabled={
+                  approvingId === selectedListing.itemId ||
+                  resolveListingImageSlots(
+                    selectedListing.details || {},
+                    selectedListing.replacedFiles || {}
+                  ).filter((s) => s.hasImage).length < 5
+                }
+                title={
+                  resolveListingImageSlots(
+                    selectedListing.details || {},
+                    selectedListing.replacedFiles || {}
+                  ).filter((s) => s.hasImage).length < 5
+                    ? "Please upload all 5 images before approving"
+                    : "Approve Listing"
+                }
                 onClick={() => {
                   handleApproval(selectedListing);
                   setSelectedListing(null);
                 }}
               >
-                <FaCheckCircle size={14} /> Approve Listing
+                {approvingId === selectedListing.itemId ? (
+                  <FaSpinner className="ap-spin" size={14} />
+                ) : (
+                  <FaCheckCircle size={14} />
+                )}
+                {approvingId === selectedListing.itemId ? " Approving..." : " Approve Listing"}
               </button>
             </div>
           </div>

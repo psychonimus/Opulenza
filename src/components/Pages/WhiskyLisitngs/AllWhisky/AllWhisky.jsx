@@ -12,6 +12,14 @@ const AllWhisky = () => {
   const [whiskies, setWhiskies] = useState([])
   const [casks, setCasks] = useState([])
 
+  const [whiskyPage, setWhiskyPage] = useState(1)
+  const [whiskyTotalPages, setWhiskyTotalPages] = useState(1)
+  const [whiskyLoading, setWhiskyLoading] = useState(false)
+
+  const [caskPage, setCaskPage] = useState(1)
+  const [caskTotalPages, setCaskTotalPages] = useState(1)
+  const [caskLoading, setCaskLoading] = useState(false)
+
   const [favorites, setFavorites] = useState({})
 
   const toggleFavorite = (id) => {
@@ -21,33 +29,85 @@ const AllWhisky = () => {
     }))
   }
 
-  const getWhiskyListings = () => {
-
-    getApprovedListing(2)
+  const getWhiskyListings = (page = whiskyPage) => {
+    setWhiskyLoading(true)
+    getApprovedListing(2, page)
       .then((res) => {
-        setWhiskies(res?.data.data)
+        const list =
+          res?.data?.data ||
+          res?.data?.items ||
+          res?.data?.paginated ||
+          (Array.isArray(res?.data) ? res.data : [])
+        setWhiskies(Array.isArray(list) ? list : [])
+
+        const totalCount = res?.data?.totalCount || res?.data?.total || res?.data?.totalRecords
+        if (res?.data?.totalPages) {
+          setWhiskyTotalPages(res?.data.totalPages)
+        } else if (totalCount) {
+          setWhiskyTotalPages(Math.max(1, Math.ceil(totalCount / 10)))
+        } else {
+          setWhiskyTotalPages(page + (list.length === 10 ? 1 : 0))
+        }
       })
       .catch((err) => {
         console.log(err)
+        setWhiskies([])
+      })
+      .finally(() => {
+        setWhiskyLoading(false)
       })
   }
 
-
-  const getCasksListings = () => {
-
-    getApprovedListing(6)
+  const getCasksListings = (page = caskPage) => {
+    setCaskLoading(true)
+    getApprovedListing(6, page)
       .then((res) => {
-        setCasks(res?.data.data)
+        const list =
+          res?.data?.data ||
+          res?.data?.items ||
+          res?.data?.paginated ||
+          (Array.isArray(res?.data) ? res.data : [])
+        setCasks(Array.isArray(list) ? list : [])
+
+        const totalCount = res?.data?.totalCount || res?.data?.total || res?.data?.totalRecords
+        if (res?.data?.totalPages) {
+          setCaskTotalPages(res?.data.totalPages)
+        } else if (totalCount) {
+          setCaskTotalPages(Math.max(1, Math.ceil(totalCount / 10)))
+        } else {
+          setCaskTotalPages(page + (list.length === 10 ? 1 : 0))
+        }
       })
       .catch((err) => {
         console.log(err)
+        setCasks([])
+      })
+      .finally(() => {
+        setCaskLoading(false)
       })
   }
 
   useEffect(() => {
-    getWhiskyListings()
-    getCasksListings()
-  }, [])
+    getWhiskyListings(whiskyPage)
+  }, [whiskyPage])
+
+  useEffect(() => {
+    getCasksListings(caskPage)
+  }, [caskPage])
+
+  const handleWhiskyPageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= whiskyTotalPages && newPage !== whiskyPage) {
+      setWhiskyPage(newPage)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
+  const handleCaskPageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= caskTotalPages && newPage !== caskPage) {
+      setCaskPage(newPage)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
 
 
   return (
@@ -106,6 +166,7 @@ const AllWhisky = () => {
               <Link to="/sell" className="listings-empty-state__cta">Submit an Asset</Link>
             </div>
           ) : (
+            <>
             <div className="all-whisky-grid">
               {whiskies?.map((item) => {
 
@@ -115,7 +176,7 @@ const AllWhisky = () => {
                   <div className="whisky-card">
                     <div className="whisky-card__image-wrapper">
                       <img
-                        src={item?.details?.frontLabel}
+                        src={item?.details?.thumbnail}
                         alt={`${item?.details?.bottlingName} ${item?.details?.productionType}`}
                         className="whisky-card__image"
                       />
@@ -187,6 +248,53 @@ const AllWhisky = () => {
                 );
               })}
             </div>
+
+            {/* Whisky Pagination */}
+            {whiskies?.length > 0 && (
+              <div className="whisky-pagination">
+                <button
+                  type="button"
+                  className="whisky-pagination__btn whisky-pagination__btn--nav"
+                  onClick={() => handleWhiskyPageChange(whiskyPage - 1)}
+                  disabled={whiskyPage === 1 || whiskyLoading}
+                  aria-label="Previous Page"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="whisky-pagination__arrow">
+                    <path d="M15 19l-7-7 7-7" />
+                  </svg>
+                  <span>Previous</span>
+                </button>
+
+                <div className="whisky-pagination__pages">
+                  {Array.from({ length: Math.max(1, whiskyTotalPages) }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      type="button"
+                      className={`whisky-pagination__btn whisky-pagination__btn--page ${whiskyPage === page ? 'whisky-pagination__btn--active' : ''}`}
+                      onClick={() => handleWhiskyPageChange(page)}
+                      disabled={whiskyLoading}
+                      aria-label={`Go to page ${page}`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  className="whisky-pagination__btn whisky-pagination__btn--nav"
+                  onClick={() => handleWhiskyPageChange(whiskyPage + 1)}
+                  disabled={whiskyPage === Math.max(1, whiskyTotalPages) || whiskyLoading}
+                  aria-label="Next Page"
+                >
+                  <span>Next</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="whisky-pagination__arrow">
+                    <path d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            )}
+            </>
           )
         )}
 
@@ -207,16 +315,14 @@ const AllWhisky = () => {
               <Link to="/sell" className="listings-empty-state__cta">Submit a Cask</Link>
             </div>
           ) : (
+            <>
             <div className="all-whisky-grid">
               {casks?.map((item) => {
-
-
                 return (
-                  
-                    <div className="whisky-card whisky-card--cask">
+                    <div key={item?.itemId || item?.id} className="whisky-card whisky-card--cask">
                       <div className="whisky-card__cask-ribbon">CASK LOT</div>
                       <div className="whisky-card__image-wrapper">
-                        <img src={item?.details?.frontLabel} alt={item?.details?.caskType} className="whisky-card__image" />
+                        <img src={item?.details?.thumbnail || item?.details?.image1} alt={item?.details?.caskType || 'Cask'} className="whisky-card__image" />
                         <div className="whisky-card__overlay" />
                       </div>
                       <div className="whisky-card__body">
@@ -226,33 +332,29 @@ const AllWhisky = () => {
                         <div className="whisky-card__meta whisky-card__meta--cask">
                           <div className="whisky-card__meta-item">
                             <span className="whisky-card__meta-label">DISTILLERY</span>
-                            <span className="whisky-card__meta-value">{item?.details?.distillesy}</span>
+                            <span className="whisky-card__meta-value">{item?.details?.distillesy || '—'}</span>
                           </div>
                           <div className="whisky-card__meta-item">
                             <span className="whisky-card__meta-label">CASK TYPE</span>
-                            <span className="whisky-card__meta-value">{item?.details?.caskType}</span>
+                            <span className="whisky-card__meta-value">{item?.details?.caskType || '—'}</span>
                           </div>
                           <div className="whisky-card__meta-item">
                             <span className="whisky-card__meta-label">AYS</span>
-                            <span className="whisky-card__meta-value">{item?.details?.ays}</span>
+                            <span className="whisky-card__meta-value">{item?.details?.ays || '—'}</span>
                           </div>
                           <div className="whisky-card__meta-item">
                             <span className="whisky-card__meta-label">ABV</span>
-                            <span className="whisky-card__meta-value">{item?.details?.abv} % ABV</span>
+                            <span className="whisky-card__meta-value">{item?.details?.abv || '—'} % ABV</span>
                           </div>
-                          {/* <div className="whisky-card__meta-item">
-                          <span className="whisky-card__meta-label">VOLUME</span>
-                          <span className="whisky-card__meta-value">{item?.details?.volume} ml</span>
-                        </div> */}
                           <div className="whisky-card__meta-item">
                             <span className="whisky-card__meta-label">BOTTLES</span>
-                            <span className="whisky-card__meta-value">{item?.details?.noOfBottles}</span>
+                            <span className="whisky-card__meta-value">{item?.details?.noOfBottles || '—'}</span>
                           </div>
                         </div>
                         <div className="whisky-card__footer">
                           <div className="whisky-card__bid">
                             <span className="whisky-card__bid-label">EST. CASK VALUE</span>
-                            <span className="whisky-card__bid-value">$ {item?.details?.currentPrice}</span>
+                            <span className="whisky-card__bid-value">$ {item?.details?.currentPrice || item?.currentPrice}</span>
                           </div>
                           <Link
                             to={`/cask/${item?.itemId}`}
@@ -264,10 +366,56 @@ const AllWhisky = () => {
                         </div>
                       </div>
                     </div>
-                  
                 );
               })}
             </div>
+
+            {/* Cask Pagination */}
+            {casks?.length > 0 && (
+              <div className="whisky-pagination">
+                <button
+                  type="button"
+                  className="whisky-pagination__btn whisky-pagination__btn--nav"
+                  onClick={() => handleCaskPageChange(caskPage - 1)}
+                  disabled={caskPage === 1 || caskLoading}
+                  aria-label="Previous Page"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="whisky-pagination__arrow">
+                    <path d="M15 19l-7-7 7-7" />
+                  </svg>
+                  <span>Previous</span>
+                </button>
+
+                <div className="whisky-pagination__pages">
+                  {Array.from({ length: Math.max(1, caskTotalPages) }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      type="button"
+                      className={`whisky-pagination__btn whisky-pagination__btn--page ${caskPage === page ? 'whisky-pagination__btn--active' : ''}`}
+                      onClick={() => handleCaskPageChange(page)}
+                      disabled={caskLoading}
+                      aria-label={`Go to page ${page}`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  className="whisky-pagination__btn whisky-pagination__btn--nav"
+                  onClick={() => handleCaskPageChange(caskPage + 1)}
+                  disabled={caskPage === Math.max(1, caskTotalPages) || caskLoading}
+                  aria-label="Next Page"
+                >
+                  <span>Next</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="whisky-pagination__arrow">
+                    <path d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            )}
+            </>
           )
         )}
       </div>

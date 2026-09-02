@@ -446,8 +446,8 @@ const formFields = {
       half: true,
     },
     {
-      id: "CossgPrice",
-      label: "Cask Price",
+      id: "ExpectedPrice",
+      label: "Cask Expected Price",
       type: "number",
       placeholder: "e.g. 15000",
       half: true,

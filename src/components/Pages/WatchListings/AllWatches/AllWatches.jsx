@@ -85,6 +85,10 @@ const CountdownTimer = ({ endDateStr }) => {
 
 const AllWatches = () => {
   const [favorites, setFavorites] = useState({})
+  const [watches, setWatches] = useState([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [loading, setLoading] = useState(false)
 
   const toggleFavorite = (id) => {
     setFavorites(prev => ({
@@ -93,25 +97,45 @@ const AllWatches = () => {
     }))
   }
 
-
-  const [watches, setWatches] = useState([])
-
-  const getWatchListings = () => {
-    getApprovedListing(3)
+  const getWatchListings = (page = currentPage) => {
+    setLoading(true)
+    getApprovedListing(3, page)
       .then((res) => {
-        setWatches(res?.data.data)
+        const list =
+          res?.data?.data ||
+          res?.data?.items ||
+          res?.data?.paginated ||
+          (Array.isArray(res?.data) ? res.data : [])
+        setWatches(Array.isArray(list) ? list : [])
+
+        const totalCount = res?.data?.totalCount || res?.data?.total || res?.data?.totalRecords
+        if (res?.data?.totalPages) {
+          setTotalPages(res?.data.totalPages)
+        } else if (totalCount) {
+          setTotalPages(Math.max(1, Math.ceil(totalCount / 10)))
+        } else {
+          setTotalPages(page + (list.length === 10 ? 1 : 0))
+        }
       })
       .catch((err) => {
         console.log(err)
+        setWatches([])
+      })
+      .finally(() => {
+        setLoading(false)
       })
   }
 
   useEffect(() => {
-    getWatchListings()
-  }, [])
+    getWatchListings(currentPage)
+  }, [currentPage])
 
-
-  // console.log(watches)
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages && newPage !== currentPage) {
+      setCurrentPage(newPage)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
 
   return (
     <div className="watch-listing-page">
@@ -143,23 +167,11 @@ const AllWatches = () => {
         ) : (
           <div className="watch-grid">
             {watches.map(watch => (
-              <div className="watch-card" key={watch.itemId}>
+              <div className="watch-card" key={watch.itemId || watch.id}>
                 {/* Image Section */}
                 <div className="watch-card__image-container">
-                  <img src={watch.details?.front} alt={watch.details?.brand} className="watch-card__image" />
+                  <img src={watch.details?.thumbnail || watch.details?.image1} alt={watch.details?.brand} className="watch-card__image" />
                   <div className="watch-card__gradient-overlay"></div>
-
-                  {/* Dossier Badge */}
-                  {/* <div className="watch-card__dossier-badge">
-                  <span className="watch-card__dossier-dot"></span>
-                  {watch.badge}
-                </div> */}
-
-                  {/* Current Bid info overlay */}
-                  {/* <div className="watch-card__bid-overlay">
-                  <div className="watch-card__bid-label">CURRENT BID</div>
-                  <div className="watch-card__bid-value">{watch.currentPrice}</div>
-                </div> */}
                 </div>
 
                 {/* Info Section */}
@@ -173,7 +185,7 @@ const AllWatches = () => {
                       onClick={() => toggleFavorite(watch.itemId)}
                       aria-label="Add to wishlist"
                     >
-                      <svg viewBox="0 0 24 24" fill={favorites[watch.id] ? '#D4AF37' : 'none'} stroke={favorites[watch.id] ? '#D4AF37' : 'currentColor'} strokeWidth="1.5" className="watch-card__heart-icon">
+                      <svg viewBox="0 0 24 24" fill={favorites[watch.itemId] ? '#D4AF37' : 'none'} stroke={favorites[watch.itemId] ? '#D4AF37' : 'currentColor'} strokeWidth="1.5" className="watch-card__heart-icon">
                         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                       </svg>
                     </button>
@@ -187,7 +199,7 @@ const AllWatches = () => {
                   <div className="watch-card__details-grid">
                     <div>
                       <div className="watch-card__bid-label">CURRENT BID</div>
-                      <div className="watch-card__bid-value">{watch.currentPrice}</div>
+                      <div className="watch-card__bid-value">${watch.currentPrice}</div>
                     </div>
                     <div className="watch-card__closes-container">
                       <div className="watch-card__closes-label">CLOSES IN</div>
@@ -199,10 +211,6 @@ const AllWatches = () => {
 
                   {/* Card Footer with Countdown and Place Bid */}
                   <div className="watch-card__footer">
-                    {/* <div className="watch-card__closes-container">
-                      <div className="watch-card__closes-label">CLOSES IN</div>
-                      <CountdownTimer endDateStr={watch.auctionEndDate} />
-                    </div> */}
                     <Link to={`/watch/${watch.itemId}`} style={{ textDecoration: "none" }}><button className="watch-card__bid-btn" >
                       PLACE A BID
                     </button></Link>
@@ -210,6 +218,52 @@ const AllWatches = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Watch Pagination */}
+        {watches.length > 0 && (
+          <div className="watch-pagination">
+            <button
+              type="button"
+              className="watch-pagination__btn watch-pagination__btn--nav"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1 || loading}
+              aria-label="Previous Page"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="watch-pagination__arrow">
+                <path d="M15 19l-7-7 7-7" />
+              </svg>
+              <span>Previous</span>
+            </button>
+
+            <div className="watch-pagination__pages">
+              {Array.from({ length: Math.max(1, totalPages) }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  className={`watch-pagination__btn watch-pagination__btn--page ${currentPage === page ? 'watch-pagination__btn--active' : ''}`}
+                  onClick={() => handlePageChange(page)}
+                  disabled={loading}
+                  aria-label={`Go to page ${page}`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              className="watch-pagination__btn watch-pagination__btn--nav"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === Math.max(1, totalPages) || loading}
+              aria-label="Next Page"
+            >
+              <span>Next</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="watch-pagination__arrow">
+                <path d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
           </div>
         )}
 

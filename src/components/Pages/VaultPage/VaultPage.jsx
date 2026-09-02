@@ -559,7 +559,7 @@ const VaultPage = () => {
                   {sellingList.map(item => (
                     <div className="vault-item-card" key={item?.itemId}>
                       <div className="vault-item-card__image">
-                        <img src={item?.details?.boxLidBranding} alt={item?.details?.brand} />
+                        <img src={item?.details?.thumbnail} alt={item?.details?.brand} />
                       </div>
                       <div className="vault-item-card__details">
                         <span className="vault-item-cat">{item?.categoryName}</span>

@@ -201,7 +201,21 @@ const registrationSchema = yup.object().shape({
     .required("Primary phone number is required")
     .min(7, "Primary phone number must be valid"),
   secondaryMobile: yup.string().trim().notRequired(),
-  dateOfBirth: yup.string().required("Date of birth is required"),
+  dateOfBirth: yup
+    .string()
+    .required("Date of birth is required")
+    .test("is-18-or-older", "Age must be 18 years or older", (value) => {
+      if (!value) return false;
+      const dob = new Date(value);
+      if (isNaN(dob.getTime())) return false;
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const monthDiff = today.getMonth() - dob.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+        age--;
+      }
+      return age >= 18;
+    }),
   gender: yup.string().required("Gender is required"),
   familyOfficeName: yup.string().trim().notRequired(),
   companyName: yup.string().trim().notRequired(),
@@ -231,6 +245,12 @@ const RegistrationModal = ({
   const [primaryCountryCode, setPrimaryCountryCode] = useState("+1");
   const [secondaryCountryCode, setSecondaryCountryCode] = useState("+1");
   const [countryCodes, setCountryCodes] = useState(DEFAULT_COUNTRY_CODES);
+
+  const maxDobDate = (() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() - 18);
+    return d.toISOString().split("T")[0];
+  })();
 
   useEffect(() => {
     let isMounted = true;
@@ -518,6 +538,7 @@ const RegistrationModal = ({
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>
+                  <option value="Prefer not to say">Prefer not to say</option>
                 </select>
                 {errors.gender && (
                   <span className="pa-field-error">
@@ -595,6 +616,7 @@ const RegistrationModal = ({
                 <label className="pa-field-label">DATE OF BIRTH *</label>
                 <input
                   type="date"
+                  max={maxDobDate}
                   className="pa-field-input"
                   {...register("dateOfBirth")}
                 />
