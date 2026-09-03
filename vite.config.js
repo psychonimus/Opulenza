@@ -8,5 +8,13 @@ export default defineConfig({
     watch: {
       usePolling: true,
     },
+    proxy: {
+      '/OpulenzaReserve': {
+        target: 'https://kompasshr.com',
+        changeOrigin: true,
+        secure: false,
+        ws: true,
+      },
+    },
   },
 })

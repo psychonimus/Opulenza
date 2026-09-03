@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { FaSpinner } from 'react-icons/fa'
+import * as signalR from '@microsoft/signalr'
+import connection from '../../../../services/signalR/auctionSignalR'
 import { getApprovedListing } from '../../../../services/sellingServices/getSellListings/getSellListings'
 import cigarData from '../../../../data/CigarData'
 import { AddBid, getLatestBid } from '../../../../services/biddingServices/BiddingServices'
@@ -71,7 +73,93 @@ const DetailedCigarPage = () => {
         seconds: 0
     })
 
+    useEffect(() => {
+        const targetId = item?.itemId || id
+        if (!targetId) return
 
+        const currentItemId = String(targetId)
+        let isSubscribed = true
+
+        const connectToAuction = async () => {
+            try {
+                if (connection.state === signalR.HubConnectionState.Disconnected) {
+                    console.log("%c[SignalR] Starting connection...", "color: #3b82f6; font-weight: bold;");
+                    await connection.start()
+                    console.log("%c[SignalR] Connected successfully!", "color: #10b981; font-weight: bold;", {
+                        connectionId: connection.connectionId,
+                        state: connection.state
+                    });
+                }
+
+                if (connection.state === signalR.HubConnectionState.Connected) {
+                    console.log("%c[SignalR] Invoking JoinItem for Item ID:", "color: #d4af37; font-weight: bold;", Number(currentItemId));
+                    await connection.invoke("JoinItem", Number(currentItemId))
+                    console.log("%c[SignalR] Successfully joined auction room for item:", "color: #10b981; font-weight: bold;", currentItemId);
+                }
+
+                const handleBidUpdated = (data) => {
+                    if (!isSubscribed || !data) return
+                    console.log("%c[SignalR] Real-time Bid update received:", "color: #a855f7; font-weight: bold;", data);
+                    
+                    const incomingId = String(data.itemId ?? data.ItemId ?? data.id ?? data.Id ?? '')
+                    if (!incomingId || incomingId === currentItemId) {
+                        const newPrice = data.currentPrice ?? data.CurrentPrice ?? data.currentBid ?? data.CurrentBid ?? data.bidAmount ?? data.BidAmount ?? data.price ?? data.Price
+                        const nextBid = data.minNextBid ?? data.MinNextBid ?? data.nextBid ?? data.NextBid ?? data.bidIncrement ?? data.BidIncrement ?? data.nextMinimumBid
+                        const count = data.countOfBidders ?? data.CountOfBidders ?? data.activeBidders ?? data.ActiveBidders ?? data.biddersCount ?? data.BiddersCount
+                        const latestBidsList = data.latestBids ?? data.LatestBids ?? data.bids ?? data.Bids
+
+                        if (newPrice != null && !isNaN(Number(newPrice))) {
+                            setCurrentBid(Number(newPrice))
+                        }
+                        if (nextBid != null && !isNaN(Number(nextBid))) {
+                            setCustomBidAmount(Number(nextBid))
+                        } else if (newPrice != null && !isNaN(Number(newPrice))) {
+                            setCustomBidAmount(Number(newPrice) + (item?.bidIncrement || 500))
+                        }
+                        if (count != null && !isNaN(Number(count))) {
+                            setBiddersCount(Number(count))
+                        }
+                        if (Array.isArray(latestBidsList) && latestBidsList.length > 0) {
+                            setBids(latestBidsList)
+                        }
+
+                        setItem((prev) => {
+                            if (!prev) return prev
+                            return {
+                                ...prev,
+                                currentBidNumber: newPrice != null ? Number(newPrice) : prev.currentBidNumber,
+                                bidIncrement: nextBid != null ? Number(nextBid) : prev.bidIncrement,
+                                activeBidders: count != null ? Number(count) : prev.activeBidders
+                            }
+                        })
+
+                        fetchLatestBid()
+                    }
+                }
+
+                // Register listeners for common SignalR bidding event names
+                const events = ["BidUpdated", "ReceiveBid", "BidPlaced", "UpdateBid", "ReceiveBidUpdate"]
+                events.forEach(ev => {
+                    connection.off(ev)
+                    connection.on(ev, handleBidUpdated)
+                })
+            } catch (error) {
+                console.error("%c[SignalR] Connection or invocation error:", "color: #ef4444; font-weight: bold;", error)
+            }
+        }
+
+        connectToAuction()
+
+        return () => {
+            isSubscribed = false
+            if (connection.state === signalR.HubConnectionState.Connected) {
+                console.log("%c[SignalR] Leaving auction room for Item ID:", "color: #64748b;", Number(currentItemId));
+                connection.invoke("LeaveItem", Number(currentItemId)).catch((err) => console.warn("[SignalR] LeaveItem warning:", err))
+            }
+            const events = ["BidUpdated", "ReceiveBid", "BidPlaced", "UpdateBid", "ReceiveBidUpdate"]
+            events.forEach(ev => connection.off(ev))
+        }
+    }, [id, item?.itemId])
 
     useEffect(() => {
         setLoading(true)
@@ -135,21 +223,49 @@ const DetailedCigarPage = () => {
     // console.log("this is the item", item)
 
     const fetchLatestBid = () => {
-        getLatestBid(item?.itemId)
+        const targetId = item?.itemId || id
+        if (!targetId) return
+
+        getLatestBid(targetId)
             .then((res) => {
-                // setLatestBidData(res?.data);
-                for (let i = 0; i < res?.data?.length; i++) {
-                    if (item?.itemId === res?.data[i].itemId) {
-                        setItem((prev) => ({ ...prev, currentBidNumber: res?.data[i].bidData?.currentBid, bidIncrement: res?.data[i].bidData?.nextBid, activeBidders: res?.data[i].countOfBidders }))
+                const raw = res?.data
+                const dataObj = raw?.data || raw
+                
+                if (Array.isArray(raw)) {
+                    const match = raw.find(b => Number(b.itemId) === Number(targetId))
+                    if (match) {
+                        const curBid = match.bidData?.currentBid ?? match.currentBid
+                        const nextB = match.bidData?.nextBid ?? match.nextBid
+                        const countB = match.countOfBidders ?? match.activeBidders
+                        if (curBid != null) setCurrentBid(Number(curBid))
+                        if (countB != null) setBiddersCount(Number(countB))
+                        if (match.latestBids) setBids(match.latestBids)
+                        setItem(prev => prev ? ({
+                            ...prev,
+                            currentBidNumber: curBid != null ? Number(curBid) : prev.currentBidNumber,
+                            bidIncrement: nextB != null ? Number(nextB) : prev.bidIncrement,
+                            activeBidders: countB != null ? Number(countB) : prev.activeBidders
+                        }) : prev)
                     }
+                } else if (dataObj && typeof dataObj === 'object') {
+                    const countB = dataObj.countOfBidders ?? dataObj.activeBidders ?? dataObj.biddersCount
+                    const curBid = dataObj.currentBid ?? dataObj.bidData?.currentBid ?? dataObj.currentPrice
+                    const nextB = dataObj.nextBid ?? dataObj.bidData?.nextBid ?? dataObj.minNextBid ?? dataObj.bidIncrement
+                    const latestB = dataObj.latestBids ?? dataObj.bids
 
+                    if (countB != null) setBiddersCount(Number(countB))
+                    if (curBid != null) setCurrentBid(Number(curBid))
+                    if (Array.isArray(latestB)) setBids(latestB)
+                    setItem(prev => prev ? ({
+                        ...prev,
+                        currentBidNumber: curBid != null ? Number(curBid) : prev.currentBidNumber,
+                        bidIncrement: nextB != null ? Number(nextB) : prev.bidIncrement,
+                        activeBidders: countB != null ? Number(countB) : prev.activeBidders
+                    }) : prev)
                 }
-                setBiddersCount(res?.data.data.countOfBidders);
-                setBids(res?.data.data.latestBids);
-
             })
             .catch((err) => {
-                console.error(err);
+                console.warn("[Bidding] fetchLatestBid error:", err);
             })
     }
 
@@ -284,6 +400,7 @@ const DetailedCigarPage = () => {
                 setCurrentBid(amt)
                 setBids(prev => [newBidObj, ...prev])
                 setBiddersCount(prev => prev + 1)
+                fetchLatestBid();
                 setShowBidModal(false)
                 setSuccessMessage(`Bid of ${formatCurrency(amt)} placed successfully!`)
                 setTimeout(() => setSuccessMessage(''), 4000)

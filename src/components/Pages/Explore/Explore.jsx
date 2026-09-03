@@ -66,6 +66,8 @@ const CountdownTimer = ({ days, hours, minutes, seconds, endDate }) => {
 const Explore = () => {
   const [favorites, setFavorites] = useState({})
   const [activeCategory, setActiveCategory] = useState('All')
+  const [currentPage, setCurrentPage] = useState(1)
+  const PAGE_SIZE = 10
 
   const [cigarData, setCigarData] = useState([]);
   const [whiskyData, setWhiskyData] = useState([]);
@@ -155,23 +157,6 @@ const Explore = () => {
     getYachtListings()
   }, [])
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   const toggleFavorite = (key) => {
     setFavorites(prev => ({
       ...prev,
@@ -181,12 +166,12 @@ const Explore = () => {
 
   // Combine all items and shuffle them randomly so that they are mixed together in the "ALL" tab
   const allItems = useMemo(() => {
-    const watches = watchData.map(item => ({ ...item, category: 'WATCHES', link: `/watch/${item.itemId}` }))
-    const whiskies = whiskyData.map(item => ({ ...item, category: 'WHISKIES', link: `/whisky/${item.itemId}` }))
-    const casks = caskData.map(item => ({ ...item, category: 'CASK', link: `/cask/${item.itemId}` }))
-    const cigars = cigarData.map(item => ({ ...item, category: 'CIGARS', link: `/cigar/${item.itemId}` }))
-    const pens = penData.map(item => ({ ...item, category: 'PENS', link: `/pen/${item.itemId}` }))
-    const yachts = yachtData.map(item => ({ ...item, category: 'YACHTS', link: `/yacht/${item.itemId}` }))
+    const watches = (watchData || []).map(item => ({ ...item, category: 'WATCHES', link: `/watch/${item.itemId}` }))
+    const whiskies = (whiskyData || []).map(item => ({ ...item, category: 'WHISKIES', link: `/whisky/${item.itemId}` }))
+    const casks = (caskData || []).map(item => ({ ...item, category: 'CASK', link: `/cask/${item.itemId}` }))
+    const cigars = (cigarData || []).map(item => ({ ...item, category: 'CIGARS', link: `/cigar/${item.itemId}` }))
+    const pens = (penData || []).map(item => ({ ...item, category: 'PENS', link: `/pen/${item.itemId}` }))
+    const yachts = (yachtData || []).map(item => ({ ...item, category: 'YACHTS', link: `/yacht/${item.itemId}` }))
     const combined = [...watches, ...whiskies, ...casks, ...cigars, ...pens, ...yachts]
 
     // Stable Fisher-Yates shuffle
@@ -211,6 +196,30 @@ const Explore = () => {
         if (activeCat === 'yachts' && (itemCat.includes('yacht') || itemCat.includes('yachts'))) return true;
         return itemCat.includes(activeCat) || activeCat.includes(itemCat);
       })
+
+  const totalPages = Math.max(1, Math.ceil((filteredItems?.length || 0) / PAGE_SIZE))
+
+  const paginatedItems = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE
+    return (filteredItems || []).slice(start, start + PAGE_SIZE)
+  }, [filteredItems, currentPage, PAGE_SIZE])
+
+  const handleCategorySelect = (cat) => {
+    setActiveCategory(cat)
+    setCurrentPage(1)
+  }
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages && newPage !== currentPage) {
+      setCurrentPage(newPage)
+      const filterSection = document.querySelector('.explore-filters')
+      if (filterSection) {
+        filterSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+    }
+  }
 
   const categories = ['All', 'Cigars', 'Whisky', 'Cask', 'Watches', 'Luxury Pens', 'Yachts']
 
@@ -240,7 +249,7 @@ const Explore = () => {
               <button
                 key={cat}
                 className={`explore-tab-btn ${activeCategory === cat ? 'explore-tab-btn--active' : ''}`}
-                onClick={() => setActiveCategory(cat)}
+                onClick={() => handleCategorySelect(cat)}
               >
                 {cat}
                 {activeCategory === cat && <span className="explore-tab-indicator"></span>}
@@ -258,8 +267,9 @@ const Explore = () => {
               <h3>No assets found in this category.</h3>
             </div>
           ) : (
-            <div className="explore-grid">
-              {filteredItems?.map(item => {
+            <>
+              <div className="explore-grid">
+                {paginatedItems?.map(item => {
                 const uniqueKey = `${item?.categoryName}-${item?.itemId}`
                 const catName = item?.categoryName?.toLowerCase() || '';
                 const isWatch = catName.includes('watch') || item?.categoryId === 3;
@@ -499,6 +509,51 @@ const Explore = () => {
                 )
               })}
             </div>
+
+            {filteredItems?.length > 0 && (
+                <div className="explore-pagination">
+                  <button
+                    type="button"
+                    className="explore-pagination__btn explore-pagination__btn--nav"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    aria-label="Previous Page"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="explore-pagination__arrow">
+                      <path d="M15 19l-7-7 7-7" />
+                    </svg>
+                    <span>Previous</span>
+                  </button>
+
+                  <div className="explore-pagination__pages">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        type="button"
+                        className={`explore-pagination__btn explore-pagination__btn--page ${currentPage === page ? 'explore-pagination__btn--active' : ''}`}
+                        onClick={() => handlePageChange(page)}
+                        aria-label={`Go to page ${page}`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    className="explore-pagination__btn explore-pagination__btn--nav"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    aria-label="Next Page"
+                  >
+                    <span>Next</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="explore-pagination__arrow">
+                      <path d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>

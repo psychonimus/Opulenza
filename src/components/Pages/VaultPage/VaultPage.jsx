@@ -563,7 +563,7 @@ const VaultPage = () => {
                       </div>
                       <div className="vault-item-card__details">
                         <span className="vault-item-cat">{item?.categoryName}</span>
-                        <h3 className="vault-item-title">{item?.details?.brand} <span className="vault-item-ref">{item?.details?.editionName}</span></h3>
+                        <h3 className="vault-item-title">{item?.details?.brand || item?.details?.caskType} <span className="vault-item-ref">{item?.details?.distillesy}</span></h3>
                         <div className="vault-item-specs">
                           <div>
                             <span className="vault-spec-label">CURRENT BID</span>
