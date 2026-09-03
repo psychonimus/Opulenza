@@ -14,6 +14,10 @@ export const updateListingItemImage = (dataObject) => {
     return api.post(`api/item/EditImages`, dataObject);
 };
 
+export const updateWishListItem = (dataObject) => {
+    return api.post(`api/item/UpdateWishlist`, dataObject);
+};
+
 
 
 
@@ -27,6 +31,11 @@ export const getApprovedListing = (selectedCat, pageNumber = 1) => {
 
 export const getItemMedia = (itemId, mediaId) => {
     return api.get(`api/item/${itemId}/media/${mediaId}`);
+};
+
+
+export const getMyWishList = () => {
+    return api.get(`api/item/GetWishlist?PageSize=10&PageNumber=1`);
 };
 
 

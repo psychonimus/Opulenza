@@ -258,6 +258,33 @@
     height: 14px;
 }
 
+/* ── Wishlist Heart Button ───────────────────────────────────── */
+.watch-card__favorite-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.45);
+    padding: 0.35rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.25s ease, transform 0.2s ease;
+}
+
+.watch-card__favorite-btn:hover {
+    color: #D4AF37;
+    transform: scale(1.1);
+}
+
+.watch-card__favorite-btn--active {
+    color: #D4AF37;
+}
+
+.watch-card__heart-icon {
+    width: 20px;
+    height: 20px;
+}
+
 /* ── Responsive ──────────────────────────────────────────────── */
 @media (max-width: 1024px) {
     .all-cigar-grid {

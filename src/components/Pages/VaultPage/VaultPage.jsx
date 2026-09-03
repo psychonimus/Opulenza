@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import './VaultPage.css'
 import { GetMySoldItems } from '../../../services/getUserData/GetUserData'
+import { getMyWishList } from '../../../services/sellingServices/getSellListings/getSellListings'
+
+
 
 
 
@@ -150,6 +153,54 @@ const VaultPage = () => {
   const [paymentSuccess, setPaymentSuccess] = useState(false)
   const [promoCode, setPromoCode] = useState('')
   const [discount, setDiscount] = useState(0)
+
+  const[myWishList, setMyWishList] = useState([]);
+
+
+
+  const myWhishList = () => {
+          getMyWishList()
+              .then((res) => {
+                setMyWishList(res?.data?.data)
+                  
+              })
+              .catch((err) => {
+                  console.error(err)
+              })
+      }
+  
+    
+  
+      useEffect(() => {
+          myWhishList()
+      }, [])
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   // Countdown logic for active bids & watchlist items
   useEffect(() => {
@@ -310,24 +361,6 @@ const VaultPage = () => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   return (
     <div className="vault-page">
       <div className="vault-page__bg-overlay" />
@@ -369,7 +402,7 @@ const VaultPage = () => {
             className={`vault-tab-btn ${activeTab === 'watchlist' ? 'vault-tab-btn--active' : ''}`}
             onClick={() => setActiveTab('watchlist')}
           >
-            WATCHLIST ({watchlist.length})
+            WATCHLIST ({myWishList.length})
             {activeTab === 'watchlist' && <span className="vault-tab-indicator" />}
           </button>
 
@@ -505,37 +538,37 @@ const VaultPage = () => {
           {/* 4. Watchlist Tab */}
           {activeTab === 'watchlist' && (
             <div className="vault-panel-grid fade-in-animation">
-              {watchlist.length === 0 ? (
+              {myWishList.length === 0 ? (
                 <div className="vault-empty-state">
                   <p>Your watchlist is currently empty.</p>
                   <Link to="/bidPage" className="vault-explore-btn">EXPLORE ACTIVE LOTS</Link>
                 </div>
               ) : (
                 <div className="vault-items-list">
-                  {watchlist.map(item => (
-                    <div className="vault-item-card" key={item.id}>
+                  {myWishList?.map(item => (
+                    <div className="vault-item-card" key={item.itemId}>
                       <div className="vault-item-card__image">
-                        <img src={item.image} alt={item.title} />
+                        <img src={item?.details?.thumbnail} alt={item?.details?.brand} />
                       </div>
                       <div className="vault-item-card__details">
-                        <span className="vault-item-cat">{item.category}</span>
-                        <h3 className="vault-item-title">{item.title} <span className="vault-item-ref">{item.reference}</span></h3>
+                        <span className="vault-item-cat">{item.categoryName}</span>
+                        <h3 className="vault-item-title">{item?.details?.brand} <span className="vault-item-ref">{item?.details?.reference}</span></h3>
                         <div className="vault-item-specs">
                           <div>
                             <span className="vault-spec-label">CURRENT BID</span>
-                            <span className="vault-spec-val">{formatCurrency(item.currentBid)}</span>
+                            <span className="vault-spec-val">{formatCurrency(item?.currentPrice)}</span>
                           </div>
                           <div>
                             <span className="vault-spec-label">TIME REMAINING</span>
-                            <span className="vault-spec-val vault-spec-val--timer">{formatTime(item.timeLeft)}</span>
+                            <span className="vault-spec-val vault-spec-val--timer">{formatTime(item?.auctionEndDate)}</span>
                           </div>
                         </div>
                       </div>
                       <div className="vault-item-card__action-zone">
-                        <button className="vault-cart-remove-btn" style={{ marginBottom: '10px' }} onClick={() => handleRemoveWatchlist(item.id)}>
+                        {/* <button className="vault-cart-remove-btn" style={{ marginBottom: '10px' }} onClick={() => handleRemoveWatchlist(item.id)}>
                           UNWATCH
-                        </button>
-                        <Link to={item.link} className="vault-action-btn">
+                        </button> */}
+                        <Link to={getItemLink(item)} className="vault-action-btn">
                           PLACE A BID
                         </Link>
                       </div>
@@ -576,9 +609,9 @@ const VaultPage = () => {
                         </div>
                       </div>
                       <div className="vault-item-card__action-zone">
-                        <button className="vault-cart-remove-btn" style={{ marginBottom: '10px' }} onClick={() => handleRemoveSellingList(item?.itemId)}>
+                        {/* <button className="vault-cart-remove-btn" style={{ marginBottom: '10px' }} onClick={() => handleRemoveSellingList(item?.itemId)}>
                           REMOVE FROM LISTING
-                        </button>
+                        </button> */}
                         <Link to={getItemLink(item)} className="vault-action-btn">
                           VIEW LISTING
                         </Link>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 // import whiskyData, { CaskData } from "../../../../data/WhiskyData";
 import "./AllWhisky.css";
-import { getApprovedListing } from '../../../../services/sellingServices/getSellListings/getSellListings'
+import { getApprovedListing, updateWishListItem } from '../../../../services/sellingServices/getSellListings/getSellListings'
 
 
 const AllWhisky = () => {
@@ -22,11 +22,38 @@ const AllWhisky = () => {
 
   const [favorites, setFavorites] = useState({})
 
-  const toggleFavorite = (id) => {
+  const handleWishList = (itemId) => {
+    const currentItem = whiskies.find(c => c.itemId === itemId)
+    const currentFav = favorites[itemId] !== undefined
+      ? favorites[itemId]
+      : !!(currentItem?.isWishList ?? currentItem?.IsWishList)
+    const newStatus = !currentFav
+
+    const dataObject = {
+      ItemId: itemId,
+      IsWishList: newStatus
+    }
+
+    // Optimistically update UI
     setFavorites(prev => ({
       ...prev,
-      [id]: !prev[id]
+      [itemId]: newStatus
     }))
+    setWhiskies(prev => prev.map(c => c.itemId === itemId ? { ...c, isWishList: newStatus, IsWishList: newStatus } : c))
+
+    updateWishListItem(dataObject)
+      .then((res) => {
+        console.log("[Wishlist updated]", res?.data)
+      })
+      .catch((err) => {
+        console.error("[Wishlist update failed]", err)
+        // Revert on failure
+        setFavorites(prev => ({
+          ...prev,
+          [itemId]: currentFav
+        }))
+        setWhiskies(prev => prev.map(c => c.itemId === itemId ? { ...c, isWishList: currentFav, IsWishList: currentFav } : c))
+      })
   }
 
   const getWhiskyListings = (page = whiskyPage) => {
@@ -167,133 +194,135 @@ const AllWhisky = () => {
             </div>
           ) : (
             <>
-            <div className="all-whisky-grid">
-              {whiskies?.map((item) => {
+              <div className="all-whisky-grid">
+                {whiskies?.map((item) => {
+                  const isFav = favorites[item.itemId] !== undefined 
+                                ? favorites[item.itemId] 
+                                : !!(item.isWishList ?? item.IsWishList);
 
+                  return (
 
-                return (
+                    <div className="whisky-card">
+                      <div className="whisky-card__image-wrapper">
+                        <img
+                          src={item?.details?.thumbnail}
+                          alt={`${item?.details?.bottlingName} ${item?.details?.productionType}`}
+                          className="whisky-card__image"
+                        />
+                        <div className="whisky-card__overlay" />
 
-                  <div className="whisky-card">
-                    <div className="whisky-card__image-wrapper">
-                      <img
-                        src={item?.details?.thumbnail}
-                        alt={`${item?.details?.bottlingName} ${item?.details?.productionType}`}
-                        className="whisky-card__image"
-                      />
-                      <div className="whisky-card__overlay" />
-
-                    </div>
-                    <div className="whisky-card__body">
-                      <div className="d-flex justify-content-between">
-                        <div>
-                          <h3 className="whisky-card__title">{item?.details?.producerName}</h3>
-                          <p className="whisky-card__reference">{item?.details?.bottlingName}</p>
-                          <p className="whisky-card__desc">{item?.details?.storageCondition}</p>
+                      </div>
+                      <div className="whisky-card__body">
+                        <div className="d-flex justify-content-between">
+                          <div>
+                            <h3 className="whisky-card__title">{item?.details?.producerName}</h3>
+                            <p className="whisky-card__reference">{item?.details?.bottlingName}</p>
+                            <p className="whisky-card__desc">{item?.details?.storageCondition}</p>
+                          </div>
+                          <div>
+                            {/* <span className="whisky-card__badge">{item?.details?.region}</span> */}
+                            <button
+                              className={`watch-card__favorite-btn ${isFav ? 'watch-card__favorite-btn--active' : ''}`}
+                              onClick={() => handleWishList(item.itemId)}
+                              aria-label="Add to wishlist"
+                            >
+                              <svg viewBox="0 0 24 24" fill={isFav ? '#D4AF37' : 'none'} stroke={isFav ? '#D4AF37' : 'currentColor'} strokeWidth="1.5" className="watch-card__heart-icon">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                              </svg>
+                            </button>
+                          </div>
                         </div>
-                        <div>
-                          {/* <span className="whisky-card__badge">{item?.details?.region}</span> */}
-                          <button
-                            className={`watch-card__favorite-btn ${favorites[item.itemId] ? 'watch-card__favorite-btn--active' : ''}`}
-                            onClick={() => toggleFavorite(item.itemId)}
-                            aria-label="Add to wishlist"
+                        <div className="whisky-card__meta">
+                          <div className="whisky-card__meta-item">
+                            <span className="whisky-card__meta-label">DISTILLERY</span>
+                            <span className="whisky-card__meta-value">{item?.details?.distilleryStatus}</span>
+                          </div>
+                          <div className="whisky-card__meta-item">
+                            <span className="whisky-card__meta-label">VINTAGE</span>
+                            <span className="whisky-card__meta-value">{item?.details?.vintageYear}</span>
+                          </div>
+                          <div className="whisky-card__meta-item">
+                            <span className="whisky-card__meta-label">PRODUCTION TYPE</span>
+                            <span className="whisky-card__meta-value">{item?.details?.productionType}</span>
+                          </div>
+                          <div className="whisky-card__meta-item">
+                            <span className="whisky-card__meta-label">AGE</span>
+                            <span className="whisky-card__meta-value">{item?.details?.age} Years Aged</span>
+                          </div>
+                          <div className="whisky-card__meta-item">
+                            <span className="whisky-card__meta-label">Strength</span>
+                            <span className="whisky-card__meta-value">{item?.details?.proof} % ABV</span>
+                          </div>
+                          <div className="whisky-card__meta-item">
+                            <span className="whisky-card__meta-label">BOTTLE</span>
+                            <span className="whisky-card__meta-value">{item?.details?.bottle}</span>
+                          </div>
+                        </div>
+                        <div className="whisky-card__footer">
+                          <div className="whisky-card__bid">
+                            <span className="whisky-card__bid-label">CURRENT BID</span>
+                            <span className="whisky-card__bid-value">{item?.currency === 'USD' ? "$" : ""} {item.currentPrice}</span>
+                          </div>
+                          <Link
+                            to={`/whisky/${item.itemId}`}
+                            key={item.itemId}
+                            className="whisky-card-link"
                           >
-                            <svg viewBox="0 0 24 24" fill={favorites[item.itemId] ? '#D4AF37' : 'none'} stroke={favorites[item.itemId] ? '#D4AF37' : 'currentColor'} strokeWidth="1.5" className="watch-card__heart-icon">
-                              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                            </svg>
-                          </button>
+                            <span className="whisky-card__cta">BID NOW →</span>
+                          </Link>
                         </div>
-                      </div>
-                      <div className="whisky-card__meta">
-                        <div className="whisky-card__meta-item">
-                          <span className="whisky-card__meta-label">DISTILLERY</span>
-                          <span className="whisky-card__meta-value">{item?.details?.distilleryStatus}</span>
-                        </div>
-                        <div className="whisky-card__meta-item">
-                          <span className="whisky-card__meta-label">VINTAGE</span>
-                          <span className="whisky-card__meta-value">{item?.details?.vintageYear}</span>
-                        </div>
-                        <div className="whisky-card__meta-item">
-                          <span className="whisky-card__meta-label">PRODUCTION TYPE</span>
-                          <span className="whisky-card__meta-value">{item?.details?.productionType}</span>
-                        </div>
-                        <div className="whisky-card__meta-item">
-                          <span className="whisky-card__meta-label">AGE</span>
-                          <span className="whisky-card__meta-value">{item?.details?.age} Years Aged</span>
-                        </div>
-                        <div className="whisky-card__meta-item">
-                          <span className="whisky-card__meta-label">Strength</span>
-                          <span className="whisky-card__meta-value">{item?.details?.proof} % ABV</span>
-                        </div>
-                        <div className="whisky-card__meta-item">
-                          <span className="whisky-card__meta-label">BOTTLE</span>
-                          <span className="whisky-card__meta-value">{item?.details?.bottle}</span>
-                        </div>
-                      </div>
-                      <div className="whisky-card__footer">
-                        <div className="whisky-card__bid">
-                          <span className="whisky-card__bid-label">CURRENT BID</span>
-                          <span className="whisky-card__bid-value">{item?.currency === 'USD' ? "$" : ""} {item.currentPrice}</span>
-                        </div>
-                        <Link
-                          to={`/whisky/${item.itemId}`}
-                          key={item.itemId}
-                          className="whisky-card-link"
-                        >
-                          <span className="whisky-card__cta">BID NOW →</span>
-                        </Link>
                       </div>
                     </div>
+
+                  );
+                })}
+              </div>
+
+              {/* Whisky Pagination */}
+              {whiskies?.length > 0 && (
+                <div className="whisky-pagination">
+                  <button
+                    type="button"
+                    className="whisky-pagination__btn whisky-pagination__btn--nav"
+                    onClick={() => handleWhiskyPageChange(whiskyPage - 1)}
+                    disabled={whiskyPage === 1 || whiskyLoading}
+                    aria-label="Previous Page"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="whisky-pagination__arrow">
+                      <path d="M15 19l-7-7 7-7" />
+                    </svg>
+                    <span>Previous</span>
+                  </button>
+
+                  <div className="whisky-pagination__pages">
+                    {Array.from({ length: Math.max(1, whiskyTotalPages) }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        type="button"
+                        className={`whisky-pagination__btn whisky-pagination__btn--page ${whiskyPage === page ? 'whisky-pagination__btn--active' : ''}`}
+                        onClick={() => handleWhiskyPageChange(page)}
+                        disabled={whiskyLoading}
+                        aria-label={`Go to page ${page}`}
+                      >
+                        {page}
+                      </button>
+                    ))}
                   </div>
 
-                );
-              })}
-            </div>
-
-            {/* Whisky Pagination */}
-            {whiskies?.length > 0 && (
-              <div className="whisky-pagination">
-                <button
-                  type="button"
-                  className="whisky-pagination__btn whisky-pagination__btn--nav"
-                  onClick={() => handleWhiskyPageChange(whiskyPage - 1)}
-                  disabled={whiskyPage === 1 || whiskyLoading}
-                  aria-label="Previous Page"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="whisky-pagination__arrow">
-                    <path d="M15 19l-7-7 7-7" />
-                  </svg>
-                  <span>Previous</span>
-                </button>
-
-                <div className="whisky-pagination__pages">
-                  {Array.from({ length: Math.max(1, whiskyTotalPages) }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      type="button"
-                      className={`whisky-pagination__btn whisky-pagination__btn--page ${whiskyPage === page ? 'whisky-pagination__btn--active' : ''}`}
-                      onClick={() => handleWhiskyPageChange(page)}
-                      disabled={whiskyLoading}
-                      aria-label={`Go to page ${page}`}
-                    >
-                      {page}
-                    </button>
-                  ))}
+                  <button
+                    type="button"
+                    className="whisky-pagination__btn whisky-pagination__btn--nav"
+                    onClick={() => handleWhiskyPageChange(whiskyPage + 1)}
+                    disabled={whiskyPage === Math.max(1, whiskyTotalPages) || whiskyLoading}
+                    aria-label="Next Page"
+                  >
+                    <span>Next</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="whisky-pagination__arrow">
+                      <path d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
                 </div>
-
-                <button
-                  type="button"
-                  className="whisky-pagination__btn whisky-pagination__btn--nav"
-                  onClick={() => handleWhiskyPageChange(whiskyPage + 1)}
-                  disabled={whiskyPage === Math.max(1, whiskyTotalPages) || whiskyLoading}
-                  aria-label="Next Page"
-                >
-                  <span>Next</span>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="whisky-pagination__arrow">
-                    <path d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
-            )}
+              )}
             </>
           )
         )}
@@ -316,9 +345,9 @@ const AllWhisky = () => {
             </div>
           ) : (
             <>
-            <div className="all-whisky-grid">
-              {casks?.map((item) => {
-                return (
+              <div className="all-whisky-grid">
+                {casks?.map((item) => {
+                  return (
                     <div key={item?.itemId || item?.id} className="whisky-card whisky-card--cask">
                       <div className="whisky-card__cask-ribbon">CASK LOT</div>
                       <div className="whisky-card__image-wrapper">
@@ -366,55 +395,55 @@ const AllWhisky = () => {
                         </div>
                       </div>
                     </div>
-                );
-              })}
-            </div>
-
-            {/* Cask Pagination */}
-            {casks?.length > 0 && (
-              <div className="whisky-pagination">
-                <button
-                  type="button"
-                  className="whisky-pagination__btn whisky-pagination__btn--nav"
-                  onClick={() => handleCaskPageChange(caskPage - 1)}
-                  disabled={caskPage === 1 || caskLoading}
-                  aria-label="Previous Page"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="whisky-pagination__arrow">
-                    <path d="M15 19l-7-7 7-7" />
-                  </svg>
-                  <span>Previous</span>
-                </button>
-
-                <div className="whisky-pagination__pages">
-                  {Array.from({ length: Math.max(1, caskTotalPages) }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      type="button"
-                      className={`whisky-pagination__btn whisky-pagination__btn--page ${caskPage === page ? 'whisky-pagination__btn--active' : ''}`}
-                      onClick={() => handleCaskPageChange(page)}
-                      disabled={caskLoading}
-                      aria-label={`Go to page ${page}`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                </div>
-
-                <button
-                  type="button"
-                  className="whisky-pagination__btn whisky-pagination__btn--nav"
-                  onClick={() => handleCaskPageChange(caskPage + 1)}
-                  disabled={caskPage === Math.max(1, caskTotalPages) || caskLoading}
-                  aria-label="Next Page"
-                >
-                  <span>Next</span>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="whisky-pagination__arrow">
-                    <path d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
+                  );
+                })}
               </div>
-            )}
+
+              {/* Cask Pagination */}
+              {casks?.length > 0 && (
+                <div className="whisky-pagination">
+                  <button
+                    type="button"
+                    className="whisky-pagination__btn whisky-pagination__btn--nav"
+                    onClick={() => handleCaskPageChange(caskPage - 1)}
+                    disabled={caskPage === 1 || caskLoading}
+                    aria-label="Previous Page"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="whisky-pagination__arrow">
+                      <path d="M15 19l-7-7 7-7" />
+                    </svg>
+                    <span>Previous</span>
+                  </button>
+
+                  <div className="whisky-pagination__pages">
+                    {Array.from({ length: Math.max(1, caskTotalPages) }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        type="button"
+                        className={`whisky-pagination__btn whisky-pagination__btn--page ${caskPage === page ? 'whisky-pagination__btn--active' : ''}`}
+                        onClick={() => handleCaskPageChange(page)}
+                        disabled={caskLoading}
+                        aria-label={`Go to page ${page}`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    className="whisky-pagination__btn whisky-pagination__btn--nav"
+                    onClick={() => handleCaskPageChange(caskPage + 1)}
+                    disabled={caskPage === Math.max(1, caskTotalPages) || caskLoading}
+                    aria-label="Next Page"
+                  >
+                    <span>Next</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="whisky-pagination__arrow">
+                      <path d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              )}
             </>
           )
         )}

@@ -3,7 +3,7 @@ import './AllWatches.css'
 import { Link } from 'react-router-dom'
 // import watchData from '../../data/WatchData'
 import watchData from '../../../../data/WatchData'
-import { getApprovedListing } from '../../../../services/sellingServices/getSellListings/getSellListings'
+import { getApprovedListing, updateWishListItem } from '../../../../services/sellingServices/getSellListings/getSellListings'
 
 // const watchData = [
 //   {
@@ -90,11 +90,38 @@ const AllWatches = () => {
   const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(false)
 
-  const toggleFavorite = (id) => {
+  const handleWishList = (itemId) => {
+    const currentItem = watches.find(c => c.itemId === itemId)
+    const currentFav = favorites[itemId] !== undefined
+      ? favorites[itemId]
+      : !!(currentItem?.isWishList ?? currentItem?.IsWishList)
+    const newStatus = !currentFav
+
+    const dataObject = {
+      ItemId: itemId,
+      IsWishList: newStatus
+    }
+
+    // Optimistically update UI
     setFavorites(prev => ({
       ...prev,
-      [id]: !prev[id]
+      [itemId]: newStatus
     }))
+    setWatches(prev => prev.map(c => c.itemId === itemId ? { ...c, isWishList: newStatus, IsWishList: newStatus } : c))
+
+    updateWishListItem(dataObject)
+      .then((res) => {
+        console.log("[Wishlist updated]", res?.data)
+      })
+      .catch((err) => {
+        console.error("[Wishlist update failed]", err)
+        // Revert on failure
+        setFavorites(prev => ({
+          ...prev,
+          [itemId]: currentFav
+        }))
+        setWatches(prev => prev.map(c => c.itemId === itemId ? { ...c, isWishList: currentFav, IsWishList: currentFav } : c))
+      })
   }
 
   const getWatchListings = (page = currentPage) => {
@@ -166,58 +193,67 @@ const AllWatches = () => {
           </div>
         ) : (
           <div className="watch-grid">
-            {watches.map(watch => (
-              <div className="watch-card" key={watch.itemId || watch.id}>
-                {/* Image Section */}
-                <div className="watch-card__image-container">
-                  <img src={watch.details?.thumbnail || watch.details?.image1} alt={watch.details?.brand} className="watch-card__image" />
-                  <div className="watch-card__gradient-overlay"></div>
-                </div>
+            {
+              watches.map((watch) => {
 
-                {/* Info Section */}
-                <div className="watch-card__info">
-                  <div className="watch-card__header-row">
-                    <h3 className="watch-card__title">
-                      {watch.details?.brand} <br /><span className="watch-card__reference">{watch.details?.model}</span>
-                    </h3>
-                    <button
-                      className={`watch-card__favorite-btn ${favorites[watch.itemId] ? 'watch-card__favorite-btn--active' : ''}`}
-                      onClick={() => toggleFavorite(watch.itemId)}
-                      aria-label="Add to wishlist"
-                    >
-                      <svg viewBox="0 0 24 24" fill={favorites[watch.itemId] ? '#D4AF37' : 'none'} stroke={favorites[watch.itemId] ? '#D4AF37' : 'currentColor'} strokeWidth="1.5" className="watch-card__heart-icon">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                      </svg>
-                    </button>
-                  </div>
+                const isFav = favorites[watch.itemId] !== undefined
+                  ? favorites[watch.itemId]
+                  : !!(watch.isWishList ?? watch.IsWishList);
 
-                  <p className="watch-card__description">{watch.details?.editionName}</p>
-
-                  <div className="watch-card__divider"></div>
-
-                  {/* Details Grid */}
-                  <div className="watch-card__details-grid">
-                    <div>
-                      <div className="watch-card__bid-label">CURRENT BID</div>
-                      <div className="watch-card__bid-value">${watch.currentPrice}</div>
+                return (
+                  <div className="watch-card" key={watch.itemId || watch.id}>
+                    {/* Image Section */}
+                    <div className="watch-card__image-container">
+                      <img src={watch.details?.thumbnail || watch.details?.image1} alt={watch.details?.brand} className="watch-card__image" />
+                      <div className="watch-card__gradient-overlay"></div>
                     </div>
-                    <div className="watch-card__closes-container">
-                      <div className="watch-card__closes-label">CLOSES IN</div>
-                      <CountdownTimer endDateStr={watch.auctionEndDate} />
+
+                    {/* Info Section */}
+                    <div className="watch-card__info">
+                      <div className="watch-card__header-row">
+                        <h3 className="watch-card__title">
+                          {watch.details?.brand} <br /><span className="watch-card__reference">{watch.details?.model}</span>
+                        </h3>
+                        <button
+                          className={`watch-card__favorite-btn ${isFav ? 'watch-card__favorite-btn--active' : ''}`}
+                          onClick={() => handleWishList(watch.itemId)}
+                          aria-label="Add to wishlist"
+                        >
+                          <svg viewBox="0 0 24 24" fill={isFav ? '#D4AF37' : 'none'} stroke={isFav ? '#D4AF37' : 'currentColor'} strokeWidth="1.5" className="watch-card__heart-icon">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                          </svg>
+                        </button>
+                      </div>
+
+                      <p className="watch-card__description">{watch.details?.editionName}</p>
+
+                      <div className="watch-card__divider"></div>
+
+                      {/* Details Grid */}
+                      <div className="watch-card__details-grid">
+                        <div>
+                          <div className="watch-card__bid-label">CURRENT BID</div>
+                          <div className="watch-card__bid-value">${watch.currentPrice}</div>
+                        </div>
+                        <div className="watch-card__closes-container">
+                          <div className="watch-card__closes-label">CLOSES IN</div>
+                          <CountdownTimer endDateStr={watch.auctionEndDate} />
+                        </div>
+                      </div>
+
+                      <div className="watch-card__divider"></div>
+
+                      {/* Card Footer with Countdown and Place Bid */}
+                      <div className="watch-card__footer">
+                        <Link to={`/watch/${watch.itemId}`} style={{ textDecoration: "none" }}><button className="watch-card__bid-btn" >
+                          PLACE A BID
+                        </button></Link>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="watch-card__divider"></div>
-
-                  {/* Card Footer with Countdown and Place Bid */}
-                  <div className="watch-card__footer">
-                    <Link to={`/watch/${watch.itemId}`} style={{ textDecoration: "none" }}><button className="watch-card__bid-btn" >
-                      PLACE A BID
-                    </button></Link>
-                  </div>
-                </div>
-              </div>
-            ))}
+                )
+              })
+            }
           </div>
         )}
 

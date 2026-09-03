@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import cigarData from '../../../../data/CigarData'
 import './CigarListingsBody.css'
-import { getApprovedListing } from '../../../../services/sellingServices/getSellListings/getSellListings'
+import { getApprovedListing, updateWishListItem } from '../../../../services/sellingServices/getSellListings/getSellListings'
 
 
 const CigarListingsBody = () => {
@@ -14,11 +14,38 @@ const CigarListingsBody = () => {
     const [totalPages, setTotalPages] = useState(1)
     const [loading, setLoading] = useState(false)
 
-    const toggleFavorite = (id) => {
+    const handleWishList = (itemId) => {
+        const currentItem = cigars.find(c => c.itemId === itemId)
+        const currentFav = favorites[itemId] !== undefined 
+            ? favorites[itemId] 
+            : !!(currentItem?.isWishList ?? currentItem?.IsWishList)
+        const newStatus = !currentFav
+
+        const dataObject = {
+            ItemId: itemId,
+            IsWishList: newStatus
+        }
+
+        // Optimistically update UI
         setFavorites(prev => ({
             ...prev,
-            [id]: !prev[id]
+            [itemId]: newStatus
         }))
+        setCigars(prev => prev.map(c => c.itemId === itemId ? { ...c, isWishList: newStatus, IsWishList: newStatus } : c))
+
+        updateWishListItem(dataObject)
+            .then((res) => {
+                console.log("[Wishlist updated]", res?.data)
+            })
+            .catch((err) => {
+                console.error("[Wishlist update failed]", err)
+                // Revert on failure
+                setFavorites(prev => ({
+                    ...prev,
+                    [itemId]: currentFav
+                }))
+                setCigars(prev => prev.map(c => c.itemId === itemId ? { ...c, isWishList: currentFav, IsWishList: currentFav } : c))
+            })
     }
 
     const getCigarListings = (page = currentPage) => {
@@ -27,10 +54,19 @@ const CigarListingsBody = () => {
             .then((res) => {
                 const list =
                     res?.data?.data ||
-                    res?.data?.items ||
-                    res?.data?.paginated ||
                     (Array.isArray(res?.data) ? res.data : [])
                 setCigars(Array.isArray(list) ? list : [])
+
+                // Sync favorites map
+                const favMap = {}
+                if (Array.isArray(list)) {
+                    list.forEach(item => {
+                        if (item.itemId) {
+                            favMap[item.itemId] = !!(item.isWishList ?? item.IsWishList)
+                        }
+                    })
+                }
+                setFavorites(prev => ({ ...favMap, ...prev }))
 
                 const totalCount = res?.data?.totalCount || res?.data?.total || res?.data?.totalRecords
                 if (res?.data?.totalPages) {
@@ -94,6 +130,10 @@ const CigarListingsBody = () => {
                 ) : (
                     <div className="all-cigar-grid">
                         {cigars.map((item) => {
+                            const isFav = favorites[item.itemId] !== undefined 
+                                ? favorites[item.itemId] 
+                                : !!(item.isWishList ?? item.IsWishList);
+
                             return (
                                 <div key={item.itemId || item.id} className="cigar-card">
                                     <div className="cigar-card__image-wrapper">
@@ -111,11 +151,11 @@ const CigarListingsBody = () => {
                                                 <p className="cigar-card__reference">{item.details?.editionName}</p>
                                             </div>
                                             <button
-                                                className={`watch-card__favorite-btn ${favorites[item.itemId] ? 'watch-card__favorite-btn--active' : ''}`}
-                                                onClick={() => toggleFavorite(item.itemId)}
+                                                className={`watch-card__favorite-btn ${isFav ? 'watch-card__favorite-btn--active' : ''}`}
+                                                onClick={() => handleWishList(item.itemId)}
                                                 aria-label="Add to wishlist"
                                             >
-                                                <svg viewBox="0 0 24 24" fill={favorites[item.itemId] ? '#D4AF37' : 'none'} stroke={favorites[item.itemId] ? '#D4AF37' : 'currentColor'} strokeWidth="1.5" className="watch-card__heart-icon">
+                                                <svg viewBox="0 0 24 24" fill={isFav ? '#D4AF37' : 'none'} stroke={isFav ? '#D4AF37' : 'currentColor'} strokeWidth="1.5" className="watch-card__heart-icon">
                                                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                                                 </svg>
                                             </button>

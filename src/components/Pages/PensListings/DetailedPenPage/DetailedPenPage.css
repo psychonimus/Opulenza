@@ -85,6 +85,7 @@
         transform: translateY(-20px);
         opacity: 0;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;
@@ -545,9 +546,11 @@
         transform: scale(0.6);
         opacity: 1;
     }
+
     50% {
         opacity: 0.5;
     }
+
     100% {
         transform: scale(1.6);
         opacity: 0;
@@ -665,6 +668,7 @@
         box-shadow: 0 0 6px rgba(214, 165, 77, 0.3);
         border-color: rgba(214, 165, 77, 0.5);
     }
+
     100% {
         box-shadow: 0 0 14px rgba(214, 165, 77, 0.7);
         border-color: rgba(255, 215, 0, 0.9);
@@ -758,6 +762,7 @@
     from {
         transform: scaleX(0);
     }
+
     to {
         transform: scaleX(1);
     }
@@ -779,11 +784,13 @@
         grid-template-columns: 1fr;
         gap: 2rem;
     }
+
     .pen-tabs-header {
         gap: 1.5rem;
         flex-direction: column;
         align-items: flex-start;
     }
+
     .pen-tab-indicator {
         bottom: -4px;
     }
@@ -794,8 +801,15 @@
 }
 
 @keyframes pen-fade-in-ani {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .pen-tab-panel-info {
@@ -1484,9 +1498,11 @@
     .pen-recommended-grid {
         gap: 1.5rem;
     }
+
     .pen-recommended-title {
         font-size: 1.85rem;
     }
+
     .pen-recommended-card__title {
         font-size: 1.3rem;
     }
@@ -1498,6 +1514,7 @@
         max-width: 450px;
         margin: 0 auto;
     }
+
     .pen-recommended-header {
         flex-direction: column;
         align-items: flex-start;

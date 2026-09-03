@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { FaSpinner } from 'react-icons/fa'
 import * as signalR from '@microsoft/signalr'
 import connection from '../../../../services/signalR/auctionSignalR'
-import { getApprovedListing } from '../../../../services/sellingServices/getSellListings/getSellListings'
+import { getApprovedListing, updateWishListItem } from '../../../../services/sellingServices/getSellListings/getSellListings'
 import cigarData from '../../../../data/CigarData'
 import { AddBid, getLatestBid } from '../../../../services/biddingServices/BiddingServices'
 import './DetailedCigarPage.css'
@@ -112,7 +112,7 @@ const DetailedCigarPage = () => {
                 const handleIncomingSignalREvent = (eventName, ...args) => {
                     if (!isSubscribed) return
                     const rawData = args.length === 1 ? args[0] : (args.length === 0 ? null : args);
-                    
+
                     console.group(`%c[SignalR ⚡ Event: ${eventName}]`, "background: #7c3aed; color: #fff; font-weight: bold; padding: 2px 6px; border-radius: 3px; font-size: 13px;");
                     console.log("%cTimestamp:", "color: #94a3b8;", new Date().toISOString(), `(${new Date().toLocaleTimeString()})`);
                     console.log("%cRaw Event Arguments:", "color: #38bdf8; font-weight: bold;", args);
@@ -296,10 +296,10 @@ const DetailedCigarPage = () => {
                         description: found.details?.commercialShape || "",
                         detailedDescription: found.details?.commercialShape || "",
                         image: found.details?.thumbnail || found.details?.image1 || "",
-                        angles: [ found.details?.image2, found.details?.image3, found.details?.image4].filter(Boolean),
+                        angles: [found.details?.image2, found.details?.image3, found.details?.image4].filter(Boolean),
                         currentBidNumber: found.currentPrice || found.expectedPrice || 568,
                         bidIncrement: found.bidIncreament || 500,
-                        // activeBidders: 0,
+                        isWishList: found.isWishList,
                         auctionEndDate: found.auctionEndDate,
                         // liveActivity: [
                         //     { id: 1, member: 'MEMBER #7***3', timeAgo: '2 minutes ago', timestamp: Date.now() - 120000, amount: `$${found.currentPrice || found.expectedPrice || 568}`, amountNumber: found.currentPrice || found.expectedPrice || 568 }
@@ -330,6 +330,7 @@ const DetailedCigarPage = () => {
                         ]
                     }
                     setItem(mappedItem)
+                    setIsFavorited(found.isWishList)
                 }
                 setLoading(false)
             })
@@ -340,7 +341,23 @@ const DetailedCigarPage = () => {
     }, [id])
 
 
-    // console.log("this is the item", item)
+  
+
+    const handleWishList = () => {
+        const dataObject = {
+            ItemId: item?.itemId,
+            IsWishList: !isFavorited
+        }
+        updateWishListItem(dataObject)
+            .then((res) => {
+                // console.log(res)
+                setIsFavorited(!isFavorited)
+            })
+            .catch((err) => {
+                console.error(err)
+            })
+
+    }
 
     const fetchLatestBid = () => {
         const targetId = item?.itemId || id
@@ -354,7 +371,7 @@ const DetailedCigarPage = () => {
             .then((res) => {
                 const raw = res?.data
                 const dataObj = raw?.data || raw
-                
+
                 console.log("%cLatest Bid API Response:", "color: #10b981; font-weight: bold;", {
                     httpStatus: res?.status,
                     data: raw
@@ -791,7 +808,7 @@ const DetailedCigarPage = () => {
                                     </button> */}
                                     <button
                                         className={`action-btn-secondary ${isFavorited ? 'action-btn-secondary--active' : ''}`}
-                                        onClick={() => setIsFavorited(!isFavorited)}
+                                        onClick={() => { handleWishList() }}
                                     >
                                         <svg className="action-icon" viewBox="0 0 24 24" fill={isFavorited ? '#c8a97a' : 'none'} stroke={isFavorited ? '#c8a97a' : 'currentColor'} strokeWidth="2">
                                             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
@@ -822,8 +839,8 @@ const DetailedCigarPage = () => {
                                                 const displayAmt = !isNaN(Number(rawAmt)) && rawAmt !== null && rawAmt !== '' ? formatCurrency(Number(rawAmt)) : (bid.amount || `$ ${rawAmt || 0}`);
 
                                                 return (
-                                                    <div 
-                                                        className={`live-bid-item ${isHighest ? 'live-bid-item--winning' : ''}`} 
+                                                    <div
+                                                        className={`live-bid-item ${isHighest ? 'live-bid-item--winning' : ''}`}
                                                         key={bid.bidId || bid.id || index}
                                                     >
                                                         <div className="bid-user-info">
@@ -832,7 +849,7 @@ const DetailedCigarPage = () => {
                                                                 {isHighest && (
                                                                     <span className="bid-winning-badge">
                                                                         <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" className="bid-winning-crown-icon">
-                                                                            <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
+                                                                            <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
                                                                         </svg>
                                                                         WINNING
                                                                     </span>
@@ -962,7 +979,7 @@ const DetailedCigarPage = () => {
                 {/* Bid Modal */}
                 {showBidModal && (
                     <div className="bid-modal-overlay fade-in-animation">
-                        <div className="bid-modal-card">
+                        <div className="bid-modal-card" data-lenis-prevent="true">
                             <button className="close-modal-btn" onClick={() => setShowBidModal(false)}>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <line x1="18" y1="6" x2="6" y2="18" />

@@ -376,17 +376,17 @@ const DetailedPenPage = () => {
                         bidIncrement: found.bidIncreament || 200,
                         currency: found.currency || 'USD',
                         auctionEndDate: found.auctionEndDate,
-                        activeBidders: 0,
-                        liveActivity: [
-                            {
-                                id: 1,
-                                member: 'MEMBER #7***3',
-                                timeAgo: '2 minutes ago',
-                                timestamp: Date.now() - 120000,
-                                amount: `$${found.currentPrice || found.orignalPrice || found.expectedPrice || 1000}`,
-                                amountNumber: found.currentPrice || found.orignalPrice || found.expectedPrice || 1000
-                            }
-                        ],
+                        // activeBidders: 0,
+                        // liveActivity: [
+                        //     {
+                        //         id: 1,
+                        //         member: 'MEMBER #7***3',
+                        //         timeAgo: '2 minutes ago',
+                        //         timestamp: Date.now() - 120000,
+                        //         amount: `$${found.currentPrice || found.orignalPrice || found.expectedPrice || 1000}`,
+                        //         amountNumber: found.currentPrice || found.orignalPrice || found.expectedPrice || 1000
+                        //     }
+                        // ],
                         details: [
                             { label: 'BRAND', value: found.details?.brand || '—' },
                             { label: 'TYPE', value: found.details?.penType || '—' },
@@ -503,7 +503,7 @@ const DetailedPenPage = () => {
     const thumbnails = [pen.image, ...(pen.angles || [])]
 
     const handlePlaceBidClick = () => {
-        setCustomBidAmount(currentBid + pen.bidIncrement)
+        setCustomBidAmount(pen?.bidIncrement || 0)
         setBidError('')
         setShowBidModal(true)
     }
@@ -511,7 +511,7 @@ const DetailedPenPage = () => {
     const submitCustomBid = (e) => {
         e.preventDefault()
         const amt = Number(customBidAmount)
-        const minRequired = currentBid + (pen?.bidIncrement || 200)
+        const minRequired = pen?.bidIncrement || 0
         if (isNaN(amt) || amt < minRequired) {
             console.warn("[BID PLACEMENT] Validation failed: Bid amount is lower than minimum required increment.", {
                 enteredAmount: amt,
@@ -808,8 +808,8 @@ const DetailedPenPage = () => {
                                                 const displayAmt = !isNaN(Number(rawAmt)) && rawAmt !== null && rawAmt !== '' ? formatCurrency(Number(rawAmt)) : (bid.amount || `$ ${rawAmt || 0}`);
 
                                                 return (
-                                                    <div 
-                                                        className={`pen-live-bid-item ${isHighest ? 'pen-live-bid-item--winning' : ''}`} 
+                                                    <div
+                                                        className={`pen-live-bid-item ${isHighest ? 'pen-live-bid-item--winning' : ''}`}
                                                         key={bid.bidId || bid.id || index}
                                                     >
                                                         <div className="pen-bid-user-info">
@@ -818,7 +818,7 @@ const DetailedPenPage = () => {
                                                                 {isHighest && (
                                                                     <span className="pen-bid-winning-badge">
                                                                         <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" className="pen-bid-winning-crown-icon">
-                                                                            <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
+                                                                            <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
                                                                         </svg>
                                                                         WINNING
                                                                     </span>
@@ -976,7 +976,7 @@ const DetailedPenPage = () => {
                                     </div>
                                     <div className="pen-modal-bid-stat pen-modal-bid-stat--right">
                                         <span className="pen-modal-bid-stat-label">MIN. NEXT BID</span>
-                                        <span className="pen-modal-bid-stat-value pen-modal-bid-stat-value--accent">{formatCurrency(currentBid + pen.bidIncrement)}</span>
+                                        <span className="pen-modal-bid-stat-value pen-modal-bid-stat-value--accent">${pen.bidIncrement}</span>
                                     </div>
                                 </div>
                                 <div className="pen-modal-input-section">
@@ -988,8 +988,8 @@ const DetailedPenPage = () => {
                                             className="pen-modal-bid-input"
                                             value={customBidAmount}
                                             onChange={(e) => setCustomBidAmount(Number(e.target.value))}
-                                            min={currentBid + pen.bidIncrement}
-                                            step={pen.bidIncrement}
+                                            min={pen?.bidIncrement}
+                                            step={1}
                                             required
                                             autoFocus
                                         />

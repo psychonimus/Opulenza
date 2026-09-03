@@ -327,14 +327,12 @@ const DetailedPage = () => {
                         detailedDescription: `This is an exceptional ${found.details?.brand || 'timepiece'} with serial number ${found.details?.serialNumber || 'N/A'}.`,
                         image: found.details?.thumbnail || found.details?.image1,
                         angles: [found.details?.image2, found.details?.image3, found.details?.image4, found.details?.image5].filter(Boolean),
-                        currentBidNumber: found.currentPrice || found.expectedPrice || 1500,
-                        bidIncrement: found.bidIncreament || 500,
-                        activeBidders: 0,
+                        // activeBidders: 0,
                         auctionEndDate: found.auctionEndDate,
                         currency: found.currency || 'USD',
-                        liveActivity: [
-                            { id: 1, member: 'MEMBER #7***3', timeAgo: '2 minutes ago', timestamp: Date.now() - 120000, amount: `$${found.currentPrice || found.expectedPrice || 1500}`, amountNumber: found.currentPrice || found.expectedPrice || 1500 }
-                        ],
+                        // liveActivity: [
+                        //     { id: 1, member: 'MEMBER #7***3', timeAgo: '2 minutes ago', timestamp: Date.now() - 120000, amount: `$${found.currentPrice || found.expectedPrice || 1500}`, amountNumber: found.currentPrice || found.expectedPrice || 1500 }
+                        // ],
                         ownershipHistory: {
                             title: 'Original Provenance',
                             description: `This watch was acquired in ${found.details?.yearOfPurchase || 'N/A'} and has serial number ${found.details?.serialNumber || 'N/A'}. It comes with ${found.details?.papers ? 'original papers' : 'no papers'} and ${found.details?.boxAndPaper ? 'original box & papers' : 'no box/papers'}.`,
@@ -511,7 +509,7 @@ const DetailedPage = () => {
 
     // Place Bid Action handler
     const handlePlaceBidClick = () => {
-        setCustomBidAmount(watch.bidIncrement);
+        setCustomBidAmount(watch?.bidIncrement || 0);
         setBidError('');
         setShowBidModal(true);
     };
@@ -817,8 +815,8 @@ const DetailedPage = () => {
                                                 const displayAmt = !isNaN(Number(rawAmt)) && rawAmt !== null && rawAmt !== '' ? formatCurrency(Number(rawAmt)) : (bid.amount || `$ ${rawAmt || 0}`);
 
                                                 return (
-                                                    <div 
-                                                        className={`live-bid-item ${isHighest ? 'live-bid-item--winning' : ''}`} 
+                                                    <div
+                                                        className={`live-bid-item ${isHighest ? 'live-bid-item--winning' : ''}`}
                                                         key={bid.bidId || bid.id || index}
                                                     >
                                                         <div className="bid-user-info">
@@ -827,7 +825,7 @@ const DetailedPage = () => {
                                                                 {isHighest && (
                                                                     <span className="bid-winning-badge">
                                                                         <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" className="bid-winning-crown-icon">
-                                                                            <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
+                                                                            <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
                                                                         </svg>
                                                                         WINNING
                                                                     </span>
@@ -1031,7 +1029,7 @@ const DetailedPage = () => {
                                     </div>
                                     <div className="modal-bid-stat modal-bid-stat--right">
                                         <span className="modal-bid-stat-label">MIN. NEXT BID</span>
-                                        <span className="modal-bid-stat-value modal-bid-stat-value--gold">{formatCurrency(watch.bidIncrement)}</span>
+                                        <span className="modal-bid-stat-value modal-bid-stat-value--gold">${watch.bidIncrement}</span>
                                     </div>
                                 </div>
 
@@ -1045,7 +1043,7 @@ const DetailedPage = () => {
                                             className="modal-bid-input"
                                             value={customBidAmount}
                                             onChange={(e) => setCustomBidAmount(Number(e.target.value))}
-                                            min={watch.bidIncrement}
+                                            min={watch?.bidIncrement}
                                             step={1}
                                             required
                                             autoFocus
@@ -1123,20 +1121,20 @@ const DetailedPage = () => {
                                 .filter(w => w.itemId !== watch.itemId)
                                 .slice(0, 3)
                                 .map(rec => (
-                                <Link to={`/watch/${rec.itemId}`} key={rec.itemId} className="recommended-card-link">
-                                    <div className="recommended-card">
-                                        <div className="recommended-card__image-container">
-                                            <img src={rec.details?.front || rec.image} alt={`${rec.details?.brand || rec.title} ${rec.details?.model || rec.reference}`} className="recommended-card__image" />
-                                            <div className="recommended-card__gradient-overlay"></div>
+                                    <Link to={`/watch/${rec.itemId}`} key={rec.itemId} className="recommended-card-link">
+                                        <div className="recommended-card">
+                                            <div className="recommended-card__image-container">
+                                                <img src={rec.details?.front || rec.image} alt={`${rec.details?.brand || rec.title} ${rec.details?.model || rec.reference}`} className="recommended-card__image" />
+                                                <div className="recommended-card__gradient-overlay"></div>
+                                            </div>
+                                            <div className="recommended-card__info">
+                                                <span className="recommended-card__badge">LIVE</span>
+                                                <h3 className="recommended-card__title">{rec.details?.brand || rec.title} — {rec.details?.model || rec.reference}</h3>
+                                                <p className="recommended-card__estimate">Current Bid: {formatCurrency(rec.currentPrice || rec.expectedPrice)}</p>
+                                            </div>
                                         </div>
-                                        <div className="recommended-card__info">
-                                            <span className="recommended-card__badge">LIVE</span>
-                                            <h3 className="recommended-card__title">{rec.details?.brand || rec.title} — {rec.details?.model || rec.reference}</h3>
-                                            <p className="recommended-card__estimate">Current Bid: {formatCurrency(rec.currentPrice || rec.expectedPrice)}</p>
-                                        </div>
-                                    </div>
-                                </Link>
-                            ))}
+                                    </Link>
+                                ))}
                         </div>
                     </div>
                 </div>

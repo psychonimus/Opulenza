@@ -115,7 +115,7 @@ const DetailedYachtPage = () => {
     const thumbnails = [yacht.image, ...(yacht.angles || [])]
 
     const handlePlaceBidClick = () => {
-        setCustomBidAmount(currentBid + yacht.bidIncrement)
+        setCustomBidAmount(yacht?.bidIncrement || 0)
         setBidError('')
         setShowBidModal(true)
     }
@@ -123,7 +123,7 @@ const DetailedYachtPage = () => {
     const submitCustomBid = (e) => {
         e.preventDefault()
         const amt = Number(customBidAmount)
-        const minRequired = currentBid + yacht.bidIncrement
+        const minRequired = yacht?.bidIncrement || 0
         if (isNaN(amt) || amt < minRequired) {
             setBidError(`Bid must be at least ${formatCurrency(minRequired)}`)
             return
@@ -495,7 +495,7 @@ const DetailedYachtPage = () => {
                                     </div>
                                     <div className="yacht-modal-bid-stat yacht-modal-bid-stat--right">
                                         <span className="yacht-modal-bid-stat-label">MIN. NEXT BID</span>
-                                        <span className="yacht-modal-bid-stat-value yacht-modal-bid-stat-value--accent">{formatCurrency(currentBid + yacht.bidIncrement)}</span>
+                                        <span className="yacht-modal-bid-stat-value yacht-modal-bid-stat-value--accent">${yacht.bidIncrement}</span>
                                     </div>
                                 </div>
                                 <div className="yacht-modal-input-section">
@@ -507,8 +507,8 @@ const DetailedYachtPage = () => {
                                             className="yacht-modal-bid-input"
                                             value={customBidAmount}
                                             onChange={(e) => setCustomBidAmount(Number(e.target.value))}
-                                            min={currentBid + yacht.bidIncrement}
-                                            step={yacht.bidIncrement}
+                                            min={yacht?.bidIncrement}
+                                            step={1}
                                             required
                                             autoFocus
                                         />

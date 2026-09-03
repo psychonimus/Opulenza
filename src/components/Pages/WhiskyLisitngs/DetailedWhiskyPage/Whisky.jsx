@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import * as signalR from "@microsoft/signalr";
 import connection from "../../../../services/signalR/auctionSignalR";
-import { getApprovedListing } from '../../../../services/sellingServices/getSellListings/getSellListings'
+import { getApprovedListing, updateWishListItem, getMyWishList } from '../../../../services/sellingServices/getSellListings/getSellListings'
 import { AddBid, getLatestBid } from '../../../../services/biddingServices/BiddingServices'
 import "./Whisky.css";
 
@@ -302,6 +302,35 @@ const DetailedWhiskyPage = () => {
     };
   }, [id, item?.itemId]);
 
+  const myWhishList = () => {
+    getMyWishList()
+      .then((res) => {
+        console.log("this is my wishlist", res);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  };
+
+  useEffect(() => {
+    myWhishList();
+  }, []);
+
+  const handleWishList = () => {
+    const dataObject = {
+      ItemId: item?.itemId,
+      IsWishList: !isFavorited
+    };
+    updateWishListItem(dataObject)
+      .then((res) => {
+        // console.log(res)
+        setIsFavorited(!isFavorited);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  };
+
   const fetchLatestBid = () => {
     const targetId = item?.itemId || id;
     if (!targetId) return;
@@ -326,17 +355,18 @@ const DetailedWhiskyPage = () => {
             const curBid = match.bidData?.currentBid ?? match.currentBid;
             const nextB = match.bidData?.nextBid ?? match.nextBid;
             const countB = match.countOfBidders ?? match.activeBidders;
+            console.log("Matched item from array response:", { curBid, nextB, countB, match });
             if (curBid != null) setCurrentBid(Number(curBid));
             if (countB != null) setBiddersCount(Number(countB));
             if (match.latestBids) setBids(match.latestBids);
             setItem((prev) =>
               prev
                 ? {
-                    ...prev,
-                    currentBidNumber: curBid != null ? Number(curBid) : prev.currentBidNumber,
-                    bidIncrement: nextB != null ? Number(nextB) : prev.bidIncrement,
-                    activeBidders: countB != null ? Number(countB) : prev.activeBidders,
-                  }
+                  ...prev,
+                  currentBidNumber: curBid != null ? Number(curBid) : prev.currentBidNumber,
+                  bidIncrement: nextB != null ? Number(nextB) : prev.bidIncrement,
+                  activeBidders: countB != null ? Number(countB) : prev.activeBidders,
+                }
                 : prev
             );
           }
@@ -346,17 +376,19 @@ const DetailedWhiskyPage = () => {
           const nextB = dataObj.nextBid ?? dataObj.bidData?.nextBid ?? dataObj.minNextBid ?? dataObj.bidIncrement;
           const latestB = dataObj.latestBids ?? dataObj.bids;
 
+          console.log("Extracted Bid Data:", { countB, curBid, nextB, latestB });
+
           if (countB != null) setBiddersCount(Number(countB));
           if (curBid != null) setCurrentBid(Number(curBid));
           if (Array.isArray(latestB)) setBids(latestB);
           setItem((prev) =>
             prev
               ? {
-                  ...prev,
-                  currentBidNumber: curBid != null ? Number(curBid) : prev.currentBidNumber,
-                  bidIncrement: nextB != null ? Number(nextB) : prev.bidIncrement,
-                  activeBidders: countB != null ? Number(countB) : prev.activeBidders,
-                }
+                ...prev,
+                currentBidNumber: curBid != null ? Number(curBid) : prev.currentBidNumber,
+                bidIncrement: nextB != null ? Number(nextB) : prev.bidIncrement,
+                activeBidders: countB != null ? Number(countB) : prev.activeBidders,
+              }
               : prev
           );
         }
@@ -386,11 +418,11 @@ const DetailedWhiskyPage = () => {
         const caskList = caskRes?.data?.data || [];
         const list = [...whiskyList, ...caskList];
         setWhiskyDataList(list);
-        
+
         const found = list.find((w) => w.itemId === Number(id));
         if (found) {
           const isCask = found.categoryId === 6 || found.categoryName?.toLowerCase() === 'cask';
-          
+
           let mappedItem = {
             id: found.itemId,
             itemId: found.itemId,
@@ -400,17 +432,18 @@ const DetailedWhiskyPage = () => {
             auctionEndDate: found.auctionEndDate,
             bidIncrement: found.bidIncreament || 500,
             currentBidNumber: found.currentPrice || found.orignalPrice || found.expectedPrice || 1000,
-            activeBidders: 15,
-            liveActivity: [
-              {
-                id: 1,
-                member: "MEMBER #7***3",
-                timeAgo: "2 minutes ago",
-                timestamp: Date.now() - 120000,
-                amount: `$${found.currentPrice || found.orignalPrice || found.expectedPrice || 1000}`,
-                amountNumber: found.currentPrice || found.orignalPrice || found.expectedPrice || 1000
-              }
-            ]
+            isWishList: found.isWishList,
+            // activeBidders: 0,
+            // liveActivity: [
+            //   {
+            //     id: 1,
+            //     member: "MEMBER #7***3",
+            //     timeAgo: "2 minutes ago",
+            //     timestamp: Date.now() - 120000,
+            //     amount: `$${found.currentPrice || found.orignalPrice || found.expectedPrice || 1000}`,
+            //     amountNumber: found.currentPrice || found.orignalPrice || found.expectedPrice || 1000
+            //   }
+            // ]
           };
 
           if (isCask) {
@@ -478,6 +511,7 @@ const DetailedWhiskyPage = () => {
             ];
           }
           setItem(mappedItem);
+          setIsFavorited(found.isWishList)
         }
         setLoading(false);
       })
@@ -487,13 +521,51 @@ const DetailedWhiskyPage = () => {
       });
   }, [id]);
 
+
+  // const handleWishList = () => {
+  //         const dataObject = {
+  //             ItemId: item?.itemId,
+  //             IsWishList: !isFavorited
+  //         }
+  //         updateWishListItem(dataObject)
+  //             .then((res) => {
+  //                 // console.log(res)
+  //                 setIsFavorited(!isFavorited)
+  //             })
+  //             .catch((err) => {
+  //                 console.error(err)
+  //             })
+  
+  //     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  useEffect(() => {
+    if (item?.image) {
+      setMainImage(item.image);
+      setActiveThumbIdx(0);
+    }
+  }, [item?.itemId]);
+
   useEffect(() => {
     if (item) {
       setCurrentBid(item.currentBidNumber);
-      setBids(item.liveActivity || []);
-      setBiddersCount(item.activeBidders || 10);
-      setMainImage(item.image);
-      setActiveThumbIdx(0);
+      // setBids(item.liveActivity || []);
+      // setBiddersCount(item.activeBidders || 0);
       setCustomBidAmount(item.currentBidNumber + item.bidIncrement);
       setTimeLeft(
         item.auctionEndDate
@@ -580,7 +652,7 @@ const DetailedWhiskyPage = () => {
   const thumbnails = [item.image, ...(item.angles || [])];
 
   const handlePlaceBidClick = () => {
-    setCustomBidAmount(currentBid + item.bidIncrement);
+    setCustomBidAmount(item?.bidIncrement || 0);
     setBidError("");
     setShowBidModal(true);
   };
@@ -588,7 +660,7 @@ const DetailedWhiskyPage = () => {
   const submitCustomBid = (e) => {
     e.preventDefault();
     const amt = Number(customBidAmount);
-    const minRequired = currentBid + item.bidIncrement;
+    const minRequired = item?.bidIncrement || 0;
     if (isNaN(amt) || amt < minRequired) {
       console.warn("[BID PLACEMENT] Validation failed: Bid amount is lower than minimum required increment.", {
         enteredAmount: amt,
@@ -858,7 +930,7 @@ const DetailedWhiskyPage = () => {
                       className={`panel-value panel-value--reserve ${item.reserveMet || currentBid >= item.currentBidNumber * 1.05 ? "reserve-met" : ""}`}
                     >
                       {item.reserveMet ||
-                      currentBid >= item.currentBidNumber * 1.05 ? (
+                        currentBid >= item.currentBidNumber * 1.05 ? (
                         <>
                           <svg
                             className="check-icon"
@@ -921,7 +993,7 @@ const DetailedWhiskyPage = () => {
                   </button> */}
                   <button
                     className={`action-btn-secondary ${isFavorited ? "action-btn-secondary--active" : ""}`}
-                    onClick={() => setIsFavorited(!isFavorited)}
+                    onClick={() => { handleWishList(); }}
                   >
                     <svg
                       className="action-icon"
@@ -958,8 +1030,8 @@ const DetailedWhiskyPage = () => {
                         const displayAmt = !isNaN(Number(rawAmt)) && rawAmt !== null && rawAmt !== '' ? formatCurrency(Number(rawAmt)) : (bid.amount || `$ ${rawAmt || 0}`);
 
                         return (
-                          <div 
-                            className={`live-bid-item ${isHighest ? 'live-bid-item--winning' : ''}`} 
+                          <div
+                            className={`live-bid-item ${isHighest ? 'live-bid-item--winning' : ''}`}
                             key={bid.bidId || bid.id || index}
                           >
                             <div className="bid-user-info">
@@ -968,7 +1040,7 @@ const DetailedWhiskyPage = () => {
                                 {isHighest && (
                                   <span className="bid-winning-badge">
                                     <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" className="bid-winning-crown-icon">
-                                      <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
+                                      <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
                                     </svg>
                                     WINNING
                                   </span>
@@ -1120,7 +1192,7 @@ const DetailedWhiskyPage = () => {
         {/* ── Bid Modal ───────────────────────────────────────────── */}
         {showBidModal && (
           <div className="bid-modal-overlay fade-in-animation">
-            <div className="bid-modal-card">
+            <div className="bid-modal-card" data-lenis-prevent="true">
               <button
                 className="close-modal-btn"
                 onClick={() => setShowBidModal(false)}
@@ -1150,7 +1222,7 @@ const DetailedWhiskyPage = () => {
                   <p className="modal-asset-name">
                     {item.title} <span>{item.reference}</span>
                   </p>
-                  
+
                 </div>
               </div>
 
@@ -1165,7 +1237,7 @@ const DetailedWhiskyPage = () => {
                   <div className="modal-bid-stat modal-bid-stat--right">
                     <span className="modal-bid-stat-label">MIN. NEXT BID</span>
                     <span className="modal-bid-stat-value modal-bid-stat-value--gold">
-                      {formatCurrency(currentBid + item.bidIncrement)}
+                      ${item.bidIncrement}
                     </span>
                   </div>
                 </div>
@@ -1183,8 +1255,8 @@ const DetailedWhiskyPage = () => {
                       onChange={(e) =>
                         setCustomBidAmount(Number(e.target.value))
                       }
-                      min={currentBid + item.bidIncrement}
-                      step={item.bidIncrement}
+                      min={item?.bidIncrement}
+                      step={1}
                       required
                       autoFocus
                     />
@@ -1192,7 +1264,7 @@ const DetailedWhiskyPage = () => {
                   {bidError && <p className="modal-error-msg">{bidError}</p>}
                 </div>
 
-                
+
 
                 <label className="modal-terms-row">
                   <input
