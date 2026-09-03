@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import * as signalR from '@microsoft/signalr'
+import connection from '../../../../services/signalR/auctionSignalR'
 import { getApprovedListing } from '../../../../services/sellingServices/getSellListings/getSellListings'
-import { AddBid } from '../../../../services/biddingServices/BiddingServices'
+import { AddBid, getLatestBid } from '../../../../services/biddingServices/BiddingServices'
 
 import './DetailedPage.css'
 
@@ -24,6 +26,290 @@ const DetailedPage = () => {
         }
     }
 
+    // SignalR Auction Room Connection
+    useEffect(() => {
+        const targetId = watch?.itemId || id;
+        if (!targetId) return;
+
+        const currentItemId = String(targetId);
+        let isSubscribed = true;
+
+        const connectToAuction = async () => {
+            try {
+                console.groupCollapsed(`%c[SignalR] Initializing Watch Item Room (Item ID: ${currentItemId})`, "color: #3b82f6; font-weight: bold;");
+                console.log("Current Connection State:", connection.state);
+                console.log("Connection ID:", connection.connectionId);
+                console.groupEnd();
+
+                if (connection.state === signalR.HubConnectionState.Disconnected) {
+                    console.log("%c[SignalR ⏳] Starting connection to hub...", "color: #3b82f6; font-weight: bold;");
+                    await connection.start();
+                    console.log("%c[SignalR 🟢] Connected successfully!", "color: #10b981; font-weight: bold;", {
+                        connectionId: connection.connectionId,
+                        state: connection.state
+                    });
+                }
+
+                if (connection.state === signalR.HubConnectionState.Connected) {
+                    console.log("%c[SignalR 📡] Invoking 'JoinItem' for Item ID:", "color: #d4af37; font-weight: bold;", {
+                        itemIdNumber: Number(currentItemId),
+                        itemIdString: currentItemId
+                    });
+                    try {
+                        const joinResult = await connection.invoke("JoinItem", Number(currentItemId));
+                        console.log("%c[SignalR ✅] 'JoinItem' joined room successfully. Result:", "color: #10b981; font-weight: bold;", joinResult ?? "OK (void)");
+                    } catch (joinErr) {
+                        console.warn("%c[SignalR ⚠️] 'JoinItem' invocation rejected/failed:", "color: #f59e0b; font-weight: bold;", joinErr);
+                    }
+                }
+
+                const handleIncomingSignalREvent = (eventName, ...args) => {
+                    if (!isSubscribed) return;
+                    const rawData = args.length === 1 ? args[0] : (args.length === 0 ? null : args);
+
+                    console.group(`%c[SignalR ⚡ Event: ${eventName}]`, "background: #7c3aed; color: #fff; font-weight: bold; padding: 2px 6px; border-radius: 3px; font-size: 13px;");
+                    console.log("%cTimestamp:", "color: #94a3b8;", new Date().toISOString(), `(${new Date().toLocaleTimeString()})`);
+                    console.log("%cRaw Event Arguments:", "color: #38bdf8; font-weight: bold;", args);
+                    console.log("%cCurrent Item ID in Page:", "color: #d4af37; font-weight: bold;", currentItemId);
+
+                    let payloadObj = null;
+                    let incomingId = '';
+                    let newPrice = null;
+                    let nextBid = null;
+                    let count = null;
+                    let latestBidsList = null;
+
+                    if (args.length > 1 && (typeof args[0] === 'number' || typeof args[0] === 'string')) {
+                        incomingId = String(args[0]);
+                        if (typeof args[1] === 'object' && args[1] !== null) {
+                            payloadObj = args[1];
+                        } else {
+                            newPrice = args[1];
+                            count = args[2];
+                            nextBid = args[3];
+                        }
+                    } else if (typeof rawData === 'string') {
+                        try {
+                            payloadObj = JSON.parse(rawData);
+                        } catch {
+                            payloadObj = rawData;
+                        }
+                    } else if (typeof rawData === 'object' && rawData !== null) {
+                        payloadObj = Array.isArray(rawData) ? rawData[0] : rawData;
+                    }
+
+                    if (payloadObj && typeof payloadObj === 'object') {
+                        incomingId = String(payloadObj.itemId ?? payloadObj.ItemId ?? payloadObj.id ?? payloadObj.Id ?? payloadObj.item_id ?? incomingId ?? '');
+                        newPrice = payloadObj.currentPrice ?? payloadObj.CurrentPrice ?? payloadObj.currentBid ?? payloadObj.CurrentBid ?? payloadObj.bidAmount ?? payloadObj.BidAmount ?? payloadObj.price ?? payloadObj.Price ?? payloadObj.amount ?? payloadObj.Amount ?? payloadObj.highestBid ?? payloadObj.HighestBid ?? newPrice;
+                        nextBid = payloadObj.minNextBid ?? payloadObj.MinNextBid ?? payloadObj.nextBid ?? payloadObj.NextBid ?? payloadObj.bidIncrement ?? payloadObj.BidIncrement ?? payloadObj.nextMinimumBid ?? payloadObj.NextMinimumBid ?? nextBid;
+                        count = payloadObj.countOfBidders ?? payloadObj.CountOfBidders ?? payloadObj.activeBidders ?? payloadObj.ActiveBidders ?? payloadObj.biddersCount ?? payloadObj.BiddersCount ?? payloadObj.totalBidders ?? count;
+                        latestBidsList = payloadObj.latestBids ?? payloadObj.LatestBids ?? payloadObj.bids ?? payloadObj.Bids ?? payloadObj.bidHistory;
+                    }
+
+                    console.log("%cItem ID Check:", "color: #10b981; font-weight: bold;", {
+                        incomingId: incomingId || "(no itemId provided, matching current item)",
+                        currentItemId,
+                        matches: !incomingId || incomingId === currentItemId
+                    });
+
+                    if (!incomingId || incomingId === currentItemId) {
+                        console.log("%cParsed Real-Time Values from '" + eventName + "':", "color: #ec4899; font-weight: bold;", {
+                            newPrice,
+                            nextBid,
+                            biddersCount: count,
+                            latestBidsList
+                        });
+
+                        if (newPrice != null && !isNaN(Number(newPrice))) {
+                            setCurrentBid(Number(newPrice));
+                        }
+                        if (nextBid != null && !isNaN(Number(nextBid))) {
+                            setCustomBidAmount(Number(nextBid));
+                        } else if (newPrice != null && !isNaN(Number(newPrice))) {
+                            setCustomBidAmount(Number(newPrice) + (watch?.bidIncrement || 500));
+                        }
+                        if (count != null && !isNaN(Number(count))) {
+                            setBiddersCount(Number(count));
+                        }
+                        if (Array.isArray(latestBidsList) && latestBidsList.length > 0) {
+                            setBids(latestBidsList);
+                        }
+
+                        setWatch((prev) => {
+                            if (!prev) return prev;
+                            return {
+                                ...prev,
+                                currentBidNumber: newPrice != null ? Number(newPrice) : prev.currentBidNumber,
+                                bidIncrement: nextBid != null ? Number(nextBid) : prev.bidIncrement,
+                                activeBidders: count != null ? Number(count) : prev.activeBidders
+                            };
+                        });
+
+                        fetchLatestBid();
+                    }
+                    console.groupEnd();
+                };
+
+                const events = [
+                    "bidchanged",
+                    "BidChanged",
+                    "bidChanged",
+                    "bidchange",
+                    "BidChange",
+                    "BidUpdated",
+                    "bidUpdated",
+                    "bidupdated",
+                    "ReceiveBid",
+                    "receiveBid",
+                    "BidPlaced",
+                    "bidPlaced",
+                    "bidplaced",
+                    "UpdateBid",
+                    "updateBid",
+                    "ReceiveBidUpdate",
+                    "receiveBidUpdate",
+                    "NewBid",
+                    "newBid",
+                    "ItemBidUpdated",
+                    "itemBidUpdated",
+                    "ReceiveBiddingUpdate",
+                    "AuctionUpdated",
+                    "auctionUpdated",
+                    "BiddingUpdated",
+                    "biddingUpdated",
+                    "OnBidPlaced",
+                    "OnBidUpdated",
+                    "ReceiveMessage"
+                ];
+
+                events.forEach((ev) => {
+                    connection.off(ev);
+                    connection.on(ev, (...args) => handleIncomingSignalREvent(ev, ...args));
+                });
+            } catch (error) {
+                console.error("%c[SignalR ❌] Connection or invocation error:", "color: #ef4444; font-weight: bold;", error);
+            }
+        };
+
+        connectToAuction();
+
+        return () => {
+            isSubscribed = false;
+            if (connection.state === signalR.HubConnectionState.Connected) {
+                console.log("%c[SignalR 🚪] Leaving auction room for Item ID:", "color: #64748b;", Number(currentItemId));
+                connection.invoke("LeaveItem", Number(currentItemId)).catch((err) => console.warn("[SignalR] LeaveItem warning:", err));
+            }
+            const events = [
+                "bidchanged",
+                "BidChanged",
+                "bidChanged",
+                "bidchange",
+                "BidChange",
+                "BidUpdated",
+                "bidUpdated",
+                "bidupdated",
+                "ReceiveBid",
+                "receiveBid",
+                "BidPlaced",
+                "bidPlaced",
+                "bidplaced",
+                "UpdateBid",
+                "updateBid",
+                "ReceiveBidUpdate",
+                "receiveBidUpdate",
+                "NewBid",
+                "newBid",
+                "ItemBidUpdated",
+                "itemBidUpdated",
+                "ReceiveBiddingUpdate",
+                "AuctionUpdated",
+                "auctionUpdated",
+                "BiddingUpdated",
+                "biddingUpdated",
+                "OnBidPlaced",
+                "OnBidUpdated",
+                "ReceiveMessage"
+            ];
+            events.forEach((ev) => connection.off(ev));
+        };
+    }, [id, watch?.itemId]);
+
+    const fetchLatestBid = () => {
+        const targetId = watch?.itemId || id;
+        if (!targetId) return;
+
+        console.groupCollapsed(`%c[Bidding API 🔍] Fetching Latest Bid (Item ID: ${targetId})`, "color: #38bdf8; font-weight: bold;");
+        console.log("Endpoint: GET api/itembid/latest-bids/" + targetId);
+        console.log("Timestamp:", new Date().toLocaleTimeString());
+
+        getLatestBid(targetId)
+            .then((res) => {
+                const raw = res?.data;
+                const dataObj = raw?.data || raw;
+
+                console.log("%cLatest Bid API Response:", "color: #10b981; font-weight: bold;", {
+                    httpStatus: res?.status,
+                    data: raw
+                });
+
+                if (Array.isArray(raw)) {
+                    const match = raw.find((b) => Number(b.itemId) === Number(targetId));
+                    if (match) {
+                        const curBid = match.bidData?.currentBid ?? match.currentBid;
+                        const nextB = match.bidData?.nextBid ?? match.nextBid;
+                        const countB = match.countOfBidders ?? match.activeBidders;
+                        if (curBid != null) setCurrentBid(Number(curBid));
+                        if (countB != null) setBiddersCount(Number(countB));
+                        if (match.latestBids) setBids(match.latestBids);
+                        setWatch((prev) =>
+                            prev
+                                ? {
+                                    ...prev,
+                                    currentBidNumber: curBid != null ? Number(curBid) : prev.currentBidNumber,
+                                    bidIncrement: nextB != null ? Number(nextB) : prev.bidIncrement,
+                                    activeBidders: countB != null ? Number(countB) : prev.activeBidders,
+                                }
+                                : prev
+                        );
+                    }
+                } else if (dataObj && typeof dataObj === "object") {
+                    const countB = dataObj.countOfBidders ?? dataObj.activeBidders ?? dataObj.biddersCount;
+                    const curBid = dataObj.currentBid ?? dataObj.bidData?.currentBid ?? dataObj.currentPrice;
+                    const nextB = dataObj.nextBid ?? dataObj.bidData?.nextBid ?? dataObj.minNextBid ?? dataObj.bidIncrement;
+                    const latestB = dataObj.latestBids ?? dataObj.bids;
+
+                    if (countB != null) setBiddersCount(Number(countB));
+                    if (curBid != null) setCurrentBid(Number(curBid));
+                    if (Array.isArray(latestB)) setBids(latestB);
+                    setWatch((prev) =>
+                        prev
+                            ? {
+                                ...prev,
+                                currentBidNumber: curBid != null ? Number(curBid) : prev.currentBidNumber,
+                                bidIncrement: nextB != null ? Number(nextB) : prev.bidIncrement,
+                                activeBidders: countB != null ? Number(countB) : prev.activeBidders,
+                            }
+                            : prev
+                    );
+                }
+                console.groupEnd();
+            })
+            .catch((err) => {
+                console.error("%c[Bidding API ❌] fetchLatestBid error:", "color: #ef4444; font-weight: bold;", {
+                    status: err?.response?.status,
+                    data: err?.response?.data,
+                    message: err?.message,
+                });
+                console.groupEnd();
+            });
+    };
+
+    useEffect(() => {
+        if (watch?.itemId) {
+            fetchLatestBid();
+        }
+    }, [watch?.itemId]);
+
     useEffect(() => {
         setLoading(true)
         getApprovedListing(3)
@@ -43,7 +329,7 @@ const DetailedPage = () => {
                         angles: [found.details?.image2, found.details?.image3, found.details?.image4, found.details?.image5].filter(Boolean),
                         currentBidNumber: found.currentPrice || found.expectedPrice || 1500,
                         bidIncrement: found.bidIncreament || 500,
-                        activeBidders: 12,
+                        activeBidders: 0,
                         auctionEndDate: found.auctionEndDate,
                         currency: found.currency || 'USD',
                         liveActivity: [
@@ -76,7 +362,7 @@ const DetailedPage = () => {
     // Bidding States
     const [currentBid, setCurrentBid] = useState(0);
     const [bids, setBids] = useState([]);
-    const [biddersCount, setBiddersCount] = useState(10);
+    const [biddersCount, setBiddersCount] = useState(0);
     const [isFavorited, setIsFavorited] = useState(false);
     const [isAutoBidding, setIsAutoBidding] = useState(false);
 
@@ -134,10 +420,10 @@ const DetailedPage = () => {
     useEffect(() => {
         if (watch) {
             setCurrentBid(watch.currentBidNumber)
-            setBids(watch.liveActivity || [])
-            setBiddersCount(watch.activeBidders || 10)
+            // setBids(watch.liveActivity || [])
+            // setBiddersCount(watch.activeBidders || 0)
             setMainImage(watch.image)
-            setCustomBidAmount(watch.bidIncrement)
+            setCustomBidAmount(watch.currentBidNumber + watch.bidIncrement)
             setTimeLeft(watch.auctionEndDate ? calculateTimeLeft(watch.auctionEndDate) : { days: 1, hours: 4, minutes: 18, seconds: 40 })
         }
     }, [watch])
@@ -233,9 +519,13 @@ const DetailedPage = () => {
     const submitCustomBid = (e) => {
         e.preventDefault();
         const amt = Number(customBidAmount);
-        const minRequired = watch.bidIncrement;
+        const minRequired = watch?.bidIncrement || 0;
 
         if (isNaN(amt) || amt < minRequired) {
+            console.warn("[BID PLACEMENT] Validation failed: Bid amount is lower than minimum required increment.", {
+                enteredAmount: amt,
+                minRequired
+            });
             setBidError(`Bid must be at least ${formatCurrency(minRequired)}`);
             return;
         }
@@ -243,24 +533,61 @@ const DetailedPage = () => {
         const payload = {
             ItemId: watch.itemId,
             BidAmount: amt,
-            Currency: watch.currency
+            Currency: watch.currency || "USD"
         }
 
+        const localTime = new Date().toLocaleTimeString();
+        let tokenInStorage = null;
+        try {
+            tokenInStorage = localStorage.getItem("token") || (localStorage.getItem("authState") ? JSON.parse(localStorage.getItem("authState"))?.accessToken : null);
+        } catch {
+            tokenInStorage = localStorage.getItem("token");
+        }
+
+        console.group(`%c[BID PLACEMENT 💰] Placing Watch Bid of ${formatCurrency(amt)} at ${localTime}`, "background: #d4af37; color: #000; font-weight: bold; padding: 3px 8px; border-radius: 4px; font-size: 13px;");
+        console.log("%c🎯 Item Details:", "color: #d4af37; font-weight: bold;", {
+            itemId: watch.itemId,
+            title: watch.title,
+            currentBidOnUI: currentBid,
+            bidIncrement: watch.bidIncrement
+        });
+        console.log("%c📤 Request Payload (POST api/itembid/AddBid):", "color: #38bdf8; font-weight: bold;", payload);
+        console.log("%c🔑 Auth Token Status:", "color: #10b981; font-weight: bold;", {
+            hasToken: !!tokenInStorage,
+            tokenPreview: tokenInStorage ? `${tokenInStorage.slice(0, 10)}...${tokenInStorage.slice(-8)}` : "❌ NO TOKEN FOUND IN STORAGE"
+        });
+        console.log("%c⚡ SignalR Connection Status:", "color: #a855f7; font-weight: bold;", {
+            state: connection.state,
+            connectionId: connection.connectionId || "N/A"
+        });
+
         AddBid(payload)
-            .then(() => {
+            .then((res) => {
+                console.log("%c[BID PLACEMENT ✅ SUCCESS]", "background: #10b981; color: #fff; font-weight: bold; padding: 2px 6px; border-radius: 3px;", {
+                    status: res?.status,
+                    statusText: res?.statusText,
+                    responseData: res?.data
+                });
+                console.groupEnd();
+
                 // Apply new bid
                 const newBidObj = {
                     id: Date.now(),
+                    bidId: Date.now(),
+                    name: 'You',
                     member: `MEMBER #YOU***${Math.floor(Math.random() * 9 + 1)}`,
                     timeAgo: 'Just now',
+                    bidDate: 'Just now',
                     timestamp: Date.now(),
                     amount: formatCurrency(amt),
+                    bidAmount: amt,
                     amountNumber: amt
                 };
 
                 setCurrentBid(amt);
                 setBids(prev => [newBidObj, ...prev]);
-                setBiddersCount(prev => prev + 1);
+                setBiddersCount(prev => (prev || 0) + 1);
+                fetchLatestBid();
                 setShowBidModal(false);
                 setSuccessMessage(`Bid of ${formatCurrency(amt)} placed successfully!`);
 
@@ -269,9 +596,18 @@ const DetailedPage = () => {
                 }, 4000);
             })
             .catch((err) => {
-                console.error(err)
-                setBidError(err?.response?.data?.message || err?.message || 'Failed to place bid. Please try again.')
-            })
+                console.error("%c[BID PLACEMENT ❌ FAILED]", "background: #ef4444; color: #fff; font-weight: bold; padding: 2px 6px; border-radius: 3px;", {
+                    httpStatus: err?.response?.status,
+                    statusText: err?.response?.statusText,
+                    backendResponseData: err?.response?.data,
+                    backendMessage: err?.response?.data?.message || err?.response?.data?.title || err?.message,
+                    payloadSent: payload,
+                    fullAxiosError: err
+                });
+                console.groupEnd();
+
+                setBidError(err?.response?.data?.message || err?.response?.data?.title || err?.message || 'Failed to place bid. Please try again.');
+            });
     };
 
     return (
@@ -467,18 +803,45 @@ const DetailedPage = () => {
                                         <span className="live-activity-title">LIVE ACTIVITY</span>
                                         <span className="live-pulse"></span>
                                     </div>
-                                    <div className="live-activity-list">
-                                        {bids.map((bid, index) => (
-                                            <div className="live-bid-item" key={bid.id || index}>
-                                                <div className="bid-user-info">
-                                                    <span className="bid-username">{index + 1}. {bid.member}</span>
-                                                    <span className="bid-timestamp">{bid.timeAgo || 'Just now'}</span>
-                                                </div>
-                                                <div className="bid-amount-value">
-                                                    {bid.amount}
-                                                </div>
+                                    <div className="live-activity-list" data-lenis-prevent="true">
+                                        {(!bids || bids.length === 0) ? (
+                                            <div className="live-activity-empty">
+                                                <span>No bids placed yet</span>
                                             </div>
-                                        ))}
+                                        ) : (
+                                            bids.map((bid, index) => {
+                                                const isHighest = index === 0;
+                                                const displayName = bid.name || bid.member || `Bidder #${bid.userId || bid.bidderId || index + 1}`;
+                                                const displayTime = bid.bidDate || bid.timeAgo || (bid.timestamp ? new Date(bid.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now');
+                                                const rawAmt = bid.bidAmount ?? bid.amountNumber ?? (typeof bid.amount === 'string' ? bid.amount.replace(/[^0-9.]/g, '') : bid.amount);
+                                                const displayAmt = !isNaN(Number(rawAmt)) && rawAmt !== null && rawAmt !== '' ? formatCurrency(Number(rawAmt)) : (bid.amount || `$ ${rawAmt || 0}`);
+
+                                                return (
+                                                    <div 
+                                                        className={`live-bid-item ${isHighest ? 'live-bid-item--winning' : ''}`} 
+                                                        key={bid.bidId || bid.id || index}
+                                                    >
+                                                        <div className="bid-user-info">
+                                                            <div className="bid-user-headline">
+                                                                <span className="bid-username">{index + 1}. {displayName}</span>
+                                                                {isHighest && (
+                                                                    <span className="bid-winning-badge">
+                                                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" className="bid-winning-crown-icon">
+                                                                            <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
+                                                                        </svg>
+                                                                        WINNING
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <span className="bid-timestamp">{displayTime}</span>
+                                                        </div>
+                                                        <div className={`bid-amount-value ${isHighest ? 'bid-amount-value--winning' : ''}`}>
+                                                            {displayAmt}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })
+                                        )}
                                     </div>
                                 </div>
 

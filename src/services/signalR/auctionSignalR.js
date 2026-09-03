@@ -22,19 +22,19 @@ const connection = new signalR.HubConnectionBuilder()
         }
     })
     .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
-    .configureLogging(signalR.LogLevel.Information)
+    .configureLogging(signalR.LogLevel.Debug)
     .build();
 
 connection.onreconnecting((error) => {
-    console.warn("%c[SignalR] Connection lost. Attempting to reconnect...", "color: #f59e0b; font-weight: bold;", error);
+    console.warn("%c[SignalR ⚠️] Connection lost. Attempting to reconnect...", "color: #f59e0b; font-weight: bold;", error);
 });
 
 connection.onreconnected((connectionId) => {
-    console.log("%c[SignalR] Connection re-established! Connection ID:", "color: #10b981; font-weight: bold;", connectionId);
+    console.log("%c[SignalR 🟢] Connection re-established! Connection ID:", "color: #10b981; font-weight: bold;", connectionId);
 });
 
 connection.onclose((error) => {
-    console.error("%c[SignalR] Connection closed.", "color: #ef4444; font-weight: bold;", error);
+    console.error("%c[SignalR 🔴] Connection closed.", "color: #ef4444; font-weight: bold;", error);
 });
 
 export default connection;
