@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import './VaultPage.css'
 import { GetMySoldItems } from '../../../services/getUserData/GetUserData'
-import { getMyWishList } from '../../../services/sellingServices/getSellListings/getSellListings'
+import { getMyWishList, getMyActiveBids } from '../../../services/sellingServices/getSellListings/getSellListings'
 
 
 
@@ -154,81 +154,70 @@ const VaultPage = () => {
   const [promoCode, setPromoCode] = useState('')
   const [discount, setDiscount] = useState(0)
 
-  const[myWishList, setMyWishList] = useState([]);
+  const [myWishList, setMyWishList] = useState([]);
 
 
 
   const myWhishList = () => {
-          getMyWishList()
-              .then((res) => {
-                setMyWishList(res?.data?.data)
-                  
-              })
-              .catch((err) => {
-                  console.error(err)
-              })
-      }
-  
-    
-  
-      useEffect(() => {
-          myWhishList()
-      }, [])
+    getMyWishList()
+      .then((res) => {
+        setMyWishList(Array.isArray(res?.data?.data) ? res.data.data : [])
+      })
+      .catch((err) => {
+        console.error(err)
+        setMyWishList([])
+      })
+  }
 
+  const myActiveBids = () => {
+    getMyActiveBids()
+      .then((res) => {
+        setActiveBids(Array.isArray(res?.data?.data) ? res.data.data : [])
+      })
+      .catch((err) => {
+        console.error(err)
+        setActiveBids([])
+      })
+  }
 
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  useEffect(() => {
+    myWhishList()
+    myActiveBids()
+  }, [])
 
   // Countdown logic for active bids & watchlist items
   useEffect(() => {
     const interval = setInterval(() => {
       setSecondsTick(t => t + 1)
-      // Tick active bids
+      // Tick active bids if any item has legacy timeLeft object
       setActiveBids(prev =>
-        prev.map(item => {
-          let s = item.timeLeft.seconds - 1
-          let m = item.timeLeft.minutes
-          let h = item.timeLeft.hours
-          if (s < 0) { s = 59; m -= 1 }
-          if (m < 0) { m = 59; h -= 1 }
-          if (h < 0) { h = 0; m = 0; s = 0 }
-          return { ...item, timeLeft: { hours: h, minutes: m, seconds: s } }
-        })
+        Array.isArray(prev)
+          ? prev.map(item => {
+              if (!item?.timeLeft || typeof item.timeLeft !== 'object') return item
+              let s = (item.timeLeft.seconds ?? 0) - 1
+              let m = item.timeLeft.minutes ?? 0
+              let h = item.timeLeft.hours ?? 0
+              if (s < 0) { s = 59; m -= 1 }
+              if (m < 0) { m = 59; h -= 1 }
+              if (h < 0) { h = 0; m = 0; s = 0 }
+              return { ...item, timeLeft: { hours: h, minutes: m, seconds: s } }
+            })
+          : []
       )
-      // Tick watchlist
+      // Tick watchlist if any item has legacy timeLeft object
       setWatchlist(prev =>
-        prev.map(item => {
-          let s = item.timeLeft.seconds - 1
-          let m = item.timeLeft.minutes
-          let h = item.timeLeft.hours
-          if (s < 0) { s = 59; m -= 1 }
-          if (m < 0) { m = 59; h -= 1 }
-          if (h < 0) { h = 0; m = 0; s = 0 }
-          return { ...item, timeLeft: { hours: h, minutes: m, seconds: s } }
-        })
+        Array.isArray(prev)
+          ? prev.map(item => {
+              if (!item?.timeLeft || typeof item.timeLeft !== 'object') return item
+              let s = (item.timeLeft.seconds ?? 0) - 1
+              let m = item.timeLeft.minutes ?? 0
+              let h = item.timeLeft.hours ?? 0
+              if (s < 0) { s = 59; m -= 1 }
+              if (m < 0) { m = 59; h -= 1 }
+              if (h < 0) { h = 0; m = 0; s = 0 }
+              return { ...item, timeLeft: { hours: h, minutes: m, seconds: s } }
+            })
+          : []
       )
     }, 1000)
     return () => clearInterval(interval)
@@ -237,27 +226,78 @@ const VaultPage = () => {
   const formatCurrency = (val) =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val)
 
-  const formatTime = (time) => {
-    if (!time) return '00:00:00'
+  const getAuctionDate = (itemOrTime) => {
+    if (!itemOrTime) return null
+    if (typeof itemOrTime === 'string' || typeof itemOrTime === 'number' || itemOrTime instanceof Date) {
+      return itemOrTime
+    }
+    if (typeof itemOrTime === 'object') {
+      return (
+        itemOrTime.auctionEndDate ??
+        itemOrTime.details?.auctionEndDate ??
+        itemOrTime.endDate ??
+        itemOrTime.details?.endDate ??
+        itemOrTime.itemEndDate ??
+        itemOrTime.details?.itemEndDate ??
+        itemOrTime.closingDate ??
+        itemOrTime.details?.closingDate ??
+        itemOrTime.auctionDate ??
+        itemOrTime.details?.auctionDate ??
+        itemOrTime.timeLeft ??
+        itemOrTime.details?.timeLeft ??
+        null
+      )
+    }
+    return null
+  }
+
+  const formatTime = (timeInput) => {
+    const rawTime = getAuctionDate(timeInput)
     const pad = (n) => String(n).padStart(2, '0')
 
-    // If it's a string, calculate difference dynamically
-    if (typeof time === 'string') {
-      const difference = +new Date(time) - +new Date()
+    if (!rawTime) return '00:00:00'
+
+    // If it's a legacy object with { days, hours, minutes, seconds }
+    if (typeof rawTime === 'object' && !(rawTime instanceof Date)) {
+      const d = rawTime.days || 0
+      const h = pad(rawTime.hours || 0)
+      const m = pad(rawTime.minutes || 0)
+      const s = pad(rawTime.seconds || 0)
+      return d > 0 ? `${d}d ${h}:${m}:${s}` : `${h}:${m}:${s}`
+    }
+
+    // If it's a string, number, or Date instance, calculate difference dynamically
+    if (typeof rawTime === 'string' || typeof rawTime === 'number' || rawTime instanceof Date) {
+      let targetDate
+      if (rawTime instanceof Date) {
+        targetDate = rawTime
+      } else if (typeof rawTime === 'number') {
+        targetDate = new Date(rawTime)
+      } else {
+        const normalized = rawTime.includes(' ') && !rawTime.includes('T') ? rawTime.replace(' ', 'T') : rawTime
+        targetDate = new Date(normalized)
+        if (isNaN(targetDate.getTime())) {
+          targetDate = new Date(rawTime)
+        }
+      }
+
+      if (!targetDate || isNaN(targetDate.getTime())) return '00:00:00'
+
+      const difference = +targetDate - +new Date()
       if (difference <= 0) return '00:00:00'
+
       const days = Math.floor(difference / (1000 * 60 * 60 * 24))
       const hours = Math.floor((difference / (1000 * 60 * 60)) % 24)
       const minutes = Math.floor((difference / 1000 / 60) % 60)
       const seconds = Math.floor((difference / 1000) % 60)
-      
+
       if (days > 0) {
         return `${days}d ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
       }
       return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
     }
 
-    // Otherwise, assume it's the old { hours, minutes, seconds } object
-    return `${pad(time?.hours || 0)}:${pad(time?.minutes || 0)}:${pad(time?.seconds || 0)}`
+    return '00:00:00'
   }
 
   const getItemLink = (item) => {
@@ -348,10 +388,11 @@ const VaultPage = () => {
   const showSoldItems = () => {
     GetMySoldItems()
       .then((res) => {
-        setSellingList(res?.data?.data)
+        setSellingList(Array.isArray(res?.data?.data) ? res.data.data : [])
       })
       .catch((err) => {
-        console.log(err)
+        console.error(err)
+        setSellingList([])
       })
   }
 
@@ -387,14 +428,14 @@ const VaultPage = () => {
             className={`vault-tab-btn ${activeTab === 'bids' ? 'vault-tab-btn--active' : ''}`}
             onClick={() => setActiveTab('bids')}
           >
-            ACTIVE BIDS ({activeBids.length})
+            ACTIVE BIDS ({activeBids?.length || 0})
             {activeTab === 'bids' && <span className="vault-tab-indicator" />}
           </button>
           <button
             className={`vault-tab-btn ${activeTab === 'secured' ? 'vault-tab-btn--active' : ''}`}
             onClick={() => setActiveTab('secured')}
           >
-            SECURED ASSETS ({securedAssets.length})
+            SECURED ASSETS ({securedAssets?.length || 0})
             {activeTab === 'secured' && <span className="vault-tab-indicator" />}
           </button>
 
@@ -402,7 +443,7 @@ const VaultPage = () => {
             className={`vault-tab-btn ${activeTab === 'watchlist' ? 'vault-tab-btn--active' : ''}`}
             onClick={() => setActiveTab('watchlist')}
           >
-            WATCHLIST ({myWishList.length})
+            WATCHLIST ({myWishList?.length || 0})
             {activeTab === 'watchlist' && <span className="vault-tab-indicator" />}
           </button>
 
@@ -410,7 +451,7 @@ const VaultPage = () => {
             className={`vault-tab-btn ${activeTab === 'sellingList' ? 'vault-tab-btn--active' : ''}`}
             onClick={() => setActiveTab('sellingList')}
           >
-            SELLING LIST ({sellingList.length})
+            SELLING LIST ({sellingList?.length || 0})
             {activeTab === 'sellingList' && <span className="vault-tab-indicator" />}
           </button>
         </div>
@@ -436,35 +477,35 @@ const VaultPage = () => {
           {/* 1. Active Bids Tab */}
           {activeTab === 'bids' && (
             <div className="vault-panel-grid fade-in-animation">
-              {activeBids.length === 0 ? (
+              {activeBids?.length === 0 ? (
                 <div className="vault-empty-state">
                   <p>You have no active auction bids at this moment.</p>
                   <Link to="/bidPage" className="vault-explore-btn">EXPLORE ACTIVE AUCTIONS</Link>
                 </div>
               ) : (
                 <div className="vault-items-list">
-                  {activeBids.map(item => {
-                    const isWinning = item.userBid >= item.currentHighBid
+                  {activeBids?.map(item => {
+                    const isWinning = item?.isHighBid === true
                     return (
-                      <div className="vault-item-card" key={item.id}>
+                      <div className="vault-item-card" key={item?.itemId}>
                         <div className="vault-item-card__image">
-                          <img src={item.image} alt={item.title} />
+                          <img src={item?.details?.thumbnail} alt={item?.details?.brand} />
                         </div>
                         <div className="vault-item-card__details">
-                          <span className="vault-item-cat">{item.category}</span>
-                          <h3 className="vault-item-title">{item.title} <span className="vault-item-ref">{item.reference}</span></h3>
+                          <span className="vault-item-cat">{item?.categoryName}</span>
+                          <h3 className="vault-item-title">{item?.details?.brand || item?.details?.producerName} <span className="vault-item-ref">{item?.details?.editionName || item?.details?.bottlingName || item?.details?.model}</span></h3>
                           <div className="vault-item-specs">
                             <div>
                               <span className="vault-spec-label">YOUR BID</span>
-                              <span className="vault-spec-val">{formatCurrency(item.userBid)}</span>
+                              <span className="vault-spec-val">{formatCurrency(item?.currentPrice)}</span>
                             </div>
                             <div>
                               <span className="vault-spec-label">CURRENT HIGH</span>
-                              <span className="vault-spec-val">{formatCurrency(item.currentHighBid)}</span>
+                              <span className="vault-spec-val">{formatCurrency(item?.currentPrice)}</span>
                             </div>
                             <div>
                               <span className="vault-spec-label">CLOSES IN</span>
-                              <span className="vault-spec-val vault-spec-val--timer">{formatTime(item.timeLeft)}</span>
+                              <span className="vault-spec-val vault-spec-val--timer">{formatTime(item)}</span>
                             </div>
                           </div>
                         </div>
@@ -472,7 +513,7 @@ const VaultPage = () => {
                           <span className={`vault-bid-status-badge ${isWinning ? 'winning' : 'outbid'}`}>
                             {isWinning ? 'WINNING' : 'OUTBID'}
                           </span>
-                          <Link to={item.link} className="vault-action-btn">
+                          <Link to={item?.details?.link || getItemLink(item)} className="vault-action-btn">
                             {isWinning ? 'VIEW ITEM' : 'RAISE BID'}
                           </Link>
                         </div>
@@ -487,14 +528,14 @@ const VaultPage = () => {
           {/* 2. Secured Assets Tab */}
           {activeTab === 'secured' && (
             <div className="vault-panel-grid fade-in-animation">
-              {securedAssets.length === 0 ? (
+              {securedAssets?.length === 0 ? (
                 <div className="vault-empty-state">
                   <p>No verified assets are registered in your vault portfolio yet.</p>
                   <Link to="/bidPage" className="vault-explore-btn">ACQUIRE ASSETS</Link>
                 </div>
               ) : (
                 <div className="vault-items-list">
-                  {securedAssets.map(item => (
+                  {securedAssets?.map(item => (
                     <div className="vault-item-card vault-item-card--secured" key={item.id}>
                       <div className="vault-item-card__image">
                         <img src={item.image} alt={item.title} />
@@ -538,7 +579,7 @@ const VaultPage = () => {
           {/* 4. Watchlist Tab */}
           {activeTab === 'watchlist' && (
             <div className="vault-panel-grid fade-in-animation">
-              {myWishList.length === 0 ? (
+              {myWishList?.length === 0 ? (
                 <div className="vault-empty-state">
                   <p>Your watchlist is currently empty.</p>
                   <Link to="/bidPage" className="vault-explore-btn">EXPLORE ACTIVE LOTS</Link>
@@ -552,7 +593,7 @@ const VaultPage = () => {
                       </div>
                       <div className="vault-item-card__details">
                         <span className="vault-item-cat">{item.categoryName}</span>
-                        <h3 className="vault-item-title">{item?.details?.brand} <span className="vault-item-ref">{item?.details?.reference}</span></h3>
+                        <h3 className="vault-item-title">{item?.details?.brand || item?.details?.caskType} <span className="vault-item-ref">{item?.details?.reference}</span></h3>
                         <div className="vault-item-specs">
                           <div>
                             <span className="vault-spec-label">CURRENT BID</span>
@@ -560,7 +601,7 @@ const VaultPage = () => {
                           </div>
                           <div>
                             <span className="vault-spec-label">TIME REMAINING</span>
-                            <span className="vault-spec-val vault-spec-val--timer">{formatTime(item?.auctionEndDate)}</span>
+                            <span className="vault-spec-val vault-spec-val--timer">{formatTime(item)}</span>
                           </div>
                         </div>
                       </div>
@@ -582,14 +623,14 @@ const VaultPage = () => {
           {/* 4. Selling List Tab */}
           {activeTab === 'sellingList' && (
             <div className="vault-panel-grid fade-in-animation">
-              {sellingList.length === 0 ? (
+              {sellingList?.length === 0 ? (
                 <div className="vault-empty-state">
                   <p>Your selling list is currently empty.</p>
                   <Link to="/sell" className="vault-explore-btn">SELL AN ASSET</Link>
                 </div>
               ) : (
                 <div className="vault-items-list">
-                  {sellingList.map(item => (
+                  {sellingList?.map(item => (
                     <div className="vault-item-card" key={item?.itemId}>
                       <div className="vault-item-card__image">
                         <img src={item?.details?.thumbnail} alt={item?.details?.brand} />
@@ -604,7 +645,7 @@ const VaultPage = () => {
                           </div>
                           <div>
                             <span className="vault-spec-label">TIME REMAINING</span>
-                            <span className="vault-spec-val vault-spec-val--timer">{formatTime(item?.auctionEndDate)}</span>
+                            <span className="vault-spec-val vault-spec-val--timer">{formatTime(item)}</span>
                           </div>
                         </div>
                       </div>

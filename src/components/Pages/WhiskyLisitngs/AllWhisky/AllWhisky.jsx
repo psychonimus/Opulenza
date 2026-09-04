@@ -196,9 +196,9 @@ const AllWhisky = () => {
             <>
               <div className="all-whisky-grid">
                 {whiskies?.map((item) => {
-                  const isFav = favorites[item.itemId] !== undefined 
-                                ? favorites[item.itemId] 
-                                : !!(item.isWishList ?? item.IsWishList);
+                  const isFav = favorites[item.itemId] !== undefined
+                    ? favorites[item.itemId]
+                    : !!(item.isWishList ?? item.IsWishList);
 
                   return (
 
@@ -347,6 +347,9 @@ const AllWhisky = () => {
             <>
               <div className="all-whisky-grid">
                 {casks?.map((item) => {
+                  const isFav = favorites[item.itemId] !== undefined
+                    ? favorites[item.itemId]
+                    : !!(item.isWishList ?? item.IsWishList);
                   return (
                     <div key={item?.itemId || item?.id} className="whisky-card whisky-card--cask">
                       <div className="whisky-card__cask-ribbon">CASK LOT</div>
@@ -355,9 +358,25 @@ const AllWhisky = () => {
                         <div className="whisky-card__overlay" />
                       </div>
                       <div className="whisky-card__body">
-                        <h3 className="whisky-card__title">{item?.details?.caskType}</h3>
-                        <p className="whisky-card__reference">{item?.details?.distillesy}</p>
-                        <p className="whisky-card__desc">{item?.details?.storageCondition}</p>
+                        <div className="d-flex justify-content-between">
+                          <div>
+                          <h3 className="whisky-card__title">{item?.details?.caskType}</h3>
+                          <p className="whisky-card__reference">{item?.details?.distillesy}</p>
+                          <p className="whisky-card__desc">{item?.details?.storageCondition}</p>
+                        </div>
+
+                        <div>
+                          <button
+                            className={`watch-card__favorite-btn ${isFav ? 'watch-card__favorite-btn--active' : ''}`}
+                            onClick={() => handleWishList(item.itemId)}
+                            aria-label="Add to wishlist"
+                          >
+                            <svg viewBox="0 0 24 24" fill={isFav ? '#D4AF37' : 'none'} stroke={isFav ? '#D4AF37' : 'currentColor'} strokeWidth="1.5" className="watch-card__heart-icon">
+                              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                            </svg>
+                          </button>
+                        </div>
+                        </div>
                         <div className="whisky-card__meta whisky-card__meta--cask">
                           <div className="whisky-card__meta-item">
                             <span className="whisky-card__meta-label">DISTILLERY</span>

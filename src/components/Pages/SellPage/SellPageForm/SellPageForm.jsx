@@ -130,6 +130,12 @@ const formFields = {
       type: "date",
       half: true,
     },
+    {
+      id: "auctionEndTime",
+      label: "Select Auction End Time",
+      type: "time",
+      half: true,
+    },
 
     // Condition & Accessories
     { id: "condSection", label: "Condition & Accessories", type: "section" },
@@ -403,6 +409,12 @@ const formFields = {
       type: "date",
       half: true,
     },
+    {
+      id: "auctionEndTime",
+      label: "Select Auction End Time",
+      type: "time",
+      half: true,
+    },
   ],
   whisky_tab2: [
     {
@@ -521,6 +533,12 @@ const formFields = {
       id: "auctionEndDate",
       label: "Select Auction End Date (Max 15 days)",
       type: "date",
+      half: true,
+    },
+    {
+      id: "auctionEndTime",
+      label: "Select Auction End Time",
+      type: "time",
       half: true,
     },
   ],
@@ -673,6 +691,12 @@ const formFields = {
       id: "auctionEndDate",
       label: "Select Auction End Date (Max 15 days)",
       type: "date",
+      half: true,
+    },
+    {
+      id: "auctionEndTime",
+      label: "Select Auction End Time",
+      type: "time",
       half: true,
     },
   ],
@@ -851,6 +875,12 @@ const formFields = {
       type: "date",
       half: true,
     },
+    {
+      id: "auctionEndTime",
+      label: "Select Auction End Time",
+      type: "time",
+      half: true,
+    },
   ],
   yacht: [
     // Yacht - Specifications
@@ -997,6 +1027,12 @@ const formFields = {
       type: "date",
       half: true,
     },
+    {
+      id: "auctionEndTime",
+      label: "Select Auction End Time",
+      type: "time",
+      half: true,
+    },
   ],
 };
 
@@ -1058,13 +1094,47 @@ const auctionEndDateField = () =>
     .required("Auction end date is required")
     .test("is-future", "Date must be today or in the future", (v) => {
       if (!v) return false;
-      return new Date(v) >= today();
+      const [year, month, day] = v.split("-").map(Number);
+      const selected = new Date(year, month - 1, day);
+      return selected >= today();
     })
     .test("is-max-15-days", "Auction end date cannot exceed 15 days from today", (v) => {
       if (!v) return false;
+      const [year, month, day] = v.split("-").map(Number);
+      const selected = new Date(year, month - 1, day);
       const max = new Date(today());
       max.setDate(max.getDate() + 15);
-      return new Date(v) <= max;
+      return selected <= max;
+    });
+
+// Auction end time: required, must be in the future if auctionEndDate is today
+const auctionEndTimeField = () =>
+  yup
+    .string()
+    .required("Auction end time is required")
+    .test("is-future-time", "Auction end time must be in the future", function (timeVal) {
+      if (!timeVal) return false;
+      const { auctionEndDate } = this.parent || {};
+      if (!auctionEndDate) return true;
+
+      const [year, month, day] = auctionEndDate.split("-").map(Number);
+      const selectedDate = new Date(year, month - 1, day);
+      const now = new Date();
+
+      if (
+        selectedDate.getFullYear() === now.getFullYear() &&
+        selectedDate.getMonth() === now.getMonth() &&
+        selectedDate.getDate() === now.getDate()
+      ) {
+        const [hours, minutes] = timeVal.split(":").map(Number);
+        const currentHours = now.getHours();
+        const currentMinutes = now.getMinutes();
+
+        if (hours < currentHours || (hours === currentHours && minutes <= currentMinutes)) {
+          return false;
+        }
+      }
+      return true;
     });
 
 // AYS / fill date: must be a past or present date
@@ -1104,6 +1174,7 @@ const FIELD_VALIDATORS = {
   // ── Price fields ──────────────────────────────
   originalPrice:  (f) => priceField(f.label),
   expectedPrice:  (f) => priceField(f.label),
+  ExpectedPrice:  (f) => priceField(f.label),
   CossgPrice:     (f) => priceField(f.label),
 
   // ── Integer quantity fields ───────────────────
@@ -1117,8 +1188,9 @@ const FIELD_VALIDATORS = {
   ABV:            (f) => abvField(f.label),
   proof:          (f) => abvField(f.label),
 
-  // ── Dates ─────────────────────────────────────
+  // ── Dates & Times ─────────────────────────────
   auctionEndDate: ()  => auctionEndDateField(),
+  auctionEndTime: ()  => auctionEndTimeField(),
   AYS:            (f) => pastDateField(f.label),
 
   // ── Serial / registry numbers ─────────────────
@@ -1175,8 +1247,8 @@ const buildSchema = (category, whiskyTab = "tab1", currentValues = {}) => {
       return;
     }
 
-    // Date fields
-    if (field.type === "date") {
+    // Date & Time fields
+    if (field.type === "date" || field.type === "time") {
       if (FIELD_VALIDATORS[field.id]) {
         shape[field.id] = FIELD_VALIDATORS[field.id](field);
       } else {
@@ -1209,6 +1281,9 @@ const getDefaultAuctionDate = () => {
   return d.toISOString().split("T")[0];
 };
 
+/** Returns default auction end time string (23:59). */
+const getDefaultAuctionTime = () => "23:59";
+
 const SellPageForm = () => {
   const [activeCategory, setActiveCategory] = useState("cigars");
   const [activeCategoryNumber, setActiveCategoryNumber] = useState("1");
@@ -1238,7 +1313,10 @@ const SellPageForm = () => {
       const schema = buildSchema(activeCategory, whiskyTab, values);
       return yupResolver(schema)(values, context, options);
     },
-    defaultValues: { auctionEndDate: getDefaultAuctionDate() },
+    defaultValues: {
+      auctionEndDate: getDefaultAuctionDate(),
+      auctionEndTime: getDefaultAuctionTime(),
+    },
   });
 
   const watchedValues = watch();
@@ -1249,14 +1327,20 @@ const SellPageForm = () => {
     setWhiskyTab("tab1");
     setFileNames({});
     setSelectedFiles({});
-    reset({ auctionEndDate: getDefaultAuctionDate() });
+    reset({
+      auctionEndDate: getDefaultAuctionDate(),
+      auctionEndTime: getDefaultAuctionTime(),
+    });
   };
 
   const handleWhiskyTabChange = (tab) => {
     setWhiskyTab(tab);
     setFileNames({});
     setSelectedFiles({});
-    reset({ auctionEndDate: getDefaultAuctionDate() });
+    reset({
+      auctionEndDate: getDefaultAuctionDate(),
+      auctionEndTime: getDefaultAuctionTime(),
+    });
   };
 
   
@@ -1357,6 +1441,12 @@ const SellPageForm = () => {
   const onSubmit = (data) => {
     const formData = new FormData();
 
+    // Prepare combined auction end datetime if both date and time are provided
+    let combinedAuctionEndDate = data.auctionEndDate;
+    if (data.auctionEndDate && data.auctionEndTime) {
+      combinedAuctionEndDate = `${data.auctionEndDate}T${data.auctionEndTime}:00`;
+    }
+
     // Append standard fields
     // The pens "Inclusions" checkbox group sends an array of strings but the API
     // expects three separate boolean fields: OrignalOuterBox, PresentationCase, ServiceGuide.
@@ -1374,6 +1464,10 @@ const SellPageForm = () => {
         Object.entries(INCLUSION_MAP).forEach(([label, apiKey]) => {
           formData.append(apiKey, checked.includes(label) ? "true" : "false");
         });
+      } else if (key === "auctionEndDate") {
+        formData.append("auctionEndDate", combinedAuctionEndDate || data[key]);
+      } else if (key === "auctionEndTime") {
+        formData.append("auctionEndTime", data[key]);
       } else if (Array.isArray(data[key])) {
         data[key].forEach((val) => formData.append(key, val));
       } else if (data[key] !== undefined && data[key] !== null) {
@@ -1423,7 +1517,10 @@ const SellPageForm = () => {
       .then((res) => {
         console.log(res);
         setSubmitStatus("success");
-        reset();
+        reset({
+          auctionEndDate: getDefaultAuctionDate(),
+          auctionEndTime: getDefaultAuctionTime(),
+        });
         setFileNames({});
         setSelectedFiles({});
         fileVersions.current = {};

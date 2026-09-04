@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import * as signalR from '@microsoft/signalr'
 import connection from '../../../../services/signalR/auctionSignalR'
-import { getApprovedListing } from '../../../../services/sellingServices/getSellListings/getSellListings'
+import { getApprovedListing, updateWishListItem } from '../../../../services/sellingServices/getSellListings/getSellListings'
 import { AddBid, getLatestBid } from '../../../../services/biddingServices/BiddingServices'
 
 import './DetailedPage.css'
@@ -330,6 +330,7 @@ const DetailedPage = () => {
                         // activeBidders: 0,
                         auctionEndDate: found.auctionEndDate,
                         currency: found.currency || 'USD',
+                        isWishList: found.isWishList,
                         // liveActivity: [
                         //     { id: 1, member: 'MEMBER #7***3', timeAgo: '2 minutes ago', timestamp: Date.now() - 120000, amount: `$${found.currentPrice || found.expectedPrice || 1500}`, amountNumber: found.currentPrice || found.expectedPrice || 1500 }
                         // ],
@@ -345,6 +346,7 @@ const DetailedPage = () => {
                         conditionReport: `Pristine condition. Checked movement, strap, case back (${found.details?.caseBack ? 'Verified' : 'N/A'}) and side profiles (${found.details?.side ? 'Verified' : 'N/A'}).`
                     }
                     setWatch(mappedWatch)
+                    setIsFavorited(found.isWishList)
                 }
                 setLoading(false)
             })
@@ -353,6 +355,23 @@ const DetailedPage = () => {
                 setLoading(false)
             })
     }, [id])
+
+
+    const handleWishList = () => {
+        const dataObject = {
+            ItemId: watch?.itemId,
+            IsWishList: !isFavorited
+        }
+        updateWishListItem(dataObject)
+            .then((res) => {
+                // console.log(res)
+                setIsFavorited(!isFavorited)
+            })
+            .catch((err) => {
+                console.error(err)
+            })
+
+    }
 
     // Tab State: 'history' | 'auth' | 'condition'
     const [activeTab, setActiveTab] = useState('history');
@@ -784,7 +803,7 @@ const DetailedPage = () => {
                                     </button> */}
                                     <button
                                         className={`action-btn-secondary ${isFavorited ? 'action-btn-secondary--active' : ''}`}
-                                        onClick={() => setIsFavorited(!isFavorited)}
+                                        onClick={() => { handleWishList() }}
                                     >
                                         <svg className="action-icon" viewBox="0 0 24 24" fill={isFavorited ? '#e1af4a' : 'none'} stroke={isFavorited ? '#e1af4a' : 'currentColor'} strokeWidth="2">
                                             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />

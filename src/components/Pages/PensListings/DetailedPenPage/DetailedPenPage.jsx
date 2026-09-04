@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import * as signalR from '@microsoft/signalr'
 import connection from '../../../../services/signalR/auctionSignalR'
-import { getApprovedListing } from '../../../../services/sellingServices/getSellListings/getSellListings'
+import { getApprovedListing, updateWishListItem } from '../../../../services/sellingServices/getSellListings/getSellListings'
 import { AddBid, getLatestBid } from '../../../../services/biddingServices/BiddingServices'
 import './DetailedPenPage.css'
 
@@ -376,6 +376,7 @@ const DetailedPenPage = () => {
                         bidIncrement: found.bidIncreament || 200,
                         currency: found.currency || 'USD',
                         auctionEndDate: found.auctionEndDate,
+                        isWishList: found.isWishList,
                         // activeBidders: 0,
                         // liveActivity: [
                         //     {
@@ -413,6 +414,7 @@ const DetailedPenPage = () => {
                         }
                     }
                     setPen(mappedPen)
+                    setIsFavorited(found.isWishList)
                 }
                 setLoading(false)
             })
@@ -421,6 +423,23 @@ const DetailedPenPage = () => {
                 setLoading(false)
             })
     }, [id])
+
+
+    const handleWishList = () => {
+        const dataObject = {
+            ItemId: pen?.itemId,
+            IsWishList: !isFavorited
+        }
+        updateWishListItem(dataObject)
+            .then((res) => {
+                // console.log(res)
+                setIsFavorited(!isFavorited)
+            })
+            .catch((err) => {
+                console.error(err)
+            })
+
+    }
 
     useEffect(() => {
         if (pen) {
@@ -777,7 +796,7 @@ const DetailedPenPage = () => {
                                     </button> */}
                                     <button
                                         className={`pen-action-btn-secondary ${isFavorited ? 'pen-action-btn-secondary--active' : ''}`}
-                                        onClick={() => setIsFavorited(!isFavorited)}
+                                        onClick={() => { handleWishList() }}
                                     >
                                         <svg className="pen-action-icon" viewBox="0 0 24 24" fill={isFavorited ? '#d6a54d' : 'none'} stroke={isFavorited ? '#d6a54d' : 'currentColor'} strokeWidth="2">
                                             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />

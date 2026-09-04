@@ -1,15 +1,14 @@
 /* ── Cards Section Container ───────────────────────────────────────── */
 .cards-container {
-    padding: 5rem 0 6rem;
-
-background: radial-gradient(134.11% 100.59% at 48.83% 10.67%, rgba(55, 4, 12, 0.65) 0%, #06040A 55%, #030101 100%);
+    padding: clamp(3rem, 6vw, 5.5rem) 0 clamp(3.5rem, 7vw, 6rem);
+    background: radial-gradient(134.11% 100.59% at 48.83% 10.67%, rgba(55, 4, 12, 0.65) 0%, #06040A 55%, #030101 100%);
 }
 
 /* ── Cards Row ─────────────────────────────────────────────────────── */
 .tenet-cards-row {
     display: flex;
-    gap: 1rem;
-    margin-top: 3.5rem;
+    gap: 1.25rem;
+    margin-top: clamp(2rem, 4vw, 3.5rem);
     align-items: stretch;
 }
 
@@ -19,13 +18,12 @@ background: radial-gradient(134.11% 100.59% at 48.83% 10.67%, rgba(55, 4, 12, 0.
     background: linear-gradient(160deg, #1a1714 0%, #111009 100%);
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 6px;
-    padding: 1.6rem 1.4rem 1.6rem;
+    padding: clamp(1.25rem, 2vw, 1.6rem) clamp(1.1rem, 1.8vw, 1.4rem);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    /* min-height: 240px;
-     */
-     height: 180px;
+    min-height: 170px;
+    height: auto;
     position: relative;
     transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
                 border-color 0.35s ease,
@@ -39,14 +37,13 @@ background: radial-gradient(134.11% 100.59% at 48.83% 10.67%, rgba(55, 4, 12, 0.
 .tenet-card:hover {
     border-color: rgba(214, 165, 77, 0.25);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(214, 165, 77, 0.05);
-    transform: translateY(-8px) translateZ(0);
+    transform: translateY(-6px) translateZ(0);
 }
 
 /* Active (middle) card — slightly taller & gold border */
 .tenet-card--active {
     border-color: rgba(214, 165, 77, 0.22);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 40px rgba(214, 165, 77, 0.07);
-    /* min-height: 265px; */
     background: linear-gradient(160deg, #1e1a14 0%, #130f08 100%);
 }
 
@@ -67,7 +64,7 @@ background: radial-gradient(134.11% 100.59% at 48.83% 10.67%, rgba(55, 4, 12, 0.
     font-family: 'cormorant', serif;
     font-style: italic;
     font-weight: 400;
-    font-size: 1.5rem;
+    font-size: clamp(1.25rem, 1.8vw, 1.5rem);
     background: var(--gold-gradient);
     background-clip: text;
     -webkit-background-clip: text;
@@ -86,23 +83,23 @@ background: radial-gradient(134.11% 100.59% at 48.83% 10.67%, rgba(55, 4, 12, 0.
     transition: width 0.3s ease-in-out;
 }
 
-.tenet-card:hover .tenet-card__dash{
-    width: 60px;
+.tenet-card:hover .tenet-card__dash {
+    width: 50px;
 }
 
 /* ── Bottom Row: Title + Description ──────────────────────────────── */
 .tenet-card__bottom {
     margin-top: auto;
-    padding-top: 1.5rem;
+    padding-top: 1.25rem;
 }
 
 .tenet-card__title {
     font-family: 'cormorant', serif;
     font-weight: 400;
-    font-size: 1.85rem;
+    font-size: clamp(1.35rem, 2vw, 1.85rem);
     color: #f0ede8;
-    line-height: 1.25;
-    margin-bottom: 0.45rem;
+    line-height: 1.2;
+    margin-bottom: 0.35rem;
     letter-spacing: 0.01em;
 }
 
@@ -110,55 +107,45 @@ background: radial-gradient(134.11% 100.59% at 48.83% 10.67%, rgba(55, 4, 12, 0.
     font-family: 'cormorant', serif;
     font-style: italic;
     font-weight: 400;
-    font-size: 0.92rem;
+    font-size: clamp(0.82rem, 1vw, 0.92rem);
     color: rgba(214, 165, 77, 0.65);
-    line-height: 1.55;
+    line-height: 1.5;
     margin: 0;
 }
 
 /* ── Responsive ────────────────────────────────────────────────────── */
-@media (max-width: 900px) {
+
+/* Tablet (medium screens) -> 2x2 grid */
+@media (max-width: 960px) {
+    .tenet-cards-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .tenet-card {
+        min-height: 160px;
+    }
+}
+
+/* Mobile -> 2 columns on 480-640px, 1 col on <= 440px */
+@media (max-width: 640px) {
     .tenet-cards-row {
         gap: 0.75rem;
     }
 
     .tenet-card {
-        padding: 1.25rem 1rem;
-        min-height: 210px;
-    }
-
-    .tenet-card--active {
-        min-height: 230px;
-    }
-
-    .tenet-card__title {
-        font-size: 1.15rem;
-    }
-
-    .tenet-card__desc {
-        font-size: 0.85rem;
+        min-height: 150px;
     }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 440px) {
     .tenet-cards-row {
-        flex-wrap: wrap;
-        gap: 0.85rem;
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
     }
 
     .tenet-card {
-        flex: 1 1 calc(50% - 0.5rem);
-        min-height: 190px;
-    }
-
-    .tenet-card--active {
-        flex: 1 1 100%;
-        min-height: 200px;
-    }
-}
-
-@media (max-width: 400px) {
-    .tenet-card {
-        flex: 1 1 100%;
+        min-height: 140px;
     }
 }

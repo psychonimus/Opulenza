@@ -1,18 +1,17 @@
 .golden-button {
     background: linear-gradient(135deg, lab(59.1325% 20.9389 57.3315) 0%, lab(86.4073% 6.20413 55.8007) 45%, lab(47.2923% 25.3823 49.5232) 100%);
     color: #000;
-    padding: 0.6rem 3rem;
-    font-size: 1.2rem;
-    /* font-family: 'playfair-display', serif; */
+    padding: clamp(0.5rem, 1.2vw, 0.65rem) clamp(1.8rem, 3.5vw, 3rem);
+    font-size: clamp(0.95rem, 1.4vw, 1.2rem);
     font-family: 'inter', Inter, sans-serif;
     border: none;
     cursor: pointer;
     transition: transform 0.3s ease, filter 0.3s ease, box-shadow 0.3s ease;
     font-weight: 500;
     text-transform: uppercase;
-    /* letter-spacing: 3px; */
+    letter-spacing: clamp(1.5px, 0.2vw, 2.5px);
     display: inline-block;
-    margin-top: 20px;
+    margin-top: clamp(14px, 2.5vw, 24px);
     text-align: center;
     text-decoration: none;
     position: relative;
@@ -20,6 +19,7 @@
     transform: translateZ(0);
     backface-visibility: hidden;
     will-change: transform;
+    border-radius: 2px;
 }
 
 /* Shine sweep layer */

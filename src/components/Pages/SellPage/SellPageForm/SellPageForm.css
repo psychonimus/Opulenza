@@ -207,8 +207,9 @@
   border-bottom-color: var(--primary-color);
 }
 
-/* Restore calendar icon for date inputs */
-.sell-field-input[type="date"] {
+/* Restore picker icons for date and time inputs */
+.sell-field-input[type="date"],
+.sell-field-input[type="time"] {
   appearance: auto;
   -webkit-appearance: auto;
   color-scheme: dark;

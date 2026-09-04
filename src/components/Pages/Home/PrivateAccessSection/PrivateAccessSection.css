@@ -1,23 +1,25 @@
 .private-access-section {
-    padding: 5rem 0 6rem;
-  
-background: radial-gradient(0.12% 0.12% at 20% 30%, rgba(251, 210, 107, 0.6) 0%, rgba(251, 210, 107, 0) 100%), radial-gradient(0.12% 0.12% at 60% 70%, rgba(251, 210, 107, 0.5) 0%, rgba(251, 210, 107, 0) 100%), radial-gradient(0.19% 0.19% at 80% 20%, rgba(251, 210, 107, 0.7) 0%, rgba(251, 210, 107, 0) 100%), radial-gradient(0.12% 0.12% at 35% 85%, rgba(251, 210, 107, 0.4) 0%, rgba(251, 210, 107, 0) 100%), radial-gradient(0.12% 0.12% at 90% 50%, rgba(251, 210, 107, 0.5) 0%, rgba(251, 210, 107, 0) 100%), radial-gradient(0.19% 0.19% at 10% 60%, rgba(251, 210, 107, 0.6) 0%, rgba(251, 210, 107, 0) 100%);
-
-
+    padding: clamp(3rem, 6vw, 5.5rem) 0 clamp(3.5rem, 7vw, 6rem);
+    background: radial-gradient(0.12% 0.12% at 20% 30%, rgba(251, 210, 107, 0.6) 0%, rgba(251, 210, 107, 0) 100%), 
+                radial-gradient(0.12% 0.12% at 60% 70%, rgba(251, 210, 107, 0.5) 0%, rgba(251, 210, 107, 0) 100%), 
+                radial-gradient(0.19% 0.19% at 80% 20%, rgba(251, 210, 107, 0.7) 0%, rgba(251, 210, 107, 0) 100%), 
+                radial-gradient(0.12% 0.12% at 35% 85%, rgba(251, 210, 107, 0.4) 0%, rgba(251, 210, 107, 0) 100%), 
+                radial-gradient(0.12% 0.12% at 90% 50%, rgba(251, 210, 107, 0.5) 0%, rgba(251, 210, 107, 0) 100%), 
+                radial-gradient(0.19% 0.19% at 10% 60%, rgba(251, 210, 107, 0.6) 0%, rgba(251, 210, 107, 0) 100%);
 }
 
 /* ── Modal Overlay ──────────────────────────────────────── */
 .pa-modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(3, 1, 1, 0.82);
+    background: rgba(3, 1, 1, 0.85);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 3000;
-    padding: 20px;
+    padding: clamp(10px, 2.5vw, 20px);
     animation: pa-fade-in 0.25s ease;
     transform: translateZ(0);
 }
@@ -32,10 +34,13 @@ background: radial-gradient(0.12% 0.12% at 20% 30%, rgba(251, 210, 107, 0.6) 0%,
     position: relative;
     width: 100%;
     max-width: 620px;
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     background: linear-gradient(160deg, #1c0f0a 0%, #0e0808 100%);
     border: 1px solid rgba(214, 165, 77, 0.28);
-    border-radius: 5px;
-    padding: 2.4rem 2rem 2rem;
+    border-radius: 6px;
+    padding: clamp(1.5rem, 3.5vw, 2.4rem) clamp(1.1rem, 3vw, 2rem);
     box-shadow: 0 40px 100px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.03);
     animation: pa-slide-up 0.3s cubic-bezier(0.22, 1, 0.36, 1);
     transform: translateZ(0);
@@ -50,17 +55,21 @@ background: radial-gradient(0.12% 0.12% at 20% 30%, rgba(251, 210, 107, 0.6) 0%,
 /* Close button */
 .pa-modal-close {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
+    top: clamp(0.75rem, 1.8vw, 1.2rem);
+    right: clamp(0.75rem, 1.8vw, 1.2rem);
     background: transparent;
     border: none;
-    color: rgba(255,255,255,0.35);
+    color: rgba(255,255,255,0.4);
     cursor: pointer;
-    padding: 6px;
+    padding: 8px;
     line-height: 0;
-    transition: color 0.2s ease;
+    transition: color 0.2s ease, transform 0.2s ease;
+    z-index: 10;
 }
-.pa-modal-close:hover { color: #fff; }
+.pa-modal-close:hover { 
+    color: #d6a54d;
+    transform: scale(1.1);
+}
 
 /* ── Header ─────────────────────────────────────────────── */
 .pa-modal-header {
@@ -80,11 +89,11 @@ background: radial-gradient(0.12% 0.12% at 20% 30%, rgba(251, 210, 107, 0.6) 0%,
 
 .pa-modal-title {
     font-family: 'Playfair Display', 'playfair-display', serif;
-    font-size: 2.1rem;
+    font-size: clamp(1.5rem, 3.5vw, 2.1rem);
     font-weight: 700;
     color: #ffffff;
     margin: 0 0 0.4rem;
-    line-height: 1.1;
+    line-height: 1.15;
 }
 
 .pa-modal-title em {
@@ -94,7 +103,7 @@ background: radial-gradient(0.12% 0.12% at 20% 30%, rgba(251, 210, 107, 0.6) 0%,
 
 .pa-modal-sub {
     font-family: 'cormorant', 'Cormorant Garamond', serif;
-    font-size: 0.95rem;
+    font-size: clamp(0.85rem, 1.2vw, 0.95rem);
     font-style: italic;
     color: rgba(255,255,255,0.45);
     margin: 0;
@@ -104,28 +113,28 @@ background: radial-gradient(0.12% 0.12% at 20% 30%, rgba(251, 210, 107, 0.6) 0%,
 .pa-modal-divider {
     height: 1px;
     background: rgba(214, 165, 77, 0.12);
-    margin: 1.2rem 0 1.6rem;
+    margin: clamp(0.9rem, 2vw, 1.2rem) 0 clamp(1.1rem, 2.5vw, 1.6rem);
 }
 
 /* ── Form ───────────────────────────────────────────────── */
 .pa-modal-form {
     display: flex;
     flex-direction: column;
-    gap: 1.4rem;
+    gap: clamp(1rem, 2.2vw, 1.4rem);
 }
 
 .pa-field {
     display: flex;
     flex-direction: column;
-    gap: 0.55rem;
+    gap: 0.45rem;
 }
 
 .pa-field-label {
     font-family: 'inter', Inter, sans-serif;
-    font-size: 0.6rem;
+    font-size: clamp(0.56rem, 0.8vw, 0.62rem);
     font-weight: 700;
-    letter-spacing: 0.18em;
-    color: rgba(214, 165, 77, 0.65);
+    letter-spacing: 0.16em;
+    color: rgba(214, 165, 77, 0.75);
 }
 
 .pa-field-input {
@@ -134,8 +143,8 @@ background: radial-gradient(0.12% 0.12% at 20% 30%, rgba(251, 210, 107, 0.6) 0%,
     border-bottom: 1px solid rgba(255,255,255,0.18);
     color: #ffffff;
     font-family: 'inter', Inter, sans-serif;
-    font-size: 0.95rem;
-    padding: 0.55rem 0;
+    font-size: clamp(0.88rem, 1.2vw, 0.95rem);
+    padding: 0.5rem 0;
     outline: none;
     transition: border-color 0.25s ease;
     width: 100%;
@@ -187,28 +196,34 @@ select.pa-field-input {
     border-bottom-color: #d6a54d;
 }
 
-/* ── 4-Digit Code Row ───────────────────────────────────── */
+/* ── 10-Digit Code Row ───────────────────────────────────── */
 .pa-code-row {
     display: flex;
-    gap: 1.2rem;
+    gap: clamp(0.3rem, 1.2vw, 1.1rem);
     justify-content: center;
     margin-bottom: 0.4rem;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    padding: 4px 0;
 }
 
 .pa-code-input {
-    width: 36px;
+    width: clamp(24px, 6.5vw, 36px);
+    max-width: 36px;
     background: transparent;
     border: none;
     border-bottom: 2px solid rgba(255,255,255,0.2);
     color: #d6a54d;
     font-family: 'inter', Inter, sans-serif;
-    font-size: 1.1rem;
+    font-size: clamp(0.95rem, 1.6vw, 1.1rem);
     font-weight: 600;
     text-align: center;
     padding: 0.3rem 0;
     outline: none;
     transition: border-color 0.2s ease;
     caret-color: #d6a54d;
+    flex-shrink: 1;
 }
 
 .pa-code-input:focus {
@@ -236,10 +251,10 @@ select.pa-field-input {
     border: none;
     border-radius: 3px;
     font-family: 'inter', Inter, sans-serif;
-    font-size: 0.8rem;
+    font-size: clamp(0.74rem, 1.1vw, 0.82rem);
     font-weight: 800;
-    letter-spacing: 0.22em;
-    padding: 1.05rem;
+    letter-spacing: clamp(0.14em, 0.3vw, 0.22em);
+    padding: clamp(0.85rem, 1.5vw, 1.05rem);
     cursor: pointer;
     text-transform: uppercase;
     transition: box-shadow 0.25s ease, transform 0.2s ease;
@@ -260,7 +275,7 @@ select.pa-field-input {
     display: flex;
     align-items: center;
     gap: 0.8rem;
-    margin-top: 1.6rem;
+    margin-top: 1.4rem;
 }
 
 .pa-footer-line {
@@ -297,27 +312,36 @@ select.pa-field-input {
 .pa-submit-btn:disabled {
     opacity: 0.55;
     cursor: not-allowed;
-    letter-spacing: 0.22em;
 }
 
 /* ── Registration card (wider) ──────────────────────────── */
 .pa-reg-card {
     max-width: 1020px;
-    max-height: 85vh;
+    width: 100%;
+    max-height: calc(100dvh - 32px);
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 }
 
-/* ── Two-column row inside registration form ─────────────── */
+/* ── Multi-column row inside registration form ─────────────── */
 .pa-reg-row {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 1.4rem 2rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(1rem, 2vw, 1.4rem) clamp(1rem, 2vw, 2rem);
 }
 
-@media (max-width: 560px) {
+/* ── Responsive Grid Breakpoints ── */
+@media (max-width: 900px) {
+    .pa-reg-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.1rem 1.4rem;
+    }
+}
+
+@media (max-width: 600px) {
     .pa-reg-row {
         grid-template-columns: 1fr;
+        gap: 1rem;
     }
 }
 
@@ -334,6 +358,7 @@ select.pa-field-input {
     font-size: 0.65rem;
     letter-spacing: 0.14em;
     color: rgba(214, 165, 77, 0.75);
+    flex-wrap: wrap;
 }
 
 .pa-invite-badge svg {
@@ -350,7 +375,7 @@ select.pa-field-input {
 .pa-code-hint {
     font-family: 'inter', Inter, sans-serif;
     font-size: 0.63rem;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     color: rgba(214, 165, 77, 0.7);
     margin-top: 0.5rem;
     text-align: center;
@@ -367,8 +392,9 @@ select.pa-field-input {
     font-size: 0.85rem;
     letter-spacing: 0.06em;
     color: rgba(214, 165, 77, 0.8);
-    padding: 10px 0 6px;
+    padding: 8px 0 6px;
     border-bottom: 1px solid rgba(214, 165, 77, 0.2);
+    word-break: break-all;
 }
 
 /* -- Invite toggle link button ------------------------------------ */
@@ -385,7 +411,7 @@ select.pa-field-input {
     font-size: 0.68rem;
     letter-spacing: 0.1em;
     color: rgba(214, 165, 77, 0.6);
-    margin-top: 0.5rem;
+    margin-top: 0.4rem;
     padding: 6px 0;
     transition: color 0.2s ease;
 }
@@ -415,14 +441,14 @@ select.pa-field-input {
     font-weight: 600;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: rgba(214, 165, 77, 0.5);
+    color: rgba(214, 165, 77, 0.6);
     padding: 0;
     margin-bottom: -0.4rem;
     transition: color 0.2s ease, gap 0.2s ease;
 }
 
 .pa-back-btn:hover {
-    color: rgba(214, 165, 77, 0.9);
+    color: rgba(214, 165, 77, 0.95);
     gap: 0.55rem;
 }
 
@@ -457,20 +483,21 @@ select.pa-field-input {
     position: relative;
     display: flex;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .pa-country-trigger {
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
+    gap: 0.35rem;
     background: transparent;
     border: none;
     border-bottom: 1px solid rgba(255, 255, 255, 0.18);
     color: #d6a54d;
     font-family: 'inter', Inter, sans-serif;
-    font-size: 0.88rem;
+    font-size: 0.85rem;
     font-weight: 600;
-    padding: 0.55rem 0.4rem 0.55rem 0;
+    padding: 0.5rem 0.3rem 0.5rem 0;
     cursor: pointer;
     outline: none;
     transition: border-color 0.25s ease;
@@ -484,13 +511,13 @@ select.pa-field-input {
 }
 
 .pa-country-flag {
-    font-size: 1.15rem;
+    font-size: 1.05rem;
     line-height: 1;
 }
 
 .pa-country-code-val {
     color: #d6a54d;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.02em;
 }
 
 .pa-country-chevron {
@@ -509,6 +536,7 @@ select.pa-field-input {
     left: 0;
     z-index: 999;
     width: 280px;
+    max-width: min(280px, calc(100vw - 48px));
     background: linear-gradient(160deg, #1c0f0a 0%, #0e0808 100%);
     border: 1px solid rgba(214, 165, 77, 0.35);
     border-radius: 6px;
@@ -621,11 +649,11 @@ select.pa-field-input {
 .pa-password-toggle-btn {
     position: absolute;
     right: 0.2rem;
-    bottom: 0.55rem;
+    bottom: 0.5rem;
     background: transparent;
     border: none;
     color: rgba(214, 165, 77, 0.7);
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -636,6 +664,29 @@ select.pa-field-input {
 
 .pa-password-toggle-btn:hover {
     color: #d6a54d;
+}
+
+/* ── Small Mobile Screen Tweaks ──────────────────────────── */
+@media (max-width: 440px) {
+    .pa-code-row {
+        gap: 3px;
+    }
+    
+    .pa-code-input {
+        width: 24px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .pa-code-row {
+        gap: 2px;
+    }
+    
+    .pa-code-input {
+        width: 21px;
+        font-size: 0.82rem;
+    }
 }
 
 

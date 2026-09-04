@@ -39,6 +39,11 @@ export const getMyWishList = () => {
 };
 
 
+export const getMyActiveBids = () => {
+    return api.get(`api/member/MyActiveBids?pageNumber=1&pageSize=10&categoryId=0`);
+};
+
+
 
 
 

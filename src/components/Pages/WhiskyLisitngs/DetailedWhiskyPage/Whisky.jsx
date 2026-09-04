@@ -522,21 +522,6 @@ const DetailedWhiskyPage = () => {
   }, [id]);
 
 
-  // const handleWishList = () => {
-  //         const dataObject = {
-  //             ItemId: item?.itemId,
-  //             IsWishList: !isFavorited
-  //         }
-  //         updateWishListItem(dataObject)
-  //             .then((res) => {
-  //                 // console.log(res)
-  //                 setIsFavorited(!isFavorited)
-  //             })
-  //             .catch((err) => {
-  //                 console.error(err)
-  //             })
-  
-  //     }
 
 
 

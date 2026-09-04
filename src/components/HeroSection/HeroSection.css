@@ -2,12 +2,12 @@
     position: relative;
     width: 100%;
     height: 100dvh;
+    min-height: 480px;
     overflow: hidden;
     display: flex;
-    align-items: end;
+    align-items: flex-end;
     justify-content: center;
     background-color: #000;
-    /* Fallback */
 }
 
 .hero-video {
@@ -37,28 +37,29 @@
     position: relative;
     z-index: 3;
     color: #ffffff;
-    text-align: start;
-    padding: 0 1.5rem;
-    max-width: 900px;
+    text-align: center;
+    padding: 0 clamp(1rem, 3vw, 2rem);
+    max-width: 920px;
+    width: 100%;
     animation: fadeInUp 1s ease-out;
-    margin-bottom: 2rem;
+    margin-bottom: clamp(1.5rem, 5vh, 3.5rem);
     transform: translateZ(0);
     will-change: transform, opacity;
 }
 
 .hero-title {
-    font-size: 5rem;
-    font-family: 'cormorant';
+    font-size: clamp(2rem, 5.5vw, 5rem);
+    font-family: 'cormorant', serif;
     font-weight: 400;
-    line-height: 1;
-    margin-bottom: 1.5rem;
-    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    line-height: 1.08;
+    margin-bottom: clamp(0.75rem, 2vw, 1.5rem);
+    text-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
     text-align: center;
 }
 
 .hero-title span {
     background: var(--gold-gradient);
-    font-family: 'cormorant';
+    font-family: 'cormorant', serif;
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -66,35 +67,38 @@
 }
 
 .hero-para {
-    font-family: 'cormorant';
+    font-family: 'cormorant', serif;
     font-weight: 500;
-    font-size: 20px;
+    font-size: clamp(0.92rem, 1.6vw, 1.25rem);
     font-style: italic;
     width: 100%;
     text-align: center;
+    color: rgba(255, 255, 255, 0.9);
 }
 
-.hero-decor-para{
-    font-size: 1rem;
+.hero-decor-para {
+    font-size: clamp(0.75rem, 1.2vw, 1rem);
     font-family: 'cormorant', serif;
     color: var(--gold-gradient);
     text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+    letter-spacing: clamp(0.1em, 0.3vw, 0.2em);
 }
-.hero-decor-para span{
-    width: 30px;
+
+.hero-decor-para span {
+    width: clamp(16px, 2.5vw, 30px);
     height: 1px;
     background: var(--gold-gradient);
 }
 
 .hero-subtitle {
-    font-size: clamp(1.1rem, 2vw, 1.5rem);
+    font-size: clamp(1rem, 2vw, 1.5rem);
     font-weight: 300;
     color: rgba(255, 255, 255, 0.85);
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     max-width: 700px;
     margin-left: auto;
@@ -153,96 +157,15 @@
 
 /* ─── Responsive Breakpoints ─────────────────────────────────────── */
 
-/* Large tablet / small desktop */
-@media (max-width: 1024px) {
-    .hero-content {
-        max-width: 760px;
-        padding: 0 2rem;
-    }
-
-    .hero-title {
-        font-size: 4rem;
-    }
-
-    .hero-para {
-        font-size: 1.1rem;
-    }
-}
-
-/* Tablet */
 @media (max-width: 768px) {
     .hero-content {
-        max-width: 100%;
-        padding: 0 1.5rem;
-        text-align: center;
-    }
-
-    .hero-title {
-        font-size: 3rem;
-        line-height: 1.1;
-        margin-bottom: 1rem;
-    }
-
-    .hero-para {
-        font-size: 1rem;
-        margin-bottom: 1.25rem;
-    }
-
-    .hero-decor-para {
-        font-size: 0.85rem;
-        gap: 0.75rem;
-        letter-spacing: 0.12em;
-    }
-
-    .hero-decor-para span {
-        width: 22px;
+        margin-bottom: 2rem;
     }
 }
 
-/* Mobile */
 @media (max-width: 480px) {
     .hero-content {
-        padding: 0 1rem;
-        align-items: center;
-    }
-
-    .hero-title {
-        font-size: 2.25rem;
-        line-height: 1.15;
-        margin-bottom: 0.85rem;
-        text-align: center;
-    }
-
-    .hero-para {
-        font-size: 0.95rem;
-        font-style: italic;
-        text-align: center;
-        margin-bottom: 1rem;
-    }
-
-    .hero-decor-para {
-        font-size: 0.78rem;
-        gap: 0.5rem;
-        letter-spacing: 0.1em;
-    }
-
-    .hero-decor-para span {
-        width: 18px;
-    }
-}
-
-/* Extra small mobile */
-@media (max-width: 360px) {
-    .hero-title {
-        font-size: 1.9rem;
-    }
-
-    .hero-para {
-        font-size: 0.88rem;
-    }
-
-    .hero-decor-para {
-        font-size: 0.72rem;
+        margin-bottom: 1.5rem;
     }
 }
 
