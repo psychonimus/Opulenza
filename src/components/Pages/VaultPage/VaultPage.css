@@ -122,14 +122,6 @@
     margin-bottom: 3rem;
 }
 
-@media (max-width: 768px) {
-    .vault-tabs {
-        flex-direction: column;
-        gap: 0.5rem;
-        border-bottom: none;
-    }
-}
-
 .vault-tab-btn {
     position: relative;
     background: transparent;
@@ -167,6 +159,54 @@
 @keyframes vault-scale-up {
     from { transform: scaleX(0); }
     to { transform: scaleX(1); }
+}
+
+@media (max-width: 768px) {
+    .vault-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+        border-bottom: none;
+        margin-bottom: 2rem;
+    }
+
+    .vault-tab-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 0.85rem 0.6rem;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 4px;
+        color: rgba(255, 255, 255, 0.6);
+        transition: all 0.25s ease;
+    }
+
+    .vault-tab-btn:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.16);
+        color: #ffffff;
+    }
+
+    .vault-tab-btn--active {
+        background: linear-gradient(135deg, rgba(214, 165, 77, 0.16), rgba(214, 165, 77, 0.05));
+        border-color: #d6a54d;
+        color: #d6a54d;
+        box-shadow: 0 0 12px rgba(214, 165, 77, 0.15);
+    }
+
+    .vault-tab-btn--active:hover {
+        background: linear-gradient(135deg, rgba(214, 165, 77, 0.22), rgba(214, 165, 77, 0.08));
+        color: #d6a54d;
+    }
+
+    .vault-tab-indicator {
+        display: none;
+    }
 }
 
 /* ── Empty State ────────────────────────────────────────────── */

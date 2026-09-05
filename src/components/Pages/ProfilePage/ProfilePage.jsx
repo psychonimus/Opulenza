@@ -16,6 +16,7 @@ import "./ProfilePage.css";
 import { SearchableCountrySelect, DEFAULT_COUNTRY_CODES, getFlagEmoji } from "../Home/PrivateAccessSection/PrivateAccessSection";
 import "../Home/PrivateAccessSection/PrivateAccessSection.css";
 
+
 // ── Helpers ──────────────────────────────────────────────
 const getInitials = (name = "") =>
   name
@@ -209,7 +210,7 @@ const ProfilePage = () => {
     portfolioValue: "—",
   });
 
-  const { userInfo } = useUser();
+  const { userInfo, refreshUser } = useUser();
 
   const initials = getInitials(member.name);
 
@@ -298,7 +299,7 @@ const ProfilePage = () => {
 
   useEffect(() => {
     GetAddressDetails();
-    // fetchUserPreferences();
+    fetchUserPreferences();
     getMyInvitations();
   }, []);
 
@@ -459,10 +460,10 @@ const ProfilePage = () => {
         {/* ── Stats Row ─────────────────────────────── */}
         <div className="prof-stats">
           {[
-            { label: "TOTAL BIDS", value: member.totalBids },
-            { label: "ACTIVE BIDS", value: member.activeBids },
-            { label: "AUCTIONS WON", value: member.wonAuctions },
-            { label: "PORTFOLIO VALUE", value: member.portfolioValue },
+            { label: "TOTAL BIDS", value: userInfo?.profileCount?.totalBids || "10" },
+            { label: "ACTIVE BIDS", value: userInfo?.profileCount?.activeBids },
+            { label: "AUCTIONS WON", value: userInfo?.profileCount?.winningAuctionCount },
+            { label: "PORTFOLIO VALUE", value: "$ " + userInfo?.profileCount?.winningAuctionAmount },
           ].map((s) => (
             <div className="prof-stat" key={s.label}>
               <span className="prof-stat__value">{s.value}</span>
@@ -475,7 +476,7 @@ const ProfilePage = () => {
         <div className="prof-layout">
           {/* Tabs + Content */}
           <div className="prof-main">
-            <div className="prof-tabs" style={{ flexWrap: "wrap" }}>
+            <div className="prof-tabs">
               {TABS.map((tab) => (
                 <button
                   key={tab}
@@ -1010,9 +1011,9 @@ const ProfilePage = () => {
                     }
                   />
                 </div>
-                <div className="prof-settings-field" style={{ gridColumn: "span 2" }}>
+                <div className="prof-settings-field prof-settings-field--full">
                   <label>Phone Number</label>
-                  <div style={{ display: "flex", gap: "12px", alignItems: "flex-end" }}>
+                  <div className="prof-phone-input-wrap">
                     <SearchableCountrySelect
                       countries={countryCodes}
                       selectedDialCode={newAddress.PhoneCountryCode}
@@ -1066,12 +1067,11 @@ const ProfilePage = () => {
       <AddPreferencesModal
         show={isAddModalOpen && modalType === "preference"}
         onClose={() => setIsAddModalOpen(false)}
-        initialData={rawPreferences}
-        onSuccess={(data, payload) => {
+        initialData={userInfo?.preferences || rawPreferences}
+        onSuccess={async (data, payload) => {
           console.log("Preferences successfully updated:", payload);
-          const updatedObj = data?.data || payload;
-          setRawPreferences(updatedObj);
-          setPreferences(formatPreferencesData(updatedObj));
+          await refreshUser();
+          fetchUserPreferences();
         }}
       />
 

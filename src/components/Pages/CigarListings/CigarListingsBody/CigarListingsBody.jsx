@@ -189,7 +189,7 @@ const CigarListingsBody = () => {
                                                 to={`/cigar/${item.itemId}`}
                                                 className="cigar-card-link"
                                             >
-                                                <span className="cigar-card__cta">BID NOW →</span>
+                                                <span className="cigar-card__cta">{item.canUserBid ? "BID NOW" : "VIEW BIDDING"}</span>
                                             </Link>
                                         </div>
                                     </div>

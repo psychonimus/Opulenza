@@ -246,7 +246,7 @@ const AllWatches = () => {
                       {/* Card Footer with Countdown and Place Bid */}
                       <div className="watch-card__footer">
                         <Link to={`/watch/${watch.itemId}`} style={{ textDecoration: "none" }}><button className="watch-card__bid-btn" >
-                          PLACE A BID
+                          {watch.canUserBid ? "BID NOW" : "VIEW BIDDING"}
                         </button></Link>
                       </div>
                     </div>

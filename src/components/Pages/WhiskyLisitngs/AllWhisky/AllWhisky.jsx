@@ -268,7 +268,7 @@ const AllWhisky = () => {
                             key={item.itemId}
                             className="whisky-card-link"
                           >
-                            <span className="whisky-card__cta">BID NOW →</span>
+                            <span className="whisky-card__cta">{item.canUserBid ? "BID NOW" : "VIEW BIDDING"}</span>
                           </Link>
                         </div>
                       </div>
@@ -409,7 +409,7 @@ const AllWhisky = () => {
                             key={item?.itemId}
                             className="whisky-card-link"
                           >
-                            <span className="whisky-card__cta">ENQUIRE →</span>
+                            <span className="whisky-card__cta">{item.canUserBid ? "BID NOW" : "VIEW BIDDING"}</span>
                           </Link>
                         </div>
                       </div>

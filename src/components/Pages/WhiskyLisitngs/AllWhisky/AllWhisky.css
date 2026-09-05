@@ -373,6 +373,50 @@
     }
 }
 
+@media (max-width: 768px) {
+    .aw-tabs-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.65rem;
+        border-bottom: none;
+        margin-bottom: 1.75rem;
+    }
+
+    .aw-tab-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 0.8rem 0.5rem;
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(214, 165, 77, 0.15);
+        border-radius: 4px;
+        color: rgba(255, 255, 255, 0.65);
+        transition: all 0.25s ease;
+    }
+
+    .aw-tab-btn:hover {
+        background: rgba(214, 165, 77, 0.08);
+        border-color: rgba(214, 165, 77, 0.35);
+        color: #ffffff;
+    }
+
+    .aw-tab-btn--active {
+        background: linear-gradient(135deg, rgba(214, 165, 77, 0.2), rgba(214, 165, 77, 0.05));
+        border-color: #d6a54d;
+        color: #d6a54d;
+        font-weight: 700;
+        box-shadow: 0 0 12px rgba(214, 165, 77, 0.15);
+    }
+
+    .aw-tab-btn--active::after {
+        display: none;
+    }
+}
+
 @media (max-width: 600px) {
     .all-whisky-grid {
         grid-template-columns: 1fr;

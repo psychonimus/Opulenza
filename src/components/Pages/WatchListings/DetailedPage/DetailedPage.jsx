@@ -331,6 +331,7 @@ const DetailedPage = () => {
                         auctionEndDate: found.auctionEndDate,
                         currency: found.currency || 'USD',
                         isWishList: found.isWishList,
+                        canBid: found.canUserBid,
                         // liveActivity: [
                         //     { id: 1, member: 'MEMBER #7***3', timeAgo: '2 minutes ago', timestamp: Date.now() - 120000, amount: `$${found.currentPrice || found.expectedPrice || 1500}`, amountNumber: found.currentPrice || found.expectedPrice || 1500 }
                         // ],
@@ -785,9 +786,13 @@ const DetailedPage = () => {
                                 </div>
 
                                 {/* Main Bid Action Button */}
-                                <button className="detailed-page__place-bid-btn" onClick={handlePlaceBidClick}>
-                                    PLACE BID
-                                </button>
+                                {
+                                    watch?.canBid && (
+                                        <button className="detailed-page__place-bid-btn" onClick={handlePlaceBidClick}>
+                                            PLACE BID
+                                        </button>
+                                    )
+                                }
 
                                 {/* Secondary Buttons (Auto Bid, Watch) */}
                                 <div className="detailed-page__action-row">
@@ -801,15 +806,19 @@ const DetailedPage = () => {
                                         </svg>
                                         {isAutoBidding ? 'AUTO BID ACTIVE' : 'AUTO BID'}
                                     </button> */}
-                                    <button
-                                        className={`action-btn-secondary ${isFavorited ? 'action-btn-secondary--active' : ''}`}
-                                        onClick={() => { handleWishList() }}
-                                    >
-                                        <svg className="action-icon" viewBox="0 0 24 24" fill={isFavorited ? '#e1af4a' : 'none'} stroke={isFavorited ? '#e1af4a' : 'currentColor'} strokeWidth="2">
-                                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                                        </svg>
-                                        {isFavorited ? 'Added to watchlist' : 'Add to Watchlist'}
-                                    </button>
+                                    {
+                                        watch?.canBid && (
+                                            <button
+                                                className={`action-btn-secondary ${isFavorited ? 'action-btn-secondary--active' : ''}`}
+                                                onClick={() => { handleWishList() }}
+                                            >
+                                                <svg className="action-icon" viewBox="0 0 24 24" fill={isFavorited ? '#e1af4a' : 'none'} stroke={isFavorited ? '#e1af4a' : 'currentColor'} strokeWidth="2">
+                                                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                                                </svg>
+                                                {isFavorited ? 'Added to watchlist' : 'Add to Watchlist'}
+                                            </button>
+                                        )
+                                    }
                                 </div>
 
                                 <div className="sidebar-divider"></div>
@@ -1123,7 +1132,7 @@ const DetailedPage = () => {
                 )}
 
 
-                <div className="container">
+                {/* <div className="container">
                     <div className="recommended-section">
                         <div className="recommended-header">
                             <div className="recommended-title-container">
@@ -1156,7 +1165,7 @@ const DetailedPage = () => {
                                 ))}
                         </div>
                     </div>
-                </div>
+                </div> */}
 
             </section>
         </>

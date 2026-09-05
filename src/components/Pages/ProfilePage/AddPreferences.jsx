@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { AddPreferences } from '../../../services/getUserData/GetUserData';
-import { showUserData } from '../../../services/loginservice/LoginServices';
+import { useUser } from '../../../services/showUserInfo/ShowUserInfo';
 import CommonBackdrop from '../../CommonBackdrop/CommonBackdrop';
 
 import watchIcon from '../../../assets/icons/watch.svg';
@@ -40,6 +40,7 @@ const languageOptions = [
 
 function AddPreferencesModal({ show, onClose, onSuccess, initialData }) {
   const cardRef = useRef(null);
+  const { refreshUser } = useUser();
 
   const [formData, setFormData] = useState({
     InterestedInWatches: false,
@@ -60,10 +61,19 @@ function AddPreferencesModal({ show, onClose, onSuccess, initialData }) {
     if (initialData && typeof initialData === 'object') {
       setFormData(prev => ({
         ...prev,
-        ...initialData
+        InterestedInWatches: Boolean(initialData.InterestedInWatches ?? initialData.interestedInWatches ?? prev.InterestedInWatches),
+        InterestedInWhisky: Boolean(initialData.InterestedInWhisky ?? initialData.interestedInWhisky ?? prev.InterestedInWhisky),
+        InterestedInCigars: Boolean(initialData.InterestedInCigars ?? initialData.interestedInCigars ?? prev.InterestedInCigars),
+        InterestedInLuxuryPens: Boolean(initialData.InterestedInLuxuryPens ?? initialData.interestedInLuxuryPens ?? prev.InterestedInLuxuryPens),
+        InterestedInYachts: Boolean(initialData.InterestedInYachts ?? initialData.interestedInYachts ?? prev.InterestedInYachts),
+        Newsletter: Boolean(initialData.Newsletter ?? initialData.newsletter ?? prev.Newsletter),
+        SMSAlerts: Boolean(initialData.SMSAlerts ?? initialData.smsAlerts ?? prev.SMSAlerts),
+        EmailAlerts: Boolean(initialData.EmailAlerts ?? initialData.emailAlerts ?? prev.EmailAlerts),
+        PreferredCurrency: initialData.PreferredCurrency || initialData.preferredCurrency || prev.PreferredCurrency,
+        PreferredLanguage: initialData.PreferredLanguage || initialData.preferredLanguage || prev.PreferredLanguage,
       }));
     }
-  }, [initialData]);
+  }, [initialData, show]);
 
   useEffect(() => {
     if (show) {
@@ -118,14 +128,15 @@ function AddPreferencesModal({ show, onClose, onSuccess, initialData }) {
     try {
       const res = await AddPreferences(payload);
       console.log("AddPreferences API Response:", res);
+      await refreshUser();
       setLoading(false);
 
       if (onSuccess) onSuccess(res?.data, payload);
       if (onClose) onClose();
-      showUserData();
     } catch (err) {
       console.error("Failed to add preferences:", err);
       setLoading(false);
+      await refreshUser();
       if (onSuccess) onSuccess(null, payload);
       if (onClose) onClose();
     }

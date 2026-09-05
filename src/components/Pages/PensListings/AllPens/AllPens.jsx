@@ -221,7 +221,7 @@ const AllPens = () => {
                                                     <div className="pen-card__bid-value">$ {pen?.currentPrice}</div>
                                                 </div>
                                                 <Link to={`/pen/${pen?.itemId}`} style={{ textDecoration: 'none' }}>
-                                                    <button className="pen-card__bid-btn">PLACE A BID</button>
+                                                    <button className="pen-card__bid-btn">{pen.canUserBid ? "BID NOW" : "VIEW BIDDING"} </button>
                                                 </Link>
                                             </div>
                                         </div>

@@ -61,7 +61,7 @@
         font-size: 0.75rem;
     }
     .header-main {
-        font-size: clamp(1.4rem, 6vw, 1.85rem);
+        font-size: clamp(2.2rem, 6vw, 1.85rem);
         line-height: 1.25;
     }
 }

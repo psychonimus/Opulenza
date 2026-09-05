@@ -500,7 +500,7 @@ const Explore = () => {
                         </div>
                         <Link to={item.link} style={{ textDecoration: 'none' }}>
                           <button className="explore-card__bid-btn">
-                            PLACE A BID
+                            {item?.canUserBid ? "PLACE A BID" : "VIEW BIDDING"}
                           </button>
                         </Link>
                       </div>

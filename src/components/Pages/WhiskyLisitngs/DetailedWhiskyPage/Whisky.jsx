@@ -433,6 +433,7 @@ const DetailedWhiskyPage = () => {
             bidIncrement: found.bidIncreament || 500,
             currentBidNumber: found.currentPrice || found.orignalPrice || found.expectedPrice || 1000,
             isWishList: found.isWishList,
+            canBid: found.canUserBid,
             // activeBidders: 0,
             // liveActivity: [
             //   {
@@ -952,12 +953,16 @@ const DetailedWhiskyPage = () => {
                 </div>
 
                 {/* Place Bid Button */}
-                <button
-                  className="detailed-page__place-bid-btn"
-                  onClick={handlePlaceBidClick}
-                >
-                  PLACE BID
-                </button>
+                {
+                  item?.canBid && (
+                    <button
+                      className="detailed-page__place-bid-btn"
+                      onClick={handlePlaceBidClick}
+                    >
+                      PLACE BID
+                    </button>
+                  )
+                }
 
                 {/* Secondary Actions */}
                 <div className="detailed-page__action-row">
@@ -976,21 +981,25 @@ const DetailedWhiskyPage = () => {
                     </svg>
                     {isAutoBidding ? "AUTO BID ACTIVE" : "AUTO BID"}
                   </button> */}
-                  <button
-                    className={`action-btn-secondary ${isFavorited ? "action-btn-secondary--active" : ""}`}
-                    onClick={() => { handleWishList(); }}
-                  >
-                    <svg
-                      className="action-icon"
-                      viewBox="0 0 24 24"
-                      fill={isFavorited ? "#e1af4a" : "none"}
-                      stroke={isFavorited ? "#e1af4a" : "currentColor"}
-                      strokeWidth="2"
-                    >
-                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                    </svg>
-                    {isFavorited ? "Added to watchlist" : "Add to watchlist"}
-                  </button>
+                  {
+                    item?.canBid && (
+                      <button
+                        className={`action-btn-secondary ${isFavorited ? "action-btn-secondary--active" : ""}`}
+                        onClick={() => { handleWishList(); }}
+                      >
+                        <svg
+                          className="action-icon"
+                          viewBox="0 0 24 24"
+                          fill={isFavorited ? "#e1af4a" : "none"}
+                          stroke={isFavorited ? "#e1af4a" : "currentColor"}
+                          strokeWidth="2"
+                        >
+                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                        </svg>
+                        {isFavorited ? "Added to watchlist" : "Add to watchlist"}
+                      </button>
+                    )
+                  }
                 </div>
 
                 <div className="sidebar-divider"></div>
@@ -1293,7 +1302,7 @@ const DetailedWhiskyPage = () => {
         )}
 
         {/* ── Recommended Whiskies ────────────────────────────────── */}
-        <div className="container">
+        {/* <div className="container">
           <div className="recommended-section">
             <div className="recommended-header">
               <div className="recommended-title-container">
@@ -1348,7 +1357,7 @@ const DetailedWhiskyPage = () => {
                 })}
             </div>
           </div>
-        </div>
+        </div> */}
       </section>
     </>
   );

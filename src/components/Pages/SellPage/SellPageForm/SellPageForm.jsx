@@ -1284,6 +1284,38 @@ const getDefaultAuctionDate = () => {
 /** Returns default auction end time string (23:59). */
 const getDefaultAuctionTime = () => "23:59";
 
+/**
+ * Formats date and time into ISO 8601 string with local timezone offset
+ * e.g. 2026-08-03T16:42:00+05:30
+ */
+const formatAuctionEndDateTime = (dateStr, timeStr = "23:59") => {
+  if (!dateStr) return "";
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const [hours = "00", minutes = "00", seconds = "00"] = (timeStr || "23:59").split(":");
+
+  const targetDate = new Date(
+    year,
+    month - 1,
+    day,
+    Number(hours),
+    Number(minutes),
+    Number(seconds)
+  );
+
+  const offsetMinutes = -targetDate.getTimezoneOffset();
+  const sign = offsetMinutes >= 0 ? "+" : "-";
+  const absOffset = Math.abs(offsetMinutes);
+  const offsetHours = String(Math.floor(absOffset / 60)).padStart(2, "0");
+  const offsetMins = String(absOffset % 60).padStart(2, "0");
+  const timezoneOffset = `${sign}${offsetHours}:${offsetMins}`;
+
+  const formattedHours = String(hours).padStart(2, "0");
+  const formattedMinutes = String(minutes).padStart(2, "0");
+  const formattedSeconds = String(seconds).padStart(2, "0");
+
+  return `${dateStr}T${formattedHours}:${formattedMinutes}:${formattedSeconds}${timezoneOffset}`;
+};
+
 const SellPageForm = () => {
   const [activeCategory, setActiveCategory] = useState("cigars");
   const [activeCategoryNumber, setActiveCategoryNumber] = useState("1");
@@ -1441,10 +1473,13 @@ const SellPageForm = () => {
   const onSubmit = (data) => {
     const formData = new FormData();
 
-    // Prepare combined auction end datetime if both date and time are provided
+    // Prepare combined auction end datetime with region timezone offset if date is provided
     let combinedAuctionEndDate = data.auctionEndDate;
-    if (data.auctionEndDate && data.auctionEndTime) {
-      combinedAuctionEndDate = `${data.auctionEndDate}T${data.auctionEndTime}:00`;
+    if (data.auctionEndDate) {
+      combinedAuctionEndDate = formatAuctionEndDateTime(
+        data.auctionEndDate,
+        data.auctionEndTime || "23:59"
+      );
     }
 
     // Append standard fields

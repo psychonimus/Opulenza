@@ -48,7 +48,8 @@ const Navbar = () => {
 
   const isCollapsed =
     stage === "collapsingCenter" || stage === "collapsedRight";
-  const showHamburger = isCollapsed || menuOpen || isMobile;
+  const showHamburger =
+    isAuthenticated && (isCollapsed || menuOpen || isMobile);
 
   // Track window size for mobile breakpoint
   useEffect(() => {

@@ -467,7 +467,7 @@
     font-weight: 700;
     padding: 1.1rem;
     letter-spacing: 2px;
-    cursor: pointer;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M11 11 L26 26' stroke='%23ffffff' stroke-width='6.5' stroke-linecap='round'/%3E%3Cpath d='M15 3 L19 7 L7 19 L3 15 Z' fill='%23ffffff' stroke='%23ffffff' stroke-width='3' stroke-linejoin='round'/%3E%3Cpath d='M11 11 L26 26' stroke='%232b1810' stroke-width='3.5' stroke-linecap='round'/%3E%3Cpath d='M21 21 L25 25' stroke='%23d4af37' stroke-width='3.5' stroke-linecap='round'/%3E%3Cpath d='M15 3 L19 7 L7 19 L3 15 Z' fill='%2318181b' stroke='%23000000' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cline x1='14' y1='2' x2='20' y2='8' stroke='%23eab308' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='2' y1='14' x2='8' y2='20' stroke='%23eab308' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='8.5' y1='8.5' x2='13.5' y2='13.5' stroke='%23fde047' stroke-width='1.5'/%3E%3C/svg%3E") 4 4, pointer;
     margin-top: 1.8rem;
     text-transform: uppercase;
     position: relative;
@@ -476,6 +476,7 @@
 }
 
 .detailed-page__place-bid-btn:hover {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M11 11 L26 26' stroke='%23ffffff' stroke-width='6.5' stroke-linecap='round'/%3E%3Cpath d='M15 3 L19 7 L7 19 L3 15 Z' fill='%23ffffff' stroke='%23ffffff' stroke-width='3' stroke-linejoin='round'/%3E%3Cpath d='M11 11 L26 26' stroke='%232b1810' stroke-width='3.5' stroke-linecap='round'/%3E%3Cpath d='M21 21 L25 25' stroke='%23d4af37' stroke-width='3.5' stroke-linecap='round'/%3E%3Cpath d='M15 3 L19 7 L7 19 L3 15 Z' fill='%2318181b' stroke='%23000000' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cline x1='14' y1='2' x2='20' y2='8' stroke='%23eab308' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='2' y1='14' x2='8' y2='20' stroke='%23eab308' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='8.5' y1='8.5' x2='13.5' y2='13.5' stroke='%23fde047' stroke-width='1.5'/%3E%3C/svg%3E") 4 4, pointer;
     transform: scale(1.015);
     box-shadow: 0 8px 30px rgba(214, 165, 77, 0.35);
     filter: brightness(1.05);
@@ -1429,44 +1430,316 @@
 }
 
 /* ── Responsive ─────────────────────────────────────────────── */
-@media (max-width: 768px) {
-    .tab-panel-grid {
+@media (max-width: 992px) {
+    .detailed-page {
+        padding: 5rem 0 3.5rem 0;
+    }
+
+    .detailed-page__grid {
         grid-template-columns: 1fr;
-        gap: 2rem;
-    }
-
-    .detailed-page__tabs-header {
-        gap: 1.5rem;
-    }
-
-    .tab-indicator {
-        bottom: -4px;
+        gap: 2.5rem;
     }
 
     .recommended-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
+        gap: 1.5rem;
     }
 
+    .recommended-title {
+        font-size: 1.85rem;
+    }
+
+    .recommended-card__title {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .detailed-page {
+        padding: 3rem 0 3rem 0;
+    }
+
+    .detailed-page__container {
+        padding: 5rem 16px;
+    }
+
+    .detailed-page__breadcrumb {
+        margin-bottom: 1.25rem;
+    }
+
+    .breadcrumb-link {
+        font-size: 0.8rem;
+    }
+
+    /* Disable magnifier lens on mobile */
+    .detailed-page__main-image-wrapper {
+        cursor: default;
+        aspect-ratio: 16/11;
+    }
+
+    .detailed-page__magnifier-lens {
+        display: none !important;
+    }
+
+    .detailed-page__title {
+        font-size: 1.75rem;
+        margin-top: 1.25rem;
+        margin-bottom: 0.6rem;
+    }
+
+    .detailed-page__description {
+        font-size: 0.92rem;
+        line-height: 1.65;
+        margin-bottom: 1.5rem;
+    }
+
+    /* 2x2 Clean Metadata Grid on Mobile */
     .whisky-meta-strip {
-        flex-wrap: wrap;
-    }
-
-    .whisky-meta-item {
-        min-width: 50%;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        border-radius: 4px;
+        margin-bottom: 1.25rem;
     }
 
     .whisky-meta-divider {
         display: none;
     }
+
+    .whisky-meta-item {
+        padding: 0.75rem 0.9rem;
+        border-bottom: 1px solid rgba(214, 165, 77, 0.12);
+        min-width: unset;
+    }
+
+    .whisky-meta-item:nth-child(odd) {
+        border-right: 1px solid rgba(214, 165, 77, 0.12);
+    }
+
+    .whisky-meta-item:nth-last-child(-n+2) {
+        border-bottom: none;
+    }
+
+    .whisky-meta-label {
+        font-size: 0.58rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .whisky-meta-value {
+        font-size: 0.82rem;
+    }
+
+    /* Thumbnails */
+    .detailed-page__thumbnails {
+        gap: 0.6rem;
+        margin-top: 0.75rem;
+    }
+
+    /* Card & Bidding on Mobile */
+    .detailed-page__card {
+        padding: 1.5rem 1.15rem;
+    }
+
+    .detailed-page__timer-title {
+        font-size: 0.75rem;
+        letter-spacing: 2px;
+        margin-bottom: 0.75rem;
+    }
+
+    .detailed-page__timer-row {
+        gap: 0.4rem;
+    }
+
+    .timer-block {
+        min-width: 38px;
+    }
+
+    .timer-number {
+        font-size: 1.35rem;
+    }
+
+    .timer-separator {
+        font-size: 1.15rem;
+        margin-bottom: 8px;
+    }
+
+    .timer-label {
+        font-size: 0.58rem;
+    }
+
+    .panel-value--large {
+        font-size: 1.3rem;
+    }
+
+    .detailed-page__place-bid-btn {
+        padding: 0.95rem;
+        font-size: 0.88rem;
+        letter-spacing: 1.5px;
+        margin-top: 1.25rem;
+    }
+
+    .detailed-page__live-activity {
+        margin-top: 0.5rem;
+    }
+
+    .live-activity-list {
+        max-height: 220px;
+    }
+
+    /* Tabs & Panels */
+    .detailed-page__tabs-container {
+        margin-top: 3.5rem;
+        padding-top: 2rem;
+    }
+
+    .detailed-page__tabs-header {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        border-bottom: none;
+        padding-bottom: 0;
+        margin-bottom: 2rem;
+    }
+
+    .tab-link-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 0.8rem 0.4rem;
+        font-size: 0.7rem;
+        letter-spacing: 0.08em;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(214, 165, 77, 0.18);
+        border-radius: 4px;
+        color: rgba(255, 255, 255, 0.6);
+        transition: all 0.25s ease;
+    }
+
+    .tab-link-btn--active {
+        background: linear-gradient(135deg, rgba(214, 165, 77, 0.2), rgba(214, 165, 77, 0.05));
+        border-color: #d6a54d;
+        color: #d6a54d;
+        font-weight: 700;
+        box-shadow: 0 0 12px rgba(214, 165, 77, 0.15);
+    }
+
+    .tab-indicator {
+        display: none;
+    }
+
+    .tab-panel-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .tab-panel-heading {
+        font-size: 1.45rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .tab-panel-text {
+        font-size: 0.92rem;
+        line-height: 1.65;
+    }
+
+    .ownership-timeline {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .auth-check-item {
+        padding: 0.85rem 1rem;
+        font-size: 0.88rem;
+    }
+
+    /* Toast */
+    .bid-toast-notification {
+        top: 4.5rem;
+        right: 1rem;
+        left: 1rem;
+        max-width: calc(100% - 2rem);
+        padding: 10px 16px;
+    }
+
+    /* Bid Modal */
+    .bid-modal-card {
+        padding: 1.75rem 1.25rem 1.5rem;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-title {
+        font-size: 1.5rem;
+    }
+
+    .modal-asset-card {
+        padding: 0.75rem;
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .modal-asset-thumb {
+        width: 54px;
+        height: 54px;
+    }
+
+    .modal-asset-name {
+        font-size: 1rem;
+    }
+
+    .modal-bid-stat-value {
+        font-size: 1.25rem;
+    }
+
+    .recommended-grid {
+        grid-template-columns: 1fr;
+        max-width: 450px;
+        margin: 0 auto;
+    }
+
+    .recommended-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.5rem;
+    }
+}
+
+@media (max-width: 520px) {
+    .detailed-page__tabs-header {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 480px) {
-    .recommended-grid {
-        grid-template-columns: 1fr;
+    .detailed-page__title {
+        font-size: 1.5rem;
+    }
+
+    .detailed-page__card {
+        padding: 1.25rem 0.95rem;
+    }
+
+    .whisky-meta-item {
+        padding: 0.65rem 0.7rem;
     }
 
     .condition-grades-grid {
         grid-template-columns: 1fr;
+        gap: 0.6rem;
+    }
+
+    .condition-grade-item {
+        padding: 0.9rem 1rem;
+    }
+
+    .view-registry-btn {
+        padding: 0.9rem;
+        font-size: 0.78rem;
+    }
+
+    .submit-bid-btn {
+        padding: 0.95rem;
+        font-size: 0.8rem;
     }
 }
