@@ -5,6 +5,7 @@ import './CigarListingsBody.css'
 import { getApprovedListing, updateWishListItem } from '../../../../services/sellingServices/getSellListings/getSellListings'
 
 
+
 const CigarListingsBody = () => {
 
 
@@ -147,8 +148,9 @@ const CigarListingsBody = () => {
                                     <div className="cigar-card__body">
                                         <div className="d-flex justify-content-between">
                                             <div>
-                                                <h3 className="cigar-card__title">{item.details?.brand}</h3>
+                                                <h3 className="cigar-card__title">{item.details?.brand} </h3>
                                                 <p className="cigar-card__reference">{item.details?.editionName}</p>
+                                                {/* <p className="cigar-card__reference">Owner: {item.memberName}</p> */}
                                             </div>
                                             <button
                                                 className={`watch-card__favorite-btn ${isFav ? 'watch-card__favorite-btn--active' : ''}`}

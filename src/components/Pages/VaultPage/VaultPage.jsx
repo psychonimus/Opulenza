@@ -2,136 +2,11 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import './VaultPage.css'
 import { GetMySoldItems } from '../../../services/getUserData/GetUserData'
-import { getMyWishList, getMyActiveBids } from '../../../services/sellingServices/getSellListings/getSellListings'
+import { getMyWishList, getMyActiveBids, getMyWonItems } from '../../../services/sellingServices/getSellListings/getSellListings'
 
 
 
 
-
-
-// Mock initial data for Vault
-const INITIAL_ACTIVE_BIDS = [
-  // {
-  //   id: 'w1',
-  //   category: 'WATCHES',
-  //   title: 'Patek Philippe',
-  //   reference: 'Ref. 2499, First Series',
-  //   image: '/images/pattek/pattek-phillipe.png',
-  //   userBid: 2840000,
-  //   currentHighBid: 2840000,
-  //   timeLeft: { hours: 2, minutes: 14, seconds: 33 },
-  //   link: '/watch/1'
-  // },
-  // {
-  //   id: 'c1',
-  //   category: 'CIGARS',
-  //   title: 'Cohiba',
-  //   reference: 'Behike BHK 56',
-  //   image: '/images/cigars/cohiba/cohiba-main.png',
-  //   userBid: 4200,
-  //   currentHighBid: 4800,
-  //   timeLeft: { hours: 8, minutes: 4, seconds: 12 },
-  //   link: '/cigar/1'
-  // }
-]
-
-const INITIAL_SECURED_ASSETS = [
-  // {
-  //   id: 'p1',
-  //   category: 'WRITING INSTRUMENTS',
-  //   title: 'Montblanc',
-  //   reference: '149 Masterpiece — 18K Solid Gold',
-  //   image: '/images/pens/montblanc/montblanc-main.png',
-  //   purchasePrice: 28000,
-  //   securedDate: 'June 18, 2026',
-  //   vaultLocation: 'Zurich Vault — Box #904',
-  //   certificateId: 'OP-MB-9048-A',
-  //   link: '/pen/1'
-  // },
-  // {
-  //   id: 'wh1',
-  //   category: 'FINE SPIRITS',
-  //   title: 'The Macallan',
-  //   reference: 'Fine & Rare 1926',
-  //   image: '/images/whisky/macallan/macallan-main.png',
-  //   purchasePrice: 1250000,
-  //   securedDate: 'May 04, 2026',
-  //   vaultLocation: 'London City Vaults — Box #12',
-  //   certificateId: 'OP-MC-1926-Z',
-  //   link: '/whisky/1'
-  // }
-]
-
-const INITIAL_CART_ITEMS = [
-  {
-    id: 'srv1',
-    category: 'SERVICES',
-    title: 'Opulenza VIP Concierge',
-    reference: 'Annual Elite Membership',
-    image: '/images/gold-card-bg.png', // Fallback or luxury graphics
-    price: 25000,
-    quantity: 1,
-    description: '24/7 dedicated broker service, complimentary armored transport, and private viewing access.'
-  },
-  {
-    id: 'srv2',
-    category: 'SECURED TRANSPORT',
-    title: 'Global Armored Delivery',
-    reference: 'Fully Insured Transit Class-1',
-    image: '/images/armored-van.png', // Fallback or luxury graphics
-    price: 5000,
-    quantity: 1,
-    description: 'Diplomatic courier service with complete temperature and humidity control.'
-  }
-]
-
-const INITIAL_WATCHLIST = [
-  // {
-  //   id: 'y2',
-  //   category: 'YACHTS',
-  //   title: 'Feadship',
-  //   reference: 'Syzygy — 81.5m',
-  //   image: '/images/yachts/syzygy/syzygy-main.png',
-  //   currentBid: 92000000,
-  //   timeLeft: { hours: 14, minutes: 48, seconds: 50 },
-  //   link: '/yacht/2'
-  // },
-  // {
-  //   id: 'pen5',
-  //   category: 'WRITING INSTRUMENTS',
-  //   title: 'Pelikan',
-  //   reference: 'Souverän M1000',
-  //   image: '/images/pens/pelican/pelican-main.png',
-  //   currentBid: 22000,
-  //   timeLeft: { hours: 10, minutes: 17, seconds: 5 },
-  //   link: '/pen/5'
-  // }
-]
-
-// const INITIAL_SELLINGLIST = [
-// {
-//   id: 'w1',
-//   category: 'WATCHES',
-//   title: 'Patek Philippe',
-//   reference: 'Ref. 2499, First Series',
-//   image: '/images/pattek/pattek-phillipe.png',
-//   userBid: 2840000,
-//   currentHighBid: 2840000,
-//   timeLeft: { hours: 2, minutes: 14, seconds: 33 },
-//   link: '/watch/1'
-// },
-// {
-//   id: 'c1',
-//   category: 'CIGARS',
-//   title: 'Cohiba',
-//   reference: 'Behike BHK 56',
-//   image: '/images/cigars/cohiba/cohiba-main.png',
-//   userBid: 4200,
-//   currentHighBid: 4800,
-//   timeLeft: { hours: 8, minutes: 4, seconds: 12 },
-//   link: '/cigar/1'
-// }
-// ]
 
 
 
@@ -141,10 +16,10 @@ const VaultPage = () => {
   const [activeTab, setActiveTab] = useState('bids') // 'bids' | 'secured' | 'cart' | 'watchlist'
 
   // State lists
-  const [activeBids, setActiveBids] = useState(INITIAL_ACTIVE_BIDS)
-  const [securedAssets, setSecuredAssets] = useState(INITIAL_SECURED_ASSETS)
-  const [cartItems, setCartItems] = useState(INITIAL_CART_ITEMS)
-  const [watchlist, setWatchlist] = useState(INITIAL_WATCHLIST)
+  const [activeBids, setActiveBids] = useState([])
+  const [securedAssets, setSecuredAssets] = useState([])
+  const [cartItems, setCartItems] = useState([])
+  const [watchlist, setWatchlist] = useState([])
   const [sellingList, setSellingList] = useState([])
   const [secondsTick, setSecondsTick] = useState(0)
 
@@ -180,9 +55,21 @@ const VaultPage = () => {
       })
   }
 
+  const mySecuredAssets = () => {
+    getMyWonItems()
+    .then((res)=> {
+      setSecuredAssets(res?.data?.data)
+    })
+    .catch((err)=>{
+      throw err;
+      setSecuredAssets([]);
+    })
+  }
+
   useEffect(() => {
     myWhishList()
     myActiveBids()
+    mySecuredAssets();
   }, [])
 
   // Countdown logic for active bids & watchlist items
@@ -536,22 +423,19 @@ const VaultPage = () => {
               ) : (
                 <div className="vault-items-list">
                   {securedAssets?.map(item => (
-                    <div className="vault-item-card vault-item-card--secured" key={item.id}>
+                    <div className="vault-item-card vault-item-card--secured" key={item.itemId}>
                       <div className="vault-item-card__image">
-                        <img src={item.image} alt={item.title} />
+                        <img src={item?.details?.thumbnail || item?.details?.image1} alt={item.details.brand} />
                       </div>
                       <div className="vault-item-card__details">
-                        <span className="vault-item-cat">{item.category}</span>
-                        <h3 className="vault-item-title">{item.title} <span className="vault-item-ref">{item.reference}</span></h3>
+                        <span className="vault-item-cat">{item.categoryName}</span>
+                        <h3 className="vault-item-title">{item.details.brand || item.details.caskType} <span className="vault-item-ref">{item.details.editionName || item.details.distillesy}</span></h3>
                         <div className="vault-item-specs">
                           <div>
                             <span className="vault-spec-label">ACQUISITION PRICE</span>
                             <span className="vault-spec-val vault-spec-val--gold">{formatCurrency(item.purchasePrice)}</span>
                           </div>
-                          <div>
-                            <span className="vault-spec-label">VAULT STATUS</span>
-                            <span className="vault-spec-val">{item.vaultLocation}</span>
-                          </div>
+                          
                           <div>
                             <span className="vault-spec-label">SECURED DATE</span>
                             <span className="vault-spec-val">{item.securedDate}</span>

@@ -900,9 +900,9 @@ const ProfilePage = () => {
                     <option value="Family Office Address">
                       Family Office Address
                     </option>
-                    <option value="Corporate Address">Corporate Address</option>
+                    {/* <option value="Corporate Address">Corporate Address</option>
                     <option value="Billing Address">Billing Address</option>
-                    <option value="Shipping Address">Shipping Address</option>
+                    <option value="Shipping Address">Shipping Address</option> */}
                     <option value="Other">Other</option>
                   </select>
                 </div>

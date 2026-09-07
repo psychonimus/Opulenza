@@ -223,7 +223,16 @@ const registrationSchema = yup.object().shape({
   password: yup
     .string()
     .required("Password is required")
-    .min(8, "Password must be at least 8 characters"),
+    .min(8, "Password must be at least 8 characters")
+    .max(20, "Password must be at most 20 characters")
+    .matches(/[A-Z]/, "Password must contain at least one uppercase letter (A-Z)")
+    .matches(/[a-z]/, "Password must contain at least one lowercase letter (a-z)")
+    .matches(/[0-9]/, "Password must contain at least one number (0-9)")
+    .matches(
+      /[^A-Za-z0-9\s]/,
+      "Password must contain at least one special character (e.g. @, #, $, %, &)",
+    )
+    .matches(/^\S*$/, "Spaces are not allowed in password"),
   confirmPassword: yup
     .string()
     .required("Please confirm your password")

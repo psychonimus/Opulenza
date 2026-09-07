@@ -44,6 +44,14 @@ export const getMyActiveBids = () => {
 };
 
 
+export const getMyWonItems = () => {
+    return api.get(`api/member/MyWonItems?pageNumber=1&pageSize=10`);
+};
+
+
+
+
+
 
 
 
