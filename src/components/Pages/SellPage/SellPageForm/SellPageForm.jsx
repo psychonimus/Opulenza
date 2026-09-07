@@ -239,15 +239,15 @@ const formFields = {
     {
       id: "age",
       label: "Age (Years Aged)",
-      type: "text",
-      placeholder: "e.g. 18 YO, 25 YO",
+      type: "number",
+      placeholder: "e.g. 18, 25",
       half: true,
     },
     {
       id: "proof",
       label: "% ABV / Proof",
-      type: "text",
-      placeholder: "e.g. 43%",
+      type: "number",
+      placeholder: "e.g. 43, 43.5",
       half: true,
     },
     {
@@ -431,7 +431,7 @@ const formFields = {
     },
     {
       id: "Distillesy",
-      label: "Distillesy",
+      label: "Distillery",
       type: "text",
       placeholder: "e.g. Macallan, Bowmore",
       half: true,
@@ -521,14 +521,14 @@ const formFields = {
 
     // Pricing
     { id: "pricingSection", label: "Pricing & Value", type: "section" },
-    {
-      id: "originalPrice",
-      label: "Original Price",
-      type: "text",
-      placeholder: "Value at acquisition",
-      half: true,
-      hasCurrency: true,
-    },
+    // {
+    //   id: "originalPrice",
+    //   label: "Original Price",
+    //   type: "text",
+    //   placeholder: "Value at acquisition",
+    //   half: true,
+    //   hasCurrency: true,
+    // },
     {
       id: "auctionEndDate",
       label: "Select Auction End Date (Max 15 days)",
@@ -1316,6 +1316,42 @@ const formatAuctionEndDateTime = (dateStr, timeStr = "23:59") => {
   return `${dateStr}T${formattedHours}:${formattedMinutes}:${formattedSeconds}${timezoneOffset}`;
 };
 
+const handleNumberKeyDown = (e, allowDecimal = true) => {
+  // Allow control / navigation keys
+  if (
+    [
+      "Backspace",
+      "Tab",
+      "Delete",
+      "ArrowLeft",
+      "ArrowRight",
+      "ArrowUp",
+      "ArrowDown",
+      "Home",
+      "End",
+      "Enter",
+      "Escape",
+    ].includes(e.key) ||
+    e.ctrlKey ||
+    e.metaKey
+  ) {
+    return;
+  }
+
+  // Allow decimal point if permitted and not already present
+  if (allowDecimal && (e.key === "." || e.key === "Decimal")) {
+    if (e.currentTarget.value && e.currentTarget.value.includes(".")) {
+      e.preventDefault();
+    }
+    return;
+  }
+
+  // Block any non-digit (blocks 'e', 'E', '+', '-', special chars, letters, spaces)
+  if (!/^[0-9]$/.test(e.key)) {
+    e.preventDefault();
+  }
+};
+
 const SellPageForm = () => {
   const [activeCategory, setActiveCategory] = useState("cigars");
   const [activeCategoryNumber, setActiveCategoryNumber] = useState("1");
@@ -1884,6 +1920,16 @@ const SellPageForm = () => {
                           type={field.type === "number" ? "number" : "text"}
                           className="sell-field-input"
                           placeholder={field.placeholder}
+                          onKeyDown={
+                            field.type === "number"
+                              ? (e) => handleNumberKeyDown(e, true)
+                              : undefined
+                          }
+                          onWheel={
+                            field.type === "number"
+                              ? (e) => e.currentTarget.blur()
+                              : undefined
+                          }
                           {...register(field.id)}
                         />
                       </div>
@@ -1905,6 +1951,16 @@ const SellPageForm = () => {
                           min: getTodayDate(),
                           max: getDefaultAuctionDate(),
                         } : {})}
+                        {...(field.type === "number"
+                          ? {
+                              onKeyDown: (e) =>
+                                handleNumberKeyDown(
+                                  e,
+                                  field.id !== "age" && field.id !== "NoOfBottles"
+                                ),
+                              onWheel: (e) => e.currentTarget.blur(),
+                            }
+                          : {})}
                         {...register(field.id)}
                       />
                       {errors[field.id] && (

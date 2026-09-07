@@ -24,14 +24,15 @@ const DetailedWhiskyPage = () => {
 
   // Magnifier state
   const magnifierRef = useRef(null);
+  const imgRef = useRef(null);
   const [magnifier, setMagnifier] = useState({
     visible: false,
     x: 0,
     y: 0,
     bgX: 0,
     bgY: 0,
-    wrapperW: 0,
-    wrapperH: 0,
+    bgW: 0,
+    bgH: 0,
   });
   const LENS_SIZE = 160;
   const ZOOM = 2.5;
@@ -39,20 +40,73 @@ const DetailedWhiskyPage = () => {
   const handleMagnifierMove = useCallback(
     (e) => {
       const wrapper = magnifierRef.current;
+      const img = imgRef.current;
       if (!wrapper) return;
+
       const rect = wrapper.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      const bgX = -(x * ZOOM - LENS_SIZE / 2);
-      const bgY = -(y * ZOOM - LENS_SIZE / 2);
+
+      if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
+        setMagnifier((prev) => ({ ...prev, visible: false }));
+        return;
+      }
+
+      let bgW = rect.width * ZOOM;
+      let bgH = rect.height * ZOOM;
+      let bgX = -(x * ZOOM - LENS_SIZE / 2);
+      let bgY = -(y * ZOOM - LENS_SIZE / 2);
+
+      if (img && img.naturalWidth && img.naturalHeight) {
+        const containerW = rect.width;
+        const containerH = rect.height;
+        const imgRatio = img.naturalWidth / img.naturalHeight;
+        const containerRatio = containerW / containerH;
+
+        let renderedW = containerW;
+        let renderedH = containerH;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        const objectFit = window.getComputedStyle(img).objectFit;
+
+        if (objectFit === "contain") {
+          if (imgRatio > containerRatio) {
+            renderedW = containerW;
+            renderedH = containerW / imgRatio;
+            offsetY = (containerH - renderedH) / 2;
+          } else {
+            renderedH = containerH;
+            renderedW = containerH * imgRatio;
+            offsetX = (containerW - renderedW) / 2;
+          }
+        } else {
+          // Default to 'cover'
+          if (imgRatio > containerRatio) {
+            renderedH = containerH;
+            renderedW = containerH * imgRatio;
+            offsetX = (containerW - renderedW) / 2;
+          } else {
+            renderedW = containerW;
+            renderedH = containerW / imgRatio;
+            offsetY = (containerH - renderedH) / 2;
+          }
+        }
+
+        bgW = renderedW * ZOOM;
+        bgH = renderedH * ZOOM;
+        bgX = LENS_SIZE / 2 - (x - offsetX) * ZOOM;
+        bgY = LENS_SIZE / 2 - (y - offsetY) * ZOOM;
+      }
+
       setMagnifier({
         visible: true,
         x,
         y,
         bgX,
         bgY,
-        wrapperW: rect.width,
-        wrapperH: rect.height,
+        bgW,
+        bgH,
       });
     },
     [LENS_SIZE, ZOOM],
@@ -452,8 +506,14 @@ const DetailedWhiskyPage = () => {
             mappedItem.reference = found.details?.distillesy || "";
             mappedItem.description = `Distillery: ${found.details?.distillesy || 'N/A'} | Cask Type: ${found.details?.caskType || 'N/A'}`;
             mappedItem.detailedDescription = `This is a premium Cask Lot featuring a ${found.details?.caskType || 'cask'} from the renowned ${found.details?.distillesy || 'distillery'}. Number of bottles: ${found.details?.noOfBottles || 'N/A'}, ABV: ${found.details?.abv || 'N/A'}%.`;
-            mappedItem.image = found.details?.thumbnail || found.details?.image1;
-            mappedItem.angles = [found.details?.image1, found.details?.image2, found.details?.image3, found.details?.image4].filter(Boolean);
+            mappedItem.image = found.details?.thumbnail || found.details?.Thumbnail || found.details?.image1 || found.details?.Image1 || found.details?.frontLabel || found.details?.FrontLabel || found.image || found.imageUrl || "";
+            mappedItem.angles = [
+              found.details?.image1 || found.details?.Image1,
+              found.details?.image2 || found.details?.Image2,
+              found.details?.image3 || found.details?.Image3,
+              found.details?.image4 || found.details?.Image4,
+              found.details?.image5 || found.details?.Image5,
+            ].filter(Boolean);
             mappedItem.provenance = {
               title: "Cask Provenance & History",
               description: `Matured at the ${found.details?.distillesy || 'distillery'} in a ${found.details?.caskType || 'N/A'} cask. The lot includes the original sale documentation and cask registry extract.`,
@@ -484,8 +544,14 @@ const DetailedWhiskyPage = () => {
             mappedItem.reference = found.details?.bottlingName || "";
             mappedItem.description = `Producer: ${found.details?.producerName || 'N/A'} | Region: ${found.details?.region || 'N/A'}`;
             mappedItem.detailedDescription = `This is an exceptional bottle of ${found.details?.producerName || 'whisky'} (${found.details?.bottlingName || 'N/A'}). Matured for ${found.details?.age || 'N/A'} years, distilled in ${found.details?.vintageYear || 'N/A'}, strength is ${found.details?.proof || 'N/A'}% ABV. Region: ${found.details?.region || 'N/A'}.`;
-            mappedItem.image = found.details?.thumbnail || found.details?.image1;
-            mappedItem.angles = [found.details?.image2, found.details?.image3, found.details?.image4,].filter(Boolean);
+            mappedItem.image = found.details?.thumbnail || found.details?.Thumbnail || found.details?.image1 || found.details?.Image1 || found.details?.frontLabel || found.details?.FrontLabel || found.image || found.imageUrl || "";
+            mappedItem.angles = [
+              found.details?.image1 || found.details?.Image1,
+              found.details?.image2 || found.details?.Image2,
+              found.details?.image3 || found.details?.Image3,
+              found.details?.image4 || found.details?.Image4,
+              found.details?.image5 || found.details?.Image5,
+            ].filter(Boolean);
             mappedItem.provenance = {
               title: "Whisky Provenance & History",
               description: `Produced by ${found.details?.producerName || 'N/A'} in the ${found.details?.region || 'N/A'} region. Stored under ${found.details?.storageCondition || 'excellent'} storage conditions.`,
@@ -541,11 +607,12 @@ const DetailedWhiskyPage = () => {
 
 
   useEffect(() => {
-    if (item?.image) {
-      setMainImage(item.image);
+    const initialImg = item?.image || (item?.angles && item.angles[0]) || "";
+    if (initialImg) {
+      setMainImage(initialImg);
       setActiveThumbIdx(0);
     }
-  }, [item?.itemId]);
+  }, [item?.itemId, item?.image]);
 
   useEffect(() => {
     if (item) {
@@ -635,7 +702,9 @@ const DetailedWhiskyPage = () => {
 
   const formatNum = (num) => String(num).padStart(2, "0");
 
-  const thumbnails = [item.image, ...(item.angles || [])];
+  const thumbnails = Array.from(
+    new Set([item.image, ...(item.angles || [])].filter(Boolean))
+  );
 
   const handlePlaceBidClick = () => {
     setCustomBidAmount(item?.bidIncrement || 0);
@@ -782,13 +851,15 @@ const DetailedWhiskyPage = () => {
                 onMouseLeave={handleMagnifierLeave}
               >
                 <img
+                  ref={imgRef}
                   src={mainImage}
                   alt={item.title}
                   className="detailed-page__main-image whisky-main-image"
+                  draggable={false}
                 />
                 <div className="detailed-page__image-glow"></div>
 
-                {magnifier.visible && (
+                {magnifier.visible && mainImage && (
                   <div
                     className="detailed-page__magnifier-lens"
                     style={{
@@ -796,8 +867,8 @@ const DetailedWhiskyPage = () => {
                       height: LENS_SIZE,
                       left: magnifier.x - LENS_SIZE / 2,
                       top: magnifier.y - LENS_SIZE / 2,
-                      backgroundImage: `url(${mainImage})`,
-                      backgroundSize: `${magnifier.wrapperW * ZOOM}px ${magnifier.wrapperH * ZOOM}px`,
+                      backgroundImage: `url("${mainImage}")`,
+                      backgroundSize: `${magnifier.bgW}px ${magnifier.bgH}px`,
                       backgroundPosition: `${magnifier.bgX}px ${magnifier.bgY}px`,
                     }}
                   />

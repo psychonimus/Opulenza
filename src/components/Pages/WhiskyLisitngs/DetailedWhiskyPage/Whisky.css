@@ -164,12 +164,17 @@
     height: 100%;
     object-fit: cover;
     transition: transform 0.5s ease;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
 }
 
 /* whisky images centred/contained */
 .whisky-main-image {
-    object-fit: contain;
-    
+    object-fit: cover;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
 }
 
 .detailed-page__main-image-wrapper:hover {

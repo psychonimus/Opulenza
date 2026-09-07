@@ -388,7 +388,11 @@ const AllWhisky = () => {
                           </div>
                           <div className="whisky-card__meta-item">
                             <span className="whisky-card__meta-label">AYS</span>
-                            <span className="whisky-card__meta-value">{item?.details?.ays || '—'}</span>
+                            <span className="whisky-card__meta-value">
+                              {item?.details?.ays
+                                ? String(item.details.ays).split(/[T\s]/)[0]
+                                : "—"}
+                            </span>
                           </div>
                           <div className="whisky-card__meta-item">
                             <span className="whisky-card__meta-label">ABV</span>
