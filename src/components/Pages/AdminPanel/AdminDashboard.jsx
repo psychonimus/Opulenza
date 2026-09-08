@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   MdFilterList,
@@ -14,67 +14,13 @@ import {
   MdMenu,
 } from 'react-icons/md'
 
+import { GetDashboardStats } from '../../../services/dashboardStats/DashboardStats'
+
 import { useUser, useAuth } from '../../../services/showUserInfo/ShowUserInfo'
+import { useScroll } from 'framer-motion'
 
 // ── Stat Cards data ──────────────────────────────────────────────────────────
-const statCards = [
-  {
-    id: 'members',
-    label: 'TOTAL REGISTERED MEMBERS',
-    value: '12,842',
-    badge: { text: '↑ 4.2%', type: 'up' },
-    icon: null,
-  },
-  {
-    id: 'verifications',
-    label: 'PENDING VERIFICATIONS',
-    value: '148',
-    badge: { text: 'High Priority', type: 'warning' },
-    icon: null,
-  },
-  {
-    id: 'auctions',
-    label: 'LIVE AUCTIONS',
-    value: '32',
-    badge: null,
-    icon: 'toggle',
-  },
-  {
-    id: 'escrow',
-    label: 'ESCROW BALANCE',
-    value: '$1.4B',
-    badge: null,
-    icon: 'escrow',
-  },
-  {
-    id: 'audits',
-    label: 'PENDING AUDITS',
-    value: '14',
-    badge: { text: '3 Overdue', type: 'danger' },
-    icon: null,
-  },
-  {
-    id: 'claims',
-    label: 'ACTIVE CLAIMS',
-    value: '08',
-    badge: null,
-    icon: 'muted',
-  },
-  {
-    id: 'revenue',
-    label: 'REVENUE GENERATED',
-    value: '$42.8M',
-    badge: { text: '↑ 12%', type: 'up' },
-    icon: null,
-  },
-  {
-    id: 'violations',
-    label: 'OPEN VIOLATIONS',
-    value: '02',
-    badge: null,
-    icon: 'warning',
-  },
-]
+
 
 // ── GMV Chart (SVG) ──────────────────────────────────────────────────────────
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -115,117 +61,12 @@ function buildArea(data) {
   return `M${firstX},${baseY} L${linePts} L${lastX},${baseY} Z`
 }
 
-const GMVChart = () => {
-  const yLabels = ['$8M', '$6M', '$4M', '$2M', '$0M']
 
-
-
-
-  return (
-    <div className="admin-chart">
-      <div className="admin-chart__header">
-        <div>
-          <h3 className="admin-chart__title">Gross Merchandise Volume</h3>
-          <p className="admin-chart__subtitle">Marketplace revenue and escrow held over the last 12 months.</p>
-        </div>
-        <div className="admin-chart__legend">
-          <span className="admin-chart__legend-item">
-            <span className="admin-chart__legend-dot admin-chart__legend-dot--gmv" /> GMV
-          </span>
-          <span className="admin-chart__legend-item">
-            <span className="admin-chart__legend-dot admin-chart__legend-dot--escrow" /> Escrow held
-          </span>
-        </div>
-      </div>
-
-      <div className="admin-chart__body">
-        {/* Y-axis labels */}
-        <div className="admin-chart__y-axis">
-          {yLabels.map((l) => (
-            <span key={l} className="admin-chart__y-label">{l}</span>
-          ))}
-        </div>
-
-        {/* SVG */}
-        <div className="admin-chart__svg-wrapper">
-          <svg
-            viewBox={`0 0 ${W} ${H}`}
-            preserveAspectRatio="none"
-            className="admin-chart__svg"
-          >
-            <defs>
-              <linearGradient id="gmvGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#4a9eff" stopOpacity="0.25" />
-                <stop offset="100%" stopColor="#4a9eff" stopOpacity="0.02" />
-              </linearGradient>
-              <linearGradient id="escrowGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#b0c8e8" stopOpacity="0.18" />
-                <stop offset="100%" stopColor="#b0c8e8" stopOpacity="0.02" />
-              </linearGradient>
-            </defs>
-
-            {/* Grid lines */}
-            {[0.2, 0.4, 0.6, 0.8, 1].map((ratio) => {
-              const y = PAD_T + (H - PAD_T - PAD_B) * ratio
-              return (
-                <line
-                  key={ratio}
-                  x1={PAD_L}
-                  y1={y}
-                  x2={W - PAD_R}
-                  y2={y}
-                  stroke="#e5e7eb"
-                  strokeWidth="0.6"
-                />
-              )
-            })}
-
-            {/* Escrow area */}
-            <path d={buildArea(escrowData)} fill="url(#escrowGrad)" />
-            {/* GMV area */}
-            <path d={buildArea(gmvData)} fill="url(#gmvGrad)" />
-
-            {/* Escrow line */}
-            <path
-              d={buildPath(escrowData)}
-              fill="none"
-              stroke="#b0c8e8"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            {/* GMV line */}
-            <path
-              d={buildPath(gmvData)}
-              fill="none"
-              stroke="#4a9eff"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-
-            {/* Month labels on x-axis */}
-            {months.map((m, i) => (
-              <text
-                key={m}
-                x={PAD_L + i * xStep}
-                y={H - 6}
-                textAnchor="middle"
-                fontSize="9"
-                fill="#9ca3af"
-              >
-                {m}
-              </text>
-            ))}
-          </svg>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 // ── Stat Card Component ───────────────────────────────────────────────────────
 const StatCard = ({ card }) => {
+
+
   return (
     <div className="admin-stat-card">
       <span className="admin-stat-card__label">{card.label}</span>
@@ -274,12 +115,101 @@ const AdminDashboard = ({ onToggleMobileSidebar }) => {
   // const user = JSON.parse(localStorage.getItem('user'));
 
   const { userInfo, logout } = useUser()
+  const [stats, setStats] = useState([]);
   
   const user = userInfo
 
   const handleLogout = () => {
     logout()
   }
+
+
+
+
+  const getDBStats = () => {
+    GetDashboardStats()
+    .then((res)=> {
+      setStats(res?.data?.data?.dashboard);
+    })
+    .catch((err) => {
+      console.log(err);
+    })
+  }
+
+  useEffect(() => {
+    getDBStats();
+  }, []);
+
+
+  const statCards = [
+  {
+    id: 'members',
+    label: 'TOTAL ACTIVE MEMBERS',
+    value: stats.activeMembers,
+    badge: { text: '↑ 4.2%', type: 'up' },
+    icon: null,
+  },
+  {
+    id: 'inactive',
+    label: 'INACTIVE MEMBERS',
+    value: stats.inActiveMembers,
+    badge: { text: 'High Priority', type: 'warning' },
+    icon: null,
+  },
+  {
+    id: 'auctions',
+    label: 'LIVE AUCTIONS',
+    value: stats.liveItems,
+    badge: null,
+    icon: 'toggle',
+  },
+  {
+    id: 'claims',
+    label: 'ACTIVE CLAIMS',
+    value: stats.giftsClaim,
+    badge: null,
+    icon: 'muted',
+  },
+  // {
+  //   id: 'escrow',
+  //   label: 'ESCROW BALANCE',
+  //   value: '$1.4B',
+  //   badge: null,
+  //   icon: 'escrow',
+  // },
+  // {
+  //   id: 'audits',
+  //   label: 'PENDING AUDITS',
+  //   value: '14',
+  //   badge: { text: '3 Overdue', type: 'danger' },
+  //   icon: null,
+  // },
+  
+  // {
+  //   id: 'revenue',
+  //   label: 'REVENUE GENERATED',
+  //   value: '$42.8M',
+  //   badge: { text: '↑ 12%', type: 'up' },
+  //   icon: null,
+  // },
+  // {
+  //   id: 'violations',
+  //   label: 'OPEN VIOLATIONS',
+  //   value: '02',
+  //   badge: null,
+  //   icon: 'warning',
+  // },
+]
+
+
+
+
+
+
+
+
+
+  
 
   return (
     <div className="admin-dashboard">
@@ -368,7 +298,7 @@ const AdminDashboard = ({ onToggleMobileSidebar }) => {
         </div>
 
         {/* GMV Chart */}
-        <GMVChart />
+        {/* <GMVChart /> */}
       </div>
     </div>
   )

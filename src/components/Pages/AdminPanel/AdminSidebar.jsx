@@ -46,24 +46,24 @@ const navGroups = [
         icon: MdMailOutline,
         roles: ['SuperAdmin']
       },
-      {
-        id: 'seller-management',
-        label: 'Seller Management',
-        icon: MdStorefront,
-        roles: ["SuperAdmin", 'SellerManager']
-      },
-      {
-        id: 'authentication',
-        label: 'Authentication',
-        icon: MdVerifiedUser,
-        roles: ['SuperAdmin']
-      },
-      {
-        id: 'valuation-requests',
-        label: 'Valuation Requests',
-        icon: MdRequestPage,
-        roles: ['SuperAdmin', 'ValuationTeam']
-      },
+      // {
+      //   id: 'seller-management',
+      //   label: 'Seller Management',
+      //   icon: MdStorefront,
+      //   roles: ["SuperAdmin", 'SellerManager']
+      // },
+      // {
+      //   id: 'authentication',
+      //   label: 'Authentication',
+      //   icon: MdVerifiedUser,
+      //   roles: ['SuperAdmin']
+      // },
+      // {
+      //   id: 'valuation-requests',
+      //   label: 'Valuation Requests',
+      //   icon: MdRequestPage,
+      //   roles: ['SuperAdmin', 'ValuationTeam']
+      // },
     ],
   },
   {
@@ -75,12 +75,12 @@ const navGroups = [
         icon: MdGavel,
         roles: ['SuperAdmin', 'AuctionManager']
       },
-      {
-        id: 'offers-negotiations',
-        label: 'Offers & Negotiations',
-        icon: MdHandshake,
-        roles: ['SuperAdmin', 'Sales']
-      },
+      // {
+      //   id: 'offers-negotiations',
+      //   label: 'Offers & Negotiations',
+      //   icon: MdHandshake,
+      //   roles: ['SuperAdmin', 'Sales']
+      // },
       {
         id: 'escrow-payments',
         label: 'Escrow & Payments',
@@ -93,12 +93,12 @@ const navGroups = [
         icon: MdLocalShipping,
         roles: ['SuperAdmin', 'Logistics']
       },
-      {
-        id: 'vault-management',
-        label: 'Vault Management',
-        icon: MdLock,
-        roles: ['SuperAdmin', 'VaultManager']
-      },
+      // {
+      //   id: 'vault-management',
+      //   label: 'Vault Management',
+      //   icon: MdLock,
+      //   roles: ['SuperAdmin', 'VaultManager']
+      // },
       {
         id: 'listing-management',
         label: 'Listing Management',
@@ -116,12 +116,12 @@ const navGroups = [
         icon: MdReport,
         roles: ['SuperAdmin', 'Support']
       },
-      {
-        id: 'marketing-promotions',
-        label: 'Marketing & Promotions',
-        icon: MdCampaign,
-        roles: ['SuperAdmin', 'Marketing']
-      },
+      // {
+      //   id: 'marketing-promotions',
+      //   label: 'Marketing & Promotions',
+      //   icon: MdCampaign,
+      //   roles: ['SuperAdmin', 'Marketing']
+      // },
       {
         id: 'gift-program',
         label: 'Gift Program',

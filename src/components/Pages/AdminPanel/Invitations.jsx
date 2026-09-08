@@ -146,8 +146,8 @@ const Invitations = () => {
       const invitedBy = inv.invitedByAdmin
         ? `Admin: ${inv.invitedByAdmin}`
         : inv.invitedByMember
-          ? `Member: ${inv.invitedByMember}`
-          : "System";
+          ? `Member: ${inv.invitedByMemberID}`
+          : inv.invitedByMember || "Member";
 
       const keyId = inv.invitationID || idx;
 
@@ -292,7 +292,7 @@ const Invitations = () => {
             className={`ap-filter-btn${activeTab === "member" ? " ap-filter-btn--active" : ""}`}
             onClick={() => handleTabChange("member")}
           >
-            Member Invitations
+            All Invitations
           </button>
         </div>
 

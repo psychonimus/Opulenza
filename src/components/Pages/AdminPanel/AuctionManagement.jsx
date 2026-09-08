@@ -18,6 +18,8 @@ import {
   getItemMedia,
 } from "../../../services/sellingServices/getSellListings/getSellListings";
 
+import { GetDashboardStats } from '../../../services/dashboardStats/DashboardStats'
+
 const CATEGORIES = [
   { id: 0, name: "All" },
   { id: 3, name: "Watches" },
@@ -53,8 +55,18 @@ const AuctionManagement = () => {
   const [selectedListing, setSelectedListing] = useState(null);
   const [mediaCache, setMediaCache] = useState({});
   const [previewImage, setPreviewImage] = useState(null);
+  // const [stats, setStats] = useState([])
 
   const PAGE_SIZE = 10;
+
+
+
+  const { dashboardStats } = GetDashboardStats();
+
+  console.log("these are the db stats - ", dashboardStats)
+
+
+  
 
   // ── Media helpers ────────────────────────────────────────────────────────────
 
@@ -234,10 +246,10 @@ const AuctionManagement = () => {
 
       <div className="ap-stat-row">
         {[
-          { label: "Live Auctions", value: "32", color: "#15803d" },
-          { label: "Scheduled", value: "14", color: "#1d4ed8" },
-          { label: "Ended Today", value: "8", color: "#6b7280" },
-          { label: "Total Bids (7d)", value: "1,482", color: "#3b5bdb" },
+          { label: "Live Auctions", value: dashboardStats?.auctions?.liveItems, color: "#15803d" },
+          { label: "Scheduled", value: dashboardStats?.auctions?.upcomingItems, color: "#1d4ed8" },
+          { label: "Ended Today", value: dashboardStats?.auctions?.auctionEndingItemCount, color: "#6b7280" },
+          { label: "Total Bids", value: dashboardStats?.auction?.totalBids, color: "#3b5bdb" },
         ].map((s) => (
           <div key={s.label} className="ap-mini-stat">
             <span className="ap-mini-stat__label">{s.label}</span>

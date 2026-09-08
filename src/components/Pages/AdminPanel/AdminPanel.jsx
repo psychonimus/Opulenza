@@ -47,10 +47,10 @@ const ROUTE_MAP = {
     component: Invitations,
     roles: ["SuperAdmin"]
   },
-  "seller-management": {
-    component: SellerManagement,
-    roles: ["SuperAdmin", "SellerManager"]
-  },
+  // "seller-management": {
+  //   component: SellerManagement,
+  //   roles: ["SuperAdmin", "SellerManager"]
+  // },
   "listing-management": {
     component: ListingManagement,
     roles: ["SuperAdmin", "ListingManager"]
