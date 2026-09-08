@@ -5,6 +5,8 @@ import connection from "../../../../services/signalR/auctionSignalR";
 import { getApprovedListing, updateWishListItem, getMyWishList } from '../../../../services/sellingServices/getSellListings/getSellListings'
 import { AddBid, getLatestBid } from '../../../../services/biddingServices/BiddingServices'
 import "./Whisky.css";
+import { useUser } from "../../../../services/showUserInfo/ShowUserInfo";
+
 
 const DetailedWhiskyPage = () => {
   const { id } = useParams();
@@ -127,6 +129,15 @@ const DetailedWhiskyPage = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [modalAutoBid, setModalAutoBid] = useState(false);
+
+
+  const { userInfo, refreshUser } = useUser();
+
+  const isTopBidder = Boolean(userInfo?.memberID && bids?.[0]?.memberId && bids[0].memberId == userInfo.memberID);
+
+
+
+
 
   // Countdown timer
   const [timeLeft, setTimeLeft] = useState({
@@ -1025,7 +1036,7 @@ const DetailedWhiskyPage = () => {
 
                 {/* Place Bid Button */}
                 {
-                  item?.canBid && (
+                  item?.canBid && !isTopBidder && (
                     <button
                       className="detailed-page__place-bid-btn"
                       onClick={handlePlaceBidClick}
@@ -1053,7 +1064,7 @@ const DetailedWhiskyPage = () => {
                     {isAutoBidding ? "AUTO BID ACTIVE" : "AUTO BID"}
                   </button> */}
                   {
-                    item?.canBid && (
+                    item?.canBid && !isTopBidder && (
                       <button
                         className={`action-btn-secondary ${isFavorited ? "action-btn-secondary--active" : ""}`}
                         onClick={() => { handleWishList(); }}

@@ -5,6 +5,7 @@ import connection from '../../../../services/signalR/auctionSignalR'
 import { getApprovedListing, updateWishListItem } from '../../../../services/sellingServices/getSellListings/getSellListings'
 import { AddBid, getLatestBid } from '../../../../services/biddingServices/BiddingServices'
 import './DetailedPenPage.css'
+import { useUser } from '../../../../services/showUserInfo/ShowUserInfo'
 
 const DetailedPenPage = () => {
     const { id } = useParams()
@@ -20,6 +21,13 @@ const DetailedPenPage = () => {
     const [biddersCount, setBiddersCount] = useState(0)
     const [isFavorited, setIsFavorited] = useState(false)
     const [isAutoBidding, setIsAutoBidding] = useState(false)
+
+
+
+
+    const { userInfo, refreshUser } = useUser();
+
+    const isTopBidder = Boolean(userInfo?.memberID && bids?.[0]?.memberId && bids[0].memberId == userInfo.memberID);
 
     // Magnifier state
     const magnifierRef = useRef(null)
@@ -781,7 +789,7 @@ const DetailedPenPage = () => {
 
                                 {/* Place Bid */}
                                 {
-                                    pen?.canBid && (
+                                    pen?.canBid && !isTopBidder && (
                                         <button className="pen-place-bid-btn" onClick={handlePlaceBidClick}>
                                             PLACE BID
                                         </button>

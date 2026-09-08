@@ -4,6 +4,8 @@ import * as signalR from '@microsoft/signalr'
 import connection from '../../../../services/signalR/auctionSignalR'
 import { getApprovedListing, updateWishListItem } from '../../../../services/sellingServices/getSellListings/getSellListings'
 import { AddBid, getLatestBid } from '../../../../services/biddingServices/BiddingServices'
+import { useUser } from "../../../../services/showUserInfo/ShowUserInfo";
+
 
 import './DetailedPage.css'
 
@@ -383,6 +385,13 @@ const DetailedPage = () => {
     const [biddersCount, setBiddersCount] = useState(0);
     const [isFavorited, setIsFavorited] = useState(false);
     const [isAutoBidding, setIsAutoBidding] = useState(false);
+
+
+
+
+    const { userInfo, refreshUser } = useUser();
+
+    const isTopBidder = Boolean(userInfo?.memberID && bids?.[0]?.memberId && bids[0].memberId == userInfo.memberID);
 
     // Magnifier state
     const magnifierRef = useRef(null);
@@ -787,7 +796,7 @@ const DetailedPage = () => {
 
                                 {/* Main Bid Action Button */}
                                 {
-                                    watch?.canBid && (
+                                    watch?.canBid && !isTopBidder && (
                                         <button className="detailed-page__place-bid-btn" onClick={handlePlaceBidClick}>
                                             PLACE BID
                                         </button>

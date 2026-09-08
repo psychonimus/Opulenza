@@ -168,7 +168,7 @@ const Invitations = () => {
         <tr key={keyId}>
           <td>
             <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-              <span style={{ fontWeight: 600 }}>#{inv.invitationID}</span>
+              <span style={{ fontWeight: 600 }}>#{inv.invitationNo}</span>
               <span style={{ fontSize: "0.85em", color: "#666" }}>
                 {inv.invitationType}
               </span>

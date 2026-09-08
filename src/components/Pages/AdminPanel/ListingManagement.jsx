@@ -539,6 +539,31 @@ const ListingManagement = () => {
       });
   };
 
+
+  const handleReject = (l) => {
+    if (!l?.itemId) return;
+    setApprovingId(l.itemId);
+
+    const dataObj = {
+      itemId: l.itemId,
+      IsApproved: false,
+      Reason: "Rejected by Admin",
+    };
+
+    
+
+    approveSellListing(dataObj)
+      .then((res) => {
+        console.log("Listing approved successfully", res);
+        setApprovingId(null);
+        fetchListings(appliedCat, currentPage);
+      })
+      .catch((error) => {
+        console.error("Failed to approve listing:", error);
+        setApprovingId(null);
+      });
+  }
+
   return (
     <div className="ap-page" data-lenis-prevent="true">
       {/* Header */}
@@ -670,6 +695,9 @@ const ListingManagement = () => {
                       <button
                         className="ap-icon-btn ap-icon-btn--danger"
                         title="Delete Listing"
+                        onClick={()=> {
+                          handleReject(l);
+                        }}
                       >
                         <MdDelete size={15} />
                       </button>

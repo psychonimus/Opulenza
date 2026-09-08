@@ -7,6 +7,8 @@ import { getApprovedListing, updateWishListItem } from '../../../../services/sel
 import cigarData from '../../../../data/CigarData'
 import { AddBid, getLatestBid } from '../../../../services/biddingServices/BiddingServices'
 import './DetailedCigarPage.css'
+import { useUser } from "../../../../services/showUserInfo/ShowUserInfo";
+
 
 /* ── Cigar-specific enrichments ─────────────────────────────── */
 
@@ -66,12 +68,19 @@ const DetailedCigarPage = () => {
     const [modalAutoBid, setModalAutoBid] = useState(false)
     const [latestBidData, setLatestBidData] = useState([])
 
+    const { userInfo, refreshUser } = useUser();
+
+    const isTopBidder = Boolean(userInfo?.memberID && bids?.[0]?.memberId && bids[0].memberId == userInfo.memberID);
+
     const [timeLeft, setTimeLeft] = useState({
         days: 0,
         hours: 0,
         minutes: 0,
         seconds: 0
     })
+
+
+
 
     useEffect(() => {
         const targetId = item?.itemId || id
@@ -793,24 +802,21 @@ const DetailedCigarPage = () => {
 
                                 {/* Place Bid Button */}
                                 {
-                                    item?.canBid && (
+                                    item?.canBid && !isTopBidder && (
                                         <button className="cigar-detailed-page__place-bid-btn" onClick={handlePlaceBidClick} >
                                             PLACE BID
                                         </button>
                                     )
                                 }
 
+                                {/* {
+                                    console.log("this is the top bidder", bids[0].memberId)
+                                    console.log("this is the user id", userInfo.memberID)
+                                } */}
+
                                 {/* Secondary Actions */}
                                 <div className="detailed-page__action-row">
-                                    {/* <button
-                                        className={`action-btn-secondary ${isAutoBidding ? 'action-btn-secondary--active' : ''}`}
-                                        onClick={() => setIsAutoBidding(!isAutoBidding)}
-                                    >
-                                        <svg className="action-icon" viewBox="0 0 24 24" fill={isAutoBidding ? '#000' : 'none'} stroke="currentColor" strokeWidth="2">
-                                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                                        </svg>
-                                        {isAutoBidding ? 'AUTO BID ACTIVE' : 'AUTO BID'}
-                                    </button> */}
+                                    
                                     {
                                         item?.canBid && (
                                             <button
