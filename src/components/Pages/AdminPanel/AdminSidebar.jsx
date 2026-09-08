@@ -21,6 +21,7 @@ import {
   MdChevronLeft,
   MdChevronRight,
   MdMailOutline,
+  MdClose,
 } from 'react-icons/md'
 
 const navGroups = [
@@ -159,102 +160,130 @@ const AdminSidebar = ({
   setActiveNav,
   collapsed,
   setCollapsed,
+  mobileOpen,
+  setMobileOpen,
   role,
 }) => {
   return (
-    <aside
-      className={`admin-sidebar ${
-        collapsed ? 'admin-sidebar--collapsed' : ''
-      }`}
-    >
-      {/* Logo */}
-      <div className="admin-sidebar__logo">
-        {!collapsed && (
-          <div className="admin-sidebar__brand">
-            <span className="admin-sidebar__brand-name">Opulenza</span>
-            <span className="admin-sidebar__brand-sub">
-              Control Center
-            </span>
+    <>
+      {/* Mobile Drawer Backdrop */}
+      <div
+        className={`admin-sidebar__backdrop ${mobileOpen ? 'admin-sidebar__backdrop--visible' : ''}`}
+        onClick={() => setMobileOpen && setMobileOpen(false)}
+        aria-hidden="true"
+      />
+
+      <aside
+        className={`admin-sidebar ${
+          collapsed ? 'admin-sidebar--collapsed' : ''
+        } ${mobileOpen ? 'admin-sidebar--mobile-open' : ''}`}
+      >
+        {/* Logo & Header */}
+        <div className="admin-sidebar__logo">
+          {(!collapsed || mobileOpen) && (
+            <div className="admin-sidebar__brand">
+              <span className="admin-sidebar__brand-name">Opulenza</span>
+              <span className="admin-sidebar__brand-sub">
+                Control Center
+              </span>
+            </div>
+          )}
+
+          {/* Desktop Collapse Toggle */}
+          <button
+            type="button"
+            className="admin-sidebar__collapse-btn"
+            onClick={() => setCollapsed(!collapsed)}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {collapsed ? (
+              <MdChevronRight size={18} />
+            ) : (
+              <MdChevronLeft size={18} />
+            )}
+          </button>
+
+          {/* Mobile Close Drawer Button */}
+          <button
+            type="button"
+            className="admin-sidebar__mobile-close-btn"
+            onClick={() => setMobileOpen && setMobileOpen(false)}
+            aria-label="Close sidebar"
+          >
+            <MdClose size={20} />
+          </button>
+        </div>
+
+        {(!collapsed || mobileOpen) && (
+          <div className="admin-sidebar__search">
+            <MdSearch
+              size={15}
+              className="admin-sidebar__search-icon"
+            />
+
+            <input
+              type="text"
+              placeholder="Search..."
+              className="admin-sidebar__search-input"
+            />
           </div>
         )}
 
-        <button
-          className="admin-sidebar__collapse-btn"
-          onClick={() => setCollapsed(!collapsed)}
-        >
-          {collapsed ? (
-            <MdChevronRight size={18} />
-          ) : (
-            <MdChevronLeft size={18} />
-          )}
-        </button>
-      </div>
+        <nav className="admin-sidebar__nav" data-lenis-prevent={true}>
+          {navGroups.map((group) => {
+            const visibleItems = group.items.filter((item) =>
+              item.roles.includes(role)
+            )
 
-      {!collapsed && (
-        <div className="admin-sidebar__search">
-          <MdSearch
-            size={15}
-            className="admin-sidebar__search-icon"
-          />
+            if (visibleItems.length === 0) return null
 
-          <input
-            type="text"
-            placeholder="Search..."
-            className="admin-sidebar__search-input"
-          />
-        </div>
-      )}
+            return (
+              <div
+                key={group.label}
+                className="admin-sidebar__group"
+              >
+                {(!collapsed || mobileOpen) && (
+                  <span className="admin-sidebar__group-label">
+                    {group.label}
+                  </span>
+                )}
 
-      <nav className="admin-sidebar__nav" data-lenis-prevent={true}>
-        {navGroups.map((group) => {
-          const visibleItems = group.items.filter((item) =>
-            item.roles.includes(role)
-          )
+                {visibleItems.map((item) => {
+                  const Icon = item.icon
 
-          if (visibleItems.length === 0) return null
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className={`admin-sidebar__nav-item ${
+                        activeNav === item.id
+                          ? 'admin-sidebar__nav-item--active'
+                          : ''
+                      }`}
+                      onClick={() => {
+                        setActiveNav(item.id)
+                        if (setMobileOpen) setMobileOpen(false)
+                      }}
+                    >
+                      <Icon
+                        size={17}
+                        className="admin-sidebar__nav-icon"
+                      />
 
-          return (
-            <div
-              key={group.label}
-              className="admin-sidebar__group"
-            >
-              {!collapsed && (
-                <span className="admin-sidebar__group-label">
-                  {group.label}
-                </span>
-              )}
-
-              {visibleItems.map((item) => {
-                const Icon = item.icon
-
-                return (
-                  <button
-                    key={item.id}
-                    className={`admin-sidebar__nav-item ${
-                      activeNav === item.id
-                        ? 'admin-sidebar__nav-item--active'
-                        : ''
-                    }`}
-                    onClick={() => setActiveNav(item.id)}
-                  >
-                    <Icon
-                      size={17}
-                      className="admin-sidebar__nav-icon"
-                    />
-
-                    {!collapsed && (
-                      <span className="admin-sidebar__nav-label">
-                        {item.label}
-                      </span>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-          )
-        })}
-      </nav>
-    </aside>
+                      {(!collapsed || mobileOpen) && (
+                        <span className="admin-sidebar__nav-label">
+                          {item.label}
+                        </span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            )
+          })}
+        </nav>
+      </aside>
+    </>
   )
 }
 

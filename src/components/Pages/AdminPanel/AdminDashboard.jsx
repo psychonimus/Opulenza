@@ -11,6 +11,7 @@ import {
   MdWarningAmber,
   MdVolumeOff,
   MdAccountBalanceWallet,
+  MdMenu,
 } from 'react-icons/md'
 
 import { useUser, useAuth } from '../../../services/showUserInfo/ShowUserInfo'
@@ -267,7 +268,7 @@ const StatCard = ({ card }) => {
 }
 
 // ── Main Dashboard Component ──────────────────────────────────────────────────
-const AdminDashboard = () => {
+const AdminDashboard = ({ onToggleMobileSidebar }) => {
 
   const navigate = useNavigate();
   // const user = JSON.parse(localStorage.getItem('user'));
@@ -285,6 +286,14 @@ const AdminDashboard = () => {
       {/* Top Bar */}
       <header className="admin-topbar">
         <div className="admin-topbar__left">
+          <button
+            type="button"
+            className="admin-topbar__menu-btn"
+            onClick={onToggleMobileSidebar}
+            aria-label="Toggle navigation menu"
+          >
+            <MdMenu size={22} />
+          </button>
           <div className="admin-topbar__search">
             <svg className="admin-topbar__search-icon" viewBox="0 0 20 20" fill="none">
               <circle cx="8.5" cy="8.5" r="5.5" stroke="#9ca3af" strokeWidth="1.5" />
@@ -300,7 +309,7 @@ const AdminDashboard = () => {
         <div className="admin-topbar__right">
           <button className="admin-topbar__action-btn">
             <MdAdd size={16} />
-            Quick action
+            <span className="admin-topbar__action-text">Quick action</span>
           </button>
           <button className="admin-topbar__icon-btn" title="Settings">
             <MdSettings size={18} />
@@ -322,7 +331,7 @@ const AdminDashboard = () => {
               <polyline points="16 17 21 12 16 7" />
               <line x1="21" y1="12" x2="9" y2="12" />
             </svg>
-            Logout
+            <span className="admin-topbar__logout-text">Logout</span>
           </button>
         </div>
       </header>

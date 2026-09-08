@@ -106,7 +106,7 @@ const RolesPermissions = () => {
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 16 }}>
+      <div className="ap-roles-grid">
         {/* Role list */}
         <div className="ap-table-card" style={{ padding: 0, overflow: 'hidden' }}>
           {roles.map(r => (
@@ -131,12 +131,12 @@ const RolesPermissions = () => {
         </div>
 
         {/* Permission matrix */}
-        <div className="ap-table-card" style={{padding:"10px"}}>
+        <div className="ap-table-card" style={{padding:"14px"}}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <h3 style={{ fontSize: 14, fontWeight: 600, color: '#111827', }}>Permissions for: {selected}</h3>
+            <h3 style={{ fontSize: 14, fontWeight: 600, color: '#111827', margin: 0 }}>Permissions for: {selected}</h3>
             <button className="ap-icon-btn"><MdEdit size={15} /></button>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+          <div className="ap-perm-grid">
             {permMatrix.map((perm, idx) => {
               const hasAccess = rolePerms[selected]?.[idx]
               return (
@@ -190,7 +190,7 @@ const RolesPermissions = () => {
 
             {/* Modal form */}
             <form onSubmit={handleSubmit} style={{ padding: '20px 24px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 18px' }}>
+              <div className="ap-form-2col-grid">
 
                 <div>
                   <label style={labelStyle}>First Name</label>

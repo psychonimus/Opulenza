@@ -37,7 +37,7 @@ const PlatformSettings = () => {
         <button className="ap-btn ap-btn--primary"><MdSave size={16} /> Save Changes</button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+      <div className="ap-settings-grid">
         {/* General Settings */}
         <div className="ap-table-card" style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           <h3 style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginBottom: 16 }}>General</h3>

@@ -61,7 +61,7 @@ const AnalyticsReports = () => {
       </div>
 
       {/* Metric cards */}
-      <div className="ap-stats-grid" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>
+      <div className="ap-stat-row">
         {metrics.map(m => {
           const Icon = m.icon
           return (
@@ -78,7 +78,7 @@ const AnalyticsReports = () => {
       </div>
 
       {/* Charts row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+      <div className="ap-charts-grid">
         <div className="admin-chart">
           <h3 className="admin-chart__title" style={{ marginBottom: 4 }}>GMV Trend</h3>
           <p className="admin-chart__subtitle" style={{ marginBottom: 8 }}>Gross merchandise volume over 12 months</p>

@@ -19,7 +19,7 @@ import AnalyticsReports from './AnalyticsReports'
 import RolesPermissions from './RolesPermissions'
 import PlatformSettings from './PlatformSettings'
 import {
-  MdAdd, MdSettings, MdNotifications,
+  MdAdd, MdSettings, MdNotifications, MdMenu
 } from 'react-icons/md'
 import './AdminPanel.css'
 
@@ -112,6 +112,7 @@ const ROUTE_MAP = {
 const AdminPanel = () => {
   const [activeNav, setActiveNav] = useState('dashboard')
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
 
   // const ActivePage = ROUTE_MAP[activeNav] || AdminDashboard
   const isDashboard = activeNav === 'dashboard'
@@ -122,9 +123,6 @@ const AdminPanel = () => {
   const { logout } = useAuth()
   const role = userInfo?.role
 
-
-  
-
   const currentRoute = ROUTE_MAP[activeNav];
 
   const hasAccess =
@@ -134,18 +132,20 @@ const AdminPanel = () => {
     ? currentRoute.component
     : Unauthorized;
 
-
-
-// console.log("AdminPanel: userInfo:", userInfo);
-
+  const handleNavSelect = (navId) => {
+    setActiveNav(navId)
+    setMobileSidebarOpen(false)
+  }
 
   return (
     <div className="admin-root">
       <AdminSidebar
         activeNav={activeNav}
-        setActiveNav={setActiveNav}
+        setActiveNav={handleNavSelect}
         collapsed={sidebarCollapsed}
         setCollapsed={setSidebarCollapsed}
+        mobileOpen={mobileSidebarOpen}
+        setMobileOpen={setMobileSidebarOpen}
         role={role}
       />
 
@@ -153,13 +153,21 @@ const AdminPanel = () => {
       <div className={`admin-main ${sidebarCollapsed ? 'admin-main--collapsed' : ''}`}>
         {isDashboard ? (
           /* Dashboard has its own full layout including topbar */
-          <AdminDashboard />
+          <AdminDashboard onToggleMobileSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)} />
         ) : (
           /* All other pages share a common shell */
           <div className="admin-dashboard">
             {/* Shared Top Bar */}
             <header className="admin-topbar">
               <div className="admin-topbar__left">
+                <button
+                  type="button"
+                  className="admin-topbar__menu-btn"
+                  onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+                  aria-label="Toggle navigation menu"
+                >
+                  <MdMenu size={22} />
+                </button>
                 <div className="admin-topbar__search">
                   <svg className="admin-topbar__search-icon" viewBox="0 0 20 20" fill="none">
                     <circle cx="8.5" cy="8.5" r="5.5" stroke="#9ca3af" strokeWidth="1.5" />
@@ -174,7 +182,7 @@ const AdminPanel = () => {
               </div>
               <div className="admin-topbar__right">
                 <button className="admin-topbar__action-btn">
-                  <MdAdd size={16} /> Quick actions
+                  <MdAdd size={16} /> <span className="admin-topbar__action-text">Quick actions</span>
                 </button>
                 <button className="admin-topbar__icon-btn" title="Settings">
                   <MdSettings size={18} />
@@ -195,7 +203,7 @@ const AdminPanel = () => {
                       <polyline points="16 17 21 12 16 7" />
                       <line x1="21" y1="12" x2="9" y2="12" />
                     </svg>
-                    Logout
+                    <span className="admin-topbar__logout-text">Logout</span>
                   </button>
                 </div>
               </div>
