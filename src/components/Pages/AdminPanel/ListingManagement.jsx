@@ -20,6 +20,7 @@ import {
   updateListingItemImage,
 } from "../../../services/sellingServices/getSellListings/getSellListings";
 import { FaCheckCircle, FaSpinner } from "react-icons/fa";
+import { GetDashboardStats } from "../../../services/dashboardStats/DashboardStats";
 
 const CATEGORIES = [
   { id: 0, name: "All" },
@@ -197,6 +198,9 @@ const ListingManagement = () => {
   const [selectedListing, setSelectedListing] = useState(null);
   const [mediaCache, setMediaCache] = useState({});
   const [previewImage, setPreviewImage] = useState(null);
+
+  const [listingStats, setListingStats] = useState([]);
+
   const triggerDownload = (url, fileName) => {
     if (!url) return;
     const a = document.createElement("a");
@@ -564,6 +568,21 @@ const ListingManagement = () => {
       });
   }
 
+
+  const getListingStats = () => {
+      GetDashboardStats()
+        .then((res) => {
+          setListingStats(res?.data?.data?.listing);
+        })
+        .catch((err) => {
+          console.log(err);
+        })
+    }
+
+    useEffect(() => {
+      getListingStats();
+    }, [])
+
   return (
     <div className="ap-page" data-lenis-prevent="true">
       {/* Header */}
@@ -584,17 +603,17 @@ const ListingManagement = () => {
         {[
           {
             label: "Total Listings",
-            value: dataResult?.length || "0",
+            value: listingStats.allItems || "0",
             color: "#3b5bdb",
           },
-          { label: "Live", value: "7,814", color: "#15803d" },
-          { label: "Pending Review", value: "482", color: "#b45309" },
-          { label: "Removed", value: "106", color: "#b91c1c" },
-        ].map((s) => (
-          <div key={s.label} className="ap-mini-stat">
-            <span className="ap-mini-stat__label">{s.label}</span>
-            <span className="ap-mini-stat__value" style={{ color: s.color }}>
-              {s.value}
+          { label: "Live", value: listingStats.approvedItems || "0", color: "#15803d" },
+          { label: "Pending Review", value: listingStats.pending || "0", color: "#b45309" },
+          { label: "Removed", value: listingStats.rejectItems || "0", color: "#b91c1c" },
+        ]?.map((s) => (
+          <div key={s?.label} className="ap-mini-stat">
+            <span className="ap-mini-stat__label">{s?.label}</span>
+            <span className="ap-mini-stat__value" style={{ color: s?.color }}>
+              {s?.value}
             </span>
           </div>
         ))}

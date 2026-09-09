@@ -5,6 +5,7 @@ import { RiCloseCircleFill } from "react-icons/ri";
 import { userData } from "../../../services/getUserData/GetUserData";
 import { VerifyUser } from "../../../services/approveUser/ApproveUser";
 import { useBackdrop } from "../../CommonBackdrop/BackdropContext";
+import { GetDashboardStats } from '../../../services/dashboardStats/DashboardStats'
 
 const statusColor = {
   Active: { bg: "#dcfce7", color: "#15803d" },
@@ -17,27 +18,7 @@ const roleColor = {
   Seller: { bg: "#faf5ff", color: "#7e22ce" },
 };
 
-const statCards = [
-  {
-    label: "Total Members",
-    value: "12,842",
-    sub: "+218 this month",
-    color: "#3b5bdb",
-  },
-  {
-    label: "Active Users",
-    value: "11,406",
-    sub: "88.8% of total",
-    color: "#15803d",
-  },
-  { label: "Suspended", value: "312", sub: "2.4% of total", color: "#b91c1c" },
-  {
-    label: "Pending Verification",
-    value: "148",
-    sub: "Needs review",
-    color: "#b45309",
-  },
-];
+
 
 const COLUMN_COUNT = 22;
 
@@ -49,6 +30,56 @@ const UserManagement = () => {
   const [error, setError] = useState(null);
   const [processingId, setProcessingId] = useState(null); // tracks which row is actioning
   const { showBackdrop, hideBackdrop } = useBackdrop();
+  const [stats, setStats] = useState([]);
+
+
+
+
+
+  const getUserStats = () => {
+    GetDashboardStats()
+      .then((res) => {
+        setStats(res?.data?.data?.user);
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+  }
+
+  const statCards = [
+    {
+      label: "Total Members",
+      value: stats?.totalMembers || stats?.activeMembers,
+
+      color: "#3b5bdb",
+    },
+
+    {
+      label: "Active Users",
+      value: stats?.activeMembers,
+
+      color: "#15803d",
+    },
+
+    {
+      label: "Suspended",
+      value: stats?.Suspended || "None",
+      color: "#b91c1c"
+    },
+
+    {
+      label: "Pending Verification",
+      value: stats?.pending,
+
+      color: "#b45309",
+    },
+  ];
+
+
+
+
+
+
 
   const fetchUserData = () => {
     setIsLoading(true);
@@ -67,6 +98,7 @@ const UserManagement = () => {
 
   useEffect(() => {
     fetchUserData();
+    getUserStats();
   }, []);
 
   const handleApprove = (rowData) => {
@@ -133,7 +165,7 @@ const UserManagement = () => {
             <span className="ap-mini-stat__value" style={{ color: s.color }}>
               {s.value}
             </span>
-            <span className="ap-mini-stat__sub">{s.sub}</span>
+            {/* <span className="ap-mini-stat__sub">{s.sub}</span> */}
           </div>
         ))}
       </div>
@@ -188,7 +220,7 @@ const UserManagement = () => {
               <th>Website</th>
               <th>Bio</th>
               <th>Created On</th>
-              
+
             </tr>
           </thead>
           <tbody>
@@ -290,7 +322,7 @@ const UserManagement = () => {
                   <td className="ap-table__value">{u.website}</td>
                   <td className="ap-table__value">{u.bio}</td>
                   <td className="ap-table__value">{u.createdOn}</td>
-                  
+
                 </tr>
               ))
             ) : (

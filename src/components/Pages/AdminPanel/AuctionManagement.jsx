@@ -17,8 +17,9 @@ import {
   getApprovedListing,
   getItemMedia,
 } from "../../../services/sellingServices/getSellListings/getSellListings";
+import { GetDashboardStats } from "../../../services/dashboardStats/DashboardStats";
 
-import { GetDashboardStats } from '../../../services/dashboardStats/DashboardStats'
+
 
 const CATEGORIES = [
   { id: 0, name: "All" },
@@ -56,14 +57,24 @@ const AuctionManagement = () => {
   const [mediaCache, setMediaCache] = useState({});
   const [previewImage, setPreviewImage] = useState(null);
   // const [stats, setStats] = useState([])
+  const [auctionStats, setAuctionStats] = useState([])
 
   const PAGE_SIZE = 10;
 
 
-
-  const { dashboardStats } = GetDashboardStats();
-
-  console.log("these are the db stats - ", dashboardStats)
+  const getAuctionStats = () => {
+        GetDashboardStats()
+          .then((res) => {
+            setAuctionStats(res?.data?.data?.auction);
+          })
+          .catch((err) => {
+            console.log(err);
+          })
+      }
+  
+      useEffect(() => {
+        getAuctionStats();
+      }, [])
 
 
   
@@ -246,15 +257,15 @@ const AuctionManagement = () => {
 
       <div className="ap-stat-row">
         {[
-          { label: "Live Auctions", value: dashboardStats?.auctions?.liveItems, color: "#15803d" },
-          { label: "Scheduled", value: dashboardStats?.auctions?.upcomingItems, color: "#1d4ed8" },
-          { label: "Ended Today", value: dashboardStats?.auctions?.auctionEndingItemCount, color: "#6b7280" },
-          { label: "Total Bids", value: dashboardStats?.auction?.totalBids, color: "#3b5bdb" },
-        ].map((s) => (
-          <div key={s.label} className="ap-mini-stat">
-            <span className="ap-mini-stat__label">{s.label}</span>
-            <span className="ap-mini-stat__value" style={{ color: s.color }}>
-              {s.value}
+          { label: "Live Auctions", value: auctionStats.liveItems || "0", color: "#15803d" },
+          { label: "Scheduled", value: auctionStats.upcomingItems || "0", color: "#1d4ed8" },
+          { label: "Ended Today", value: auctionStats.auctionEndingItemCount || "0", color: "#6b7280" },
+          { label: "Total Bids", value: auctionStats.totalBids || "0", color: "#3b5bdb" },
+        ]?.map((s) => (
+          <div key={s?.label} className="ap-mini-stat">
+            <span className="ap-mini-stat__label">{s?.label}</span>
+            <span className="ap-mini-stat__value" style={{ color: s?.color }}>
+              {s?.value}
             </span>
           </div>
         ))}
