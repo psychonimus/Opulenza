@@ -72,13 +72,7 @@ const StatCard = ({ card }) => {
       <span className="admin-stat-card__label">{card.label}</span>
       <div className="admin-stat-card__bottom">
         <span className="admin-stat-card__value">{card.value}</span>
-        {card.badge && (
-          <span className={`admin-stat-card__badge admin-stat-card__badge--${card.badge.type}`}>
-            {card.badge.type === 'up' && <MdTrendingUp size={12} />}
-            {card.badge.type === 'warning' && <MdWarningAmber size={12} />}
-            {card.badge.text}
-          </span>
-        )}
+        
         {card.icon === 'toggle' && (
           <div className="admin-stat-card__icon-wrap">
             <span className="admin-toggle">
@@ -146,29 +140,29 @@ const AdminDashboard = ({ onToggleMobileSidebar }) => {
     id: 'members',
     label: 'TOTAL ACTIVE MEMBERS',
     value: stats.activeMembers,
-    badge: { text: '↑ 4.2%', type: 'up' },
+    // badge: { text: '↑ 4.2%', type: 'up' },
     icon: null,
   },
   {
     id: 'inactive',
     label: 'INACTIVE MEMBERS',
     value: stats.inActiveMembers,
-    badge: { text: 'High Priority', type: 'warning' },
+    // badge: { text: 'High Priority', type: 'warning' },
     icon: null,
   },
   {
     id: 'auctions',
     label: 'LIVE AUCTIONS',
     value: stats.liveItems,
-    badge: null,
-    icon: 'toggle',
+    // badge: null,
+    // icon: 'toggle',
   },
   {
     id: 'claims',
     label: 'ACTIVE CLAIMS',
     value: stats.giftsClaim,
-    badge: null,
-    icon: 'muted',
+    // badge: null,
+    // icon: 'muted',
   },
   // {
   //   id: 'escrow',

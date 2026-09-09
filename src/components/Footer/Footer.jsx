@@ -20,9 +20,9 @@ const Footer = () => {
                     <div className="footer-links-col">
                         <nav className="footer-links" aria-label="Footer Navigation">
                             <ul>
-                                {userInfo && (
+                                {/* {userInfo && (
                                     <li><Link to="/concierge">Concierge</Link></li>
-                                )}
+                                )} */}
                                 <li><Link to="/about">About Us</Link></li>
                                 <li><Link to="/contact">Contact</Link></li>
                                 <li><Link to="/terms">Terms & Conditions</Link></li>

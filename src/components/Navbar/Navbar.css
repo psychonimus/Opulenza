@@ -248,10 +248,12 @@
 .nav-hamburger-btn .hamburger-bar.open:nth-child(1) {
   transform: translateY(6.5px) rotate(45deg);
 }
+
 .nav-hamburger-btn .hamburger-bar.open:nth-child(2) {
   opacity: 0;
   width: 0;
 }
+
 .nav-hamburger-btn .hamburger-bar.open:nth-child(3) {
   transform: translateY(-6.5px) rotate(-45deg);
 }
