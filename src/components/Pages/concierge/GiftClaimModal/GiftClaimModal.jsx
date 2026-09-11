@@ -24,6 +24,8 @@ const GiftClaimModal = ({ isOpen, onClose }) => {
     const [isLocating, setIsLocating] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [addresses, setAddresses] = useState([]);
+    const [submitting, setSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState('');
 
     const { register, handleSubmit, setValue, formState: { errors } } = useForm({
         resolver: yupResolver(schema),
@@ -106,9 +108,6 @@ const GiftClaimModal = ({ isOpen, onClose }) => {
             alert("Geolocation is not supported by this browser.");
         }
     };
-
-    const [submitting, setSubmitting] = useState(false);
-    const [submitError, setSubmitError] = useState('');
 
     const onSubmit = (data) => {
         setSubmitting(true);

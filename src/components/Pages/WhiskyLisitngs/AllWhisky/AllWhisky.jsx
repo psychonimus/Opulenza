@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 // import whiskyData, { CaskData } from "../../../../data/WhiskyData";
 import "./AllWhisky.css";
 import { getApprovedListing, updateWishListItem } from '../../../../services/sellingServices/getSellListings/getSellListings'
+import { useUser } from "../../../../services/showUserInfo/ShowUserInfo";
+import { ConvertCurrency } from "../../../../services/convertCurrency/ConvertCurrency";
 
 
 const AllWhisky = () => {
@@ -21,6 +23,32 @@ const AllWhisky = () => {
   const [caskLoading, setCaskLoading] = useState(false)
 
   const [favorites, setFavorites] = useState({})
+
+  const { userInfo, refreshUser } = useUser();
+  const preferredCurrency = userInfo?.preferences?.preferredCurrency || "USD";
+
+  const [conversionRate, setConversionRate] = useState(1);
+
+  useEffect(() => {
+    if (!preferredCurrency || preferredCurrency === "USD") {
+      setConversionRate(1);
+      return;
+    }
+
+    ConvertCurrency(preferredCurrency)
+      .then((res) => {
+        if (res?.data?.rate) {
+          setConversionRate(res.data.rate);
+        }
+      })
+      .catch((err) => {
+        console.error("Currency conversion error:", err);
+        setConversionRate(1);
+      });
+  }, [preferredCurrency]);
+
+  // console.log("this is the conversion rate : ", conversionRate);
+
 
   const handleWishList = (itemId) => {
     const currentItem = whiskies.find(c => c.itemId === itemId)
@@ -135,6 +163,23 @@ const AllWhisky = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
+
+
+  const formatCurrency = (val) => {
+    const num = Number(val);
+    if (isNaN(num)) return "$0";
+    try {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: preferredCurrency,
+        maximumFractionDigits: 0,
+      }).format(num);
+    } catch {
+      return `${preferredCurrency} ${Math.round(num).toLocaleString()}`;
+    }
+  };
+
+
 
 
   return (
@@ -261,7 +306,7 @@ const AllWhisky = () => {
                         <div className="whisky-card__footer">
                           <div className="whisky-card__bid">
                             <span className="whisky-card__bid-label">CURRENT BID</span>
-                            <span className="whisky-card__bid-value">{item?.currency === 'USD' ? "$" : ""} {item.currentPrice}</span>
+                            <span className="whisky-card__bid-value">{formatCurrency((item?.currentPrice || 0) * conversionRate)}</span>
                           </div>
                           <Link
                             to={`/whisky/${item.itemId}`}
@@ -405,8 +450,8 @@ const AllWhisky = () => {
                         </div>
                         <div className="whisky-card__footer">
                           <div className="whisky-card__bid">
-                            <span className="whisky-card__bid-label">EST. CASK VALUE</span>
-                            <span className="whisky-card__bid-value">$ {item?.details?.currentPrice || item?.currentPrice}</span>
+                            <span className="whisky-card__bid-label">CURRENT BID</span>
+                            <span className="whisky-card__bid-value">{formatCurrency((item?.currentPrice || 0) * conversionRate)}</span>
                           </div>
                           <Link
                             to={`/cask/${item?.itemId}`}

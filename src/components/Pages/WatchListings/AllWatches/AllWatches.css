@@ -256,10 +256,14 @@
 
 /* ── Details Grid ────────────────────────────────────────── */
 .watch-card__details-grid {
-    display: grid;
+    /* display: grid;
     grid-template-columns: repeat(3, 1fr);
     row-gap: 1.25rem;
-    column-gap: 1.5rem;
+    column-gap: 1.5rem; */
+    display: flex;
+    align-items : center;
+    justify-content: space-between;
+
 }
 
 .watch-card__detail-item {

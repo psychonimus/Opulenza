@@ -6,9 +6,12 @@ import { getApprovedListing, updateWishListItem, getMyWishList } from '../../../
 import { AddBid, getLatestBid } from '../../../../services/biddingServices/BiddingServices'
 import "./Whisky.css";
 import { useUser } from "../../../../services/showUserInfo/ShowUserInfo";
+import { ConvertCurrency } from "../../../../services/convertCurrency/ConvertCurrency";
 
 
 const DetailedWhiskyPage = () => {
+  const { userInfo, refreshUser } = useUser();
+
   const { id } = useParams();
   const [item, setItem] = useState(null);
   const [whiskyDataList, setWhiskyDataList] = useState([]);
@@ -23,6 +26,27 @@ const DetailedWhiskyPage = () => {
   const [biddersCount, setBiddersCount] = useState(0);
   const [isFavorited, setIsFavorited] = useState(false);
   const [isAutoBidding, setIsAutoBidding] = useState(false);
+
+  const preferredCurrency = userInfo?.preferences?.preferredCurrency || "USD";
+  const [conversionRate, setConversionRate] = useState(1);
+
+  useEffect(() => {
+    if (!preferredCurrency || preferredCurrency === "USD") {
+      setConversionRate(1);
+      return;
+    }
+
+    ConvertCurrency(preferredCurrency)
+      .then((res) => {
+        if (res?.data?.rate) {
+          setConversionRate(res.data.rate);
+        }
+      })
+      .catch((err) => {
+        console.error("Currency conversion error:", err);
+        setConversionRate(1);
+      });
+  }, [preferredCurrency]);
 
   // Magnifier state
   const magnifierRef = useRef(null);
@@ -131,7 +155,7 @@ const DetailedWhiskyPage = () => {
   const [modalAutoBid, setModalAutoBid] = useState(false);
 
 
-  const { userInfo, refreshUser } = useUser();
+  
 
   const isTopBidder = Boolean(userInfo?.memberID && bids?.[0]?.memberId && bids[0].memberId == userInfo.memberID);
 
@@ -704,12 +728,19 @@ const DetailedWhiskyPage = () => {
     );
   }
 
-  const formatCurrency = (val) =>
-    new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 0,
-    }).format(val);
+  const formatCurrency = (val) => {
+    const num = Number(val);
+    if (isNaN(num)) return "$0";
+    try {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: preferredCurrency,
+        maximumFractionDigits: 0,
+      }).format(num);
+    } catch {
+      return `${preferredCurrency} ${Math.round(num).toLocaleString()}`;
+    }
+  };
 
   const formatNum = (num) => String(num).padStart(2, "0");
 
@@ -989,7 +1020,7 @@ const DetailedWhiskyPage = () => {
                   <div className="bid-status-col">
                     <span className="panel-label">CURRENT BID</span>
                     <span className="panel-value panel-value--large">
-                      {formatCurrency(currentBid)}
+                      {formatCurrency(currentBid * conversionRate)}
                     </span>
                   </div>
                   <div className="bid-status-col text-right">
@@ -1025,7 +1056,7 @@ const DetailedWhiskyPage = () => {
                   <div className="spec-col">
                     <span className="panel-label">BID INCREMENT:</span>
                     <span className="panel-value">
-                      {formatCurrency(item.bidIncrement)}
+                      {formatCurrency(item?.bidIncrement * conversionRate)}
                     </span>
                   </div>
                   <div className="spec-col text-right">
@@ -1307,27 +1338,27 @@ const DetailedWhiskyPage = () => {
                   <div className="modal-bid-stat">
                     <span className="modal-bid-stat-label">CURRENT BID</span>
                     <span className="modal-bid-stat-value">
-                      {formatCurrency(currentBid)}
+                      {formatCurrency(currentBid * conversionRate)}
                     </span>
                   </div>
                   <div className="modal-bid-stat modal-bid-stat--right">
                     <span className="modal-bid-stat-label">MIN. NEXT BID</span>
                     <span className="modal-bid-stat-value modal-bid-stat-value--gold">
-                      ${item.bidIncrement}
+                      {formatCurrency(item.bidIncrement * conversionRate)}
                     </span>
                   </div>
                 </div>
 
                 <div className="modal-input-section">
                   <label className="modal-input-label">
-                    YOUR BID AMOUNT (USD)
+                    YOUR BID AMOUNT ({userInfo?.preferences?.preferredCurrency})
                   </label>
                   <div className="modal-input-wrapper">
-                    <span className="currency-prefix">$</span>
+                    <span className="currency-prefix">{userInfo?.preferences?.preferredCurrency}</span>
                     <input
                       type="number"
                       className="modal-bid-input"
-                      value={customBidAmount}
+                      value={(customBidAmount * conversionRate).toFixed(2) }
                       onChange={(e) =>
                         setCustomBidAmount(Number(e.target.value))
                       }

@@ -1036,7 +1036,7 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.82);
+  background-color: rgba(0, 0, 0, 0.70);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   display: flex;
@@ -1053,7 +1053,10 @@
 }
 
 .prof-modal-card {
-  background: linear-gradient(160deg, #120c08 0%, #060403 100%);
+  /* background: linear-gradient(160deg, #120c08 0%, #060403 100%);
+   */
+   background: rgb(84 84 84 / 10%);
+    backdrop-filter: blur(9px);
   border: 1px solid var(--border-gold);
   border-radius: 8px;
   max-width: 640px;

@@ -3,7 +3,8 @@ import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { SendSellingFormData } from "../../../../services/sellingServices/sendSellingFormData/SendSellingFormData";
-import "./SellPageForm.css";  
+import "./SellPageForm.css";
+import { ConvertToUsd } from "../../../../services/convertCurrency/ConvertCurrency";
 
 const categories = [
   {
@@ -18,7 +19,7 @@ const categories = [
     label: "Whisky",
     subtitle: "Bordeaux, Burgundy, Rare Cognac",
   },
-  
+
   {
     id: "watches",
     number: "3",
@@ -671,14 +672,8 @@ const formFields = {
 
     // Pricing
     { id: "pricingSection", label: "Pricing & Value", type: "section" },
-    {
-      id: "originalPrice",
-      label: "Original Price",
-      type: "text",
-      placeholder: "Value at acquisition",
-      half: true,
-      hasCurrency: true,
-    },
+    
+
     {
       id: "expectedPrice",
       label: "Asking Price",
@@ -1172,47 +1167,47 @@ const bottleSizeField = (label) =>
 // Map field IDs to their specific validator
 const FIELD_VALIDATORS = {
   // ── Price fields ──────────────────────────────
-  originalPrice:  (f) => priceField(f.label),
-  expectedPrice:  (f) => priceField(f.label),
-  ExpectedPrice:  (f) => priceField(f.label),
-  CossgPrice:     (f) => priceField(f.label),
+  originalPrice: (f) => priceField(f.label),
+  expectedPrice: (f) => priceField(f.label),
+  ExpectedPrice: (f) => priceField(f.label),
+  CossgPrice: (f) => priceField(f.label),
 
   // ── Integer quantity fields ───────────────────
-  quantity:       (f) => positiveIntField(f.label),
-  NoOfBottles:    (f) => positiveIntField(f.label),
+  quantity: (f) => positiveIntField(f.label),
+  NoOfBottles: (f) => positiveIntField(f.label),
 
   // ── Age ──────────────────────────────────────
-  age:            (f) => ageField(f.label),
+  age: (f) => ageField(f.label),
 
   // ── ABV / Proof ───────────────────────────────
-  ABV:            (f) => abvField(f.label),
-  proof:          (f) => abvField(f.label),
+  ABV: (f) => abvField(f.label),
+  proof: (f) => abvField(f.label),
 
   // ── Dates & Times ─────────────────────────────
-  auctionEndDate: ()  => auctionEndDateField(),
-  auctionEndTime: ()  => auctionEndTimeField(),
-  AYS:            (f) => pastDateField(f.label),
+  auctionEndDate: () => auctionEndDateField(),
+  auctionEndTime: () => auctionEndTimeField(),
+  AYS: (f) => pastDateField(f.label),
 
   // ── Serial / registry numbers ─────────────────
-  serialNumber:   (f) => serialField(f.label),
+  serialNumber: (f) => serialField(f.label),
 
   // ── Short text fields ─────────────────────────
-  brand:          (f) => shortTextField(f.label),
-  model:          (f) => shortTextField(f.label),
-  make:           (f) => shortTextField(f.label),
-  editionName:    (f) => shortTextField(f.label),
-  CaskType:       (f) => shortTextField(f.label),
-  Distillesy:     (f) => shortTextField(f.label),
-  producerName:   (f) => shortTextField(f.label),
-  bottlingName:   (f) => shortTextField(f.label),
-  bottleSize:     (f) => bottleSizeField(f.label),
-  bodyMaterial:   (f) => shortTextField(f.label),
-  trim:           (f) => shortTextField(f.label),
-  nibMaterial:    (f) => shortTextField(f.label),
-  commercialShape:(f) => shortTextField(f.label),
-  registry:       (f) => shortTextField(f.label),
-  length:         (f) => shortTextField(f.label),
-  packagingType:  (f) => shortTextField(f.label),
+  brand: (f) => shortTextField(f.label),
+  model: (f) => shortTextField(f.label),
+  make: (f) => shortTextField(f.label),
+  editionName: (f) => shortTextField(f.label),
+  CaskType: (f) => shortTextField(f.label),
+  Distillesy: (f) => shortTextField(f.label),
+  producerName: (f) => shortTextField(f.label),
+  bottlingName: (f) => shortTextField(f.label),
+  bottleSize: (f) => bottleSizeField(f.label),
+  bodyMaterial: (f) => shortTextField(f.label),
+  trim: (f) => shortTextField(f.label),
+  nibMaterial: (f) => shortTextField(f.label),
+  commercialShape: (f) => shortTextField(f.label),
+  registry: (f) => shortTextField(f.label),
+  length: (f) => shortTextField(f.label),
+  packagingType: (f) => shortTextField(f.label),
 };
 
 const buildSchema = (category, whiskyTab = "tab1", currentValues = {}) => {
@@ -1365,6 +1360,8 @@ const SellPageForm = () => {
   const [submitStatus, setSubmitStatus] = useState("idle");
   const [submitError, setSubmitError] = useState("");
 
+
+
   const fields = activeCategory === "whisky"
     ? (whiskyTab === "tab2" ? formFields.whisky_tab2 : formFields.whisky)
     : (formFields[activeCategory] || []);
@@ -1411,7 +1408,7 @@ const SellPageForm = () => {
     });
   };
 
-  
+
 
   const validateFile = (file, id) => {
     if (!file) return "File does not exist.";
@@ -1506,11 +1503,13 @@ const SellPageForm = () => {
     });
   };
 
-  const onSubmit = (data) => {
+
+  const onSubmit = async (data) => {
     const formData = new FormData();
 
     // Prepare combined auction end datetime with region timezone offset if date is provided
     let combinedAuctionEndDate = data.auctionEndDate;
+
     if (data.auctionEndDate) {
       combinedAuctionEndDate = formatAuctionEndDateTime(
         data.auctionEndDate,
@@ -1519,24 +1518,28 @@ const SellPageForm = () => {
     }
 
     // Append standard fields
-    // The pens "Inclusions" checkbox group sends an array of strings but the API
-    // expects three separate boolean fields: OrignalOuterBox, PresentationCase, ServiceGuide.
-    // Map label strings → API key names
     const INCLUSION_MAP = {
       "Original Outer Box": "OrignalOuterBox",
-      "Presentation Case":  "PresentationCase",
-      "Service Guide":      "ServiceGuide",
+      "Presentation Case": "PresentationCase",
+      "Service Guide": "ServiceGuide",
     };
 
     Object.keys(data).forEach((key) => {
       if (key === "orignalOuterBox") {
         // Convert checked array to individual booleans
         const checked = Array.isArray(data[key]) ? data[key] : [];
+
         Object.entries(INCLUSION_MAP).forEach(([label, apiKey]) => {
-          formData.append(apiKey, checked.includes(label) ? "true" : "false");
+          formData.append(
+            apiKey,
+            checked.includes(label) ? "true" : "false"
+          );
         });
       } else if (key === "auctionEndDate") {
-        formData.append("auctionEndDate", combinedAuctionEndDate || data[key]);
+        formData.append(
+          "auctionEndDate",
+          combinedAuctionEndDate || data[key]
+        );
       } else if (key === "auctionEndTime") {
         formData.append("auctionEndTime", data[key]);
       } else if (Array.isArray(data[key])) {
@@ -1546,15 +1549,18 @@ const SellPageForm = () => {
       }
     });
 
-    formData.append("categoryId", activeCategory === "whisky" && whiskyTab === "tab2" ? 6 : activeCategoryNumber);
+    formData.append(
+      "categoryId",
+      activeCategory === "whisky" && whiskyTab === "tab2"
+        ? 6
+        : activeCategoryNumber
+    );
 
     if (activeCategory === "whisky") {
       formData.append("whiskyTab", whiskyTab);
     }
 
-    
-
-    // Separate selected files into documents and images, preserving logical order
+    // Separate selected files into documents and images
     const documentEntries = Object.keys(selectedFiles)
       .filter((k) => k.toLowerCase().includes("document"))
       .sort()
@@ -1569,7 +1575,12 @@ const SellPageForm = () => {
     documentEntries.forEach((fileData, index) => {
       if (fileData && fileData.file) {
         const key = `Document${index + 1}`;
-        formData.append(key, fileData.file, fileData.originalFileName);
+
+        formData.append(
+          key,
+          fileData.file,
+          fileData.originalFileName
+        );
       }
     });
 
@@ -1577,38 +1588,98 @@ const SellPageForm = () => {
     imageEntries.forEach((fileData, index) => {
       if (fileData && fileData.file) {
         const key = `Image${index + 1}`;
-        formData.append(key, fileData.file, fileData.originalFileName);
+
+        formData.append(
+          key,
+          fileData.file,
+          fileData.originalFileName
+        );
       }
     });
 
     setSubmitStatus("sending");
     setSubmitError("");
 
+    // ---------------------------------------------------
+    // CURRENCY CONVERSION
+    // ---------------------------------------------------
+
+    try {
+      const rawAskingPrice = data.expectedPrice ?? data.ExpectedPrice;
+      const unconvertedPrice = data.originalPrice ?? rawAskingPrice;
+
+      // Append unconverted original price to formData for all categories
+      if (unconvertedPrice !== undefined && unconvertedPrice !== null) {
+        formData.set("originalPrice", unconvertedPrice);
+      }
+
+      if (data.Currency === "USD") {
+        // Already USD
+        formData.set("expectedPrice", rawAskingPrice);
+      } else {
+        // Convert selected currency to USD
+        const res = await ConvertToUsd(data.Currency);
+
+        const numPrice = Number(String(rawAskingPrice).replace(/,/g, "").trim());
+        const usdPrice = numPrice * res.data.rate;
+
+        formData.set("expectedPrice", usdPrice);
+
+        console.log("Original Currency:", data.Currency);
+        console.log("Original Price (unconverted):", unconvertedPrice);
+        console.log("Original Amount (Asking Price):", rawAskingPrice);
+        console.log("Exchange Rate:", res.data.rate);
+        console.log("USD Amount (expectedPrice):", usdPrice);
+      }
+    } catch (error) {
+      console.error("Error in currency conversion:", error);
+
+      setSubmitError(
+        "Unable to convert the price to USD. Please try again."
+      );
+
+      setSubmitStatus("error");
+
+      return;
+    }
+
+    // ---------------------------------------------------
+    // SEND FORM DATA
+    // ---------------------------------------------------
+
     SendSellingFormData(formData)
       .then((res) => {
         console.log(res);
+
         setSubmitStatus("success");
+
         reset({
           auctionEndDate: getDefaultAuctionDate(),
           auctionEndTime: getDefaultAuctionTime(),
         });
+
         setFileNames({});
         setSelectedFiles({});
         fileVersions.current = {};
+
         if (formRef.current) {
           formRef.current.reset();
         }
       })
       .catch((err) => {
         console.log(err);
+
         const message =
           err?.response?.data?.message ||
           err?.message ||
           "Something went wrong. Please try again.";
+
         setSubmitError(message);
         setSubmitStatus("error");
       });
   };
+
+
 
   const dismissStatus = () => {
     setSubmitStatus("idle");
@@ -1854,7 +1925,7 @@ const SellPageForm = () => {
                         multiple={field.id === "addImages"}
                         accept={
                           field.id === "addImages" ||
-                          field.id.startsWith("photo")
+                            field.id.startsWith("photo")
                             ? "image/*"
                             : ".pdf,.jpg,.jpeg,.png"
                         }
@@ -1953,13 +2024,13 @@ const SellPageForm = () => {
                         } : {})}
                         {...(field.type === "number"
                           ? {
-                              onKeyDown: (e) =>
-                                handleNumberKeyDown(
-                                  e,
-                                  field.id !== "age" && field.id !== "NoOfBottles"
-                                ),
-                              onWheel: (e) => e.currentTarget.blur(),
-                            }
+                            onKeyDown: (e) =>
+                              handleNumberKeyDown(
+                                e,
+                                field.id !== "age" && field.id !== "NoOfBottles"
+                              ),
+                            onWheel: (e) => e.currentTarget.blur(),
+                          }
                           : {})}
                         {...register(field.id)}
                       />
@@ -2004,22 +2075,19 @@ const SellPageForm = () => {
             >
               <button
                 type="submit"
-                className={`sell-btn-next${
-                  submitStatus === "sending" ? " sell-btn-next--sending" : ""
-                }${
-                  submitStatus === "success" ? " sell-btn-next--success" : ""
-                }${
-                  submitStatus === "error" ? " sell-btn-next--error" : ""
-                }`}
+                className={`sell-btn-next${submitStatus === "sending" ? " sell-btn-next--sending" : ""
+                  }${submitStatus === "success" ? " sell-btn-next--success" : ""
+                  }${submitStatus === "error" ? " sell-btn-next--error" : ""
+                  }`}
                 disabled={submitStatus === "sending"}
               >
                 {submitStatus === "sending"
                   ? "Sending…"
                   : submitStatus === "success"
-                  ? "Submitted ✓"
-                  : submitStatus === "error"
-                  ? "Failed — Retry"
-                  : "Submit"}
+                    ? "Submitted ✓"
+                    : submitStatus === "error"
+                      ? "Failed — Retry"
+                      : "Submit"}
                 {submitStatus === "idle" && (
                   <svg
                     width="16"

@@ -235,20 +235,17 @@ const AllWatches = () => {
                           <div className="watch-card__bid-label">CURRENT BID</div>
                           <div className="watch-card__bid-value">${watch.currentPrice}</div>
                         </div>
-                        <div className="watch-card__closes-container">
-                          <div className="watch-card__closes-label">CLOSES IN</div>
-                          <CountdownTimer endDateStr={watch.auctionEndDate} />
-                        </div>
+                        <div className="watch-card__footer">
+                        <Link to={`/watch/${watch.itemId}`} style={{ textDecoration: "none" }}><button className="watch-card__bid-btn" >
+                          {watch.canUserBid ? "BID NOW" : "VIEW BIDDING"}
+                        </button></Link>
+                      </div>
                       </div>
 
                       <div className="watch-card__divider"></div>
 
                       {/* Card Footer with Countdown and Place Bid */}
-                      <div className="watch-card__footer">
-                        <Link to={`/watch/${watch.itemId}`} style={{ textDecoration: "none" }}><button className="watch-card__bid-btn" >
-                          {watch.canUserBid ? "BID NOW" : "VIEW BIDDING"}
-                        </button></Link>
-                      </div>
+                      
                     </div>
                   </div>
                 )
