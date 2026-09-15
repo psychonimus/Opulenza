@@ -5,6 +5,7 @@ import connection from '../../../../services/signalR/auctionSignalR'
 import { getApprovedListing, updateWishListItem } from '../../../../services/sellingServices/getSellListings/getSellListings'
 import { AddBid, getLatestBid } from '../../../../services/biddingServices/BiddingServices'
 import { useUser } from "../../../../services/showUserInfo/ShowUserInfo";
+import { ConvertCurrency } from "../../../../services/convertCurrency/ConvertCurrency";
 
 
 import './DetailedPage.css'
@@ -15,6 +16,28 @@ const DetailedPage = () => {
     const [watch, setWatch] = useState(null)
     const [watchData, setWatchData] = useState([])
     const [loading, setLoading] = useState(true)
+
+    const { userInfo, refreshUser } = useUser();
+    const preferredCurrency = userInfo?.preferences?.preferredCurrency || "USD";
+    const [conversionRate, setConversionRate] = useState(1);
+
+    useEffect(() => {
+        if (!preferredCurrency || preferredCurrency === "USD") {
+            setConversionRate(1);
+            return;
+        }
+
+        ConvertCurrency(preferredCurrency)
+            .then((res) => {
+                if (res?.data?.rate) {
+                    setConversionRate(res.data.rate);
+                }
+            })
+            .catch((err) => {
+                console.error("Currency conversion error:", err);
+                setConversionRate(1);
+            });
+    }, [preferredCurrency]);
 
     const calculateTimeLeft = (endDateStr) => {
         if (!endDateStr) return { days: 0, hours: 0, minutes: 0, seconds: 0 }
@@ -126,9 +149,9 @@ const DetailedPage = () => {
                             setCurrentBid(Number(newPrice));
                         }
                         if (nextBid != null && !isNaN(Number(nextBid))) {
-                            setCustomBidAmount(Number(nextBid));
+                            setCustomBidAmount(Math.round(Number(nextBid) * (conversionRate || 1)));
                         } else if (newPrice != null && !isNaN(Number(newPrice))) {
-                            setCustomBidAmount(Number(newPrice) + (watch?.bidIncrement || 500));
+                            setCustomBidAmount(Math.round((Number(newPrice) + (watch?.bidIncrement || 500)) * (conversionRate || 1)));
                         }
                         if (count != null && !isNaN(Number(count))) {
                             setBiddersCount(Number(count));
@@ -389,8 +412,6 @@ const DetailedPage = () => {
 
 
 
-    const { userInfo, refreshUser } = useUser();
-
     const isTopBidder = Boolean(userInfo?.memberID && bids?.[0]?.memberId && bids[0].memberId == userInfo.memberID);
 
     // Magnifier state
@@ -450,10 +471,10 @@ const DetailedPage = () => {
             // setBids(watch.liveActivity || [])
             // setBiddersCount(watch.activeBidders || 0)
             setMainImage(watch.image)
-            setCustomBidAmount(watch.currentBidNumber + watch.bidIncrement)
+            setCustomBidAmount(Math.round((watch.bidIncrement || 0) * (conversionRate || 1)))
             setTimeLeft(watch.auctionEndDate ? calculateTimeLeft(watch.auctionEndDate) : { days: 1, hours: 4, minutes: 18, seconds: 40 })
         }
-    }, [watch])
+    }, [watch, conversionRate])
 
     useEffect(() => {
         if (!watch || !watch.auctionEndDate) return
@@ -519,12 +540,19 @@ const DetailedPage = () => {
     }
 
     // Helper to format currency
-    const formatCurrency = (val) => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-            maximumFractionDigits: 0
-        }).format(val);
+    const formatCurrency = (valInUsd) => {
+        const num = Number(valInUsd);
+        if (isNaN(num)) return "$0";
+        const convertedVal = num * (conversionRate || 1);
+        try {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: preferredCurrency || 'USD',
+                maximumFractionDigits: 0
+            }).format(convertedVal);
+        } catch {
+            return `${preferredCurrency || 'USD'} ${Math.round(convertedVal).toLocaleString()}`;
+        }
     };
 
     // Helper to format number padding
@@ -538,29 +566,36 @@ const DetailedPage = () => {
 
     // Place Bid Action handler
     const handlePlaceBidClick = () => {
-        setCustomBidAmount(watch?.bidIncrement || 0);
+        const minIncrementInPreferred = Math.round((watch?.bidIncrement || 0) * (conversionRate || 1));
+        setCustomBidAmount(minIncrementInPreferred);
         setBidError('');
         setShowBidModal(true);
     };
 
     const submitCustomBid = (e) => {
         e.preventDefault();
-        const amt = Number(customBidAmount);
-        const minRequired = watch?.bidIncrement || 0;
+        const enteredAmt = Number(customBidAmount);
+        const minRequiredUsd = watch?.bidIncrement || 0;
+        const minRequiredPreferred = Math.round(minRequiredUsd * (conversionRate || 1));
 
-        if (isNaN(amt) || amt < minRequired) {
+        if (isNaN(enteredAmt) || enteredAmt < minRequiredPreferred) {
             console.warn("[BID PLACEMENT] Validation failed: Bid amount is lower than minimum required increment.", {
-                enteredAmount: amt,
-                minRequired
+                enteredAmount: enteredAmt,
+                minRequiredPreferred,
+                minRequiredUsd
             });
-            setBidError(`Bid must be at least ${formatCurrency(minRequired)}`);
+            setBidError(`Bid must be at least ${formatCurrency(minRequiredUsd)}`);
             return;
         }
 
+        // Convert preferred currency amount back to USD (database standard is USD)
+        const rate = conversionRate > 0 ? conversionRate : 1;
+        const bidAmountInUsd = Number((enteredAmt / rate).toFixed(2));
+
         const payload = {
             ItemId: watch.itemId,
-            BidAmount: amt,
-            Currency: watch.currency || "USD"
+            BidAmount: bidAmountInUsd,
+            Currency: "USD"
         }
 
         const localTime = new Date().toLocaleTimeString();
@@ -571,7 +606,7 @@ const DetailedPage = () => {
             tokenInStorage = localStorage.getItem("token");
         }
 
-        console.group(`%c[BID PLACEMENT 💰] Placing Watch Bid of ${formatCurrency(amt)} at ${localTime}`, "background: #d4af37; color: #000; font-weight: bold; padding: 3px 8px; border-radius: 4px; font-size: 13px;");
+        console.group(`%c[BID PLACEMENT 💰] Placing Watch Bid of ${formatCurrency(bidAmountInUsd)} (${enteredAmt} ${preferredCurrency}) at ${localTime}`, "background: #d4af37; color: #000; font-weight: bold; padding: 3px 8px; border-radius: 4px; font-size: 13px;");
         console.log("%c🎯 Item Details:", "color: #d4af37; font-weight: bold;", {
             itemId: watch.itemId,
             title: watch.title,
@@ -606,17 +641,17 @@ const DetailedPage = () => {
                     timeAgo: 'Just now',
                     bidDate: 'Just now',
                     timestamp: Date.now(),
-                    amount: formatCurrency(amt),
-                    bidAmount: amt,
-                    amountNumber: amt
+                    amount: formatCurrency(bidAmountInUsd),
+                    bidAmount: bidAmountInUsd,
+                    amountNumber: bidAmountInUsd
                 };
 
-                setCurrentBid(amt);
+                setCurrentBid(bidAmountInUsd);
                 setBids(prev => [newBidObj, ...prev]);
                 setBiddersCount(prev => (prev || 0) + 1);
                 fetchLatestBid();
                 setShowBidModal(false);
-                setSuccessMessage(`Bid of ${formatCurrency(amt)} placed successfully!`);
+                setSuccessMessage(`Bid of ${formatCurrency(bidAmountInUsd)} placed successfully!`);
 
                 setTimeout(() => {
                     setSuccessMessage('');
@@ -1066,22 +1101,22 @@ const DetailedPage = () => {
                                     </div>
                                     <div className="modal-bid-stat modal-bid-stat--right">
                                         <span className="modal-bid-stat-label">MIN. NEXT BID</span>
-                                        <span className="modal-bid-stat-value modal-bid-stat-value--gold">${watch.bidIncrement}</span>
+                                        <span className="modal-bid-stat-value modal-bid-stat-value--gold">{formatCurrency(watch.bidIncrement)}</span>
                                     </div>
                                 </div>
 
                                 {/* Bid Amount Input */}
                                 <div className="modal-input-section">
-                                    <label className="modal-input-label">YOUR BID AMOUNT (USD)</label>
+                                    <label className="modal-input-label">YOUR BID AMOUNT ({preferredCurrency})</label>
                                     <div className="modal-input-wrapper">
-                                        <span className="currency-prefix">$</span>
+                                        <span className="currency-prefix">{preferredCurrency}</span>
                                         <input
                                             type="number"
                                             className="modal-bid-input"
                                             value={customBidAmount}
-                                            onChange={(e) => setCustomBidAmount(Number(e.target.value))}
-                                            min={watch?.bidIncrement}
-                                            step={1}
+                                            onChange={(e) => setCustomBidAmount(e.target.value)}
+                                            min={Math.round((watch?.bidIncrement || 0) * (conversionRate || 1))}
+                                            step="any"
                                             required
                                             autoFocus
                                         />

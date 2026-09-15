@@ -6,6 +6,7 @@ import { getApprovedListing, updateWishListItem } from '../../../../services/sel
 import { AddBid, getLatestBid } from '../../../../services/biddingServices/BiddingServices'
 import './DetailedPenPage.css'
 import { useUser } from '../../../../services/showUserInfo/ShowUserInfo'
+import { ConvertCurrency } from '../../../../services/convertCurrency/ConvertCurrency'
 
 const DetailedPenPage = () => {
     const { id } = useParams()
@@ -26,6 +27,26 @@ const DetailedPenPage = () => {
 
 
     const { userInfo, refreshUser } = useUser();
+    const preferredCurrency = userInfo?.preferences?.preferredCurrency || "USD";
+    const [conversionRate, setConversionRate] = useState(1);
+
+    useEffect(() => {
+        if (!preferredCurrency || preferredCurrency === "USD") {
+            setConversionRate(1);
+            return;
+        }
+
+        ConvertCurrency(preferredCurrency)
+            .then((res) => {
+                if (res?.data?.rate) {
+                    setConversionRate(res.data.rate);
+                }
+            })
+            .catch((err) => {
+                console.error("Currency conversion error:", err);
+                setConversionRate(1);
+            });
+    }, [preferredCurrency]);
 
     const isTopBidder = Boolean(userInfo?.memberID && bids?.[0]?.memberId && bids[0].memberId == userInfo.memberID);
 
@@ -177,9 +198,9 @@ const DetailedPenPage = () => {
                             setCurrentBid(Number(newPrice));
                         }
                         if (nextBid != null && !isNaN(Number(nextBid))) {
-                            setCustomBidAmount(Number(nextBid));
+                            setCustomBidAmount(Math.round(Number(nextBid) * (conversionRate || 1)));
                         } else if (newPrice != null && !isNaN(Number(newPrice))) {
-                            setCustomBidAmount(Number(newPrice) + (pen?.bidIncrement || 200));
+                            setCustomBidAmount(Math.round((Number(newPrice) + (pen?.bidIncrement || 200)) * (conversionRate || 1)));
                         }
                         if (count != null && !isNaN(Number(count))) {
                             setBiddersCount(Number(count));
@@ -457,10 +478,10 @@ const DetailedPenPage = () => {
             // setBiddersCount(pen.activeBidders || 0)
             setMainImage(pen.image)
             setActiveThumbIdx(0)
-            setCustomBidAmount(pen.currentBidNumber + pen.bidIncrement)
+            setCustomBidAmount(Math.round((pen.bidIncrement || 0) * (conversionRate || 1)))
             setTimeLeft(pen.auctionEndDate ? calculateTimeLeft(pen.auctionEndDate) : { days: 1, hours: 4, minutes: 18, seconds: 40 })
         }
-    }, [pen])
+    }, [pen, conversionRate])
 
     useEffect(() => {
         if (!pen || !pen.auctionEndDate) return
@@ -523,36 +544,55 @@ const DetailedPenPage = () => {
         )
     }
 
-    const formatCurrency = (val) =>
-        new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val)
+    const formatCurrency = (valInUsd) => {
+        const num = Number(valInUsd);
+        if (isNaN(num)) return "$0";
+        const convertedVal = num * (conversionRate || 1);
+        try {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: preferredCurrency || 'USD',
+                maximumFractionDigits: 0
+            }).format(convertedVal);
+        } catch {
+            return `${preferredCurrency || 'USD'} ${Math.round(convertedVal).toLocaleString()}`;
+        }
+    };
 
     const formatNum = (num) => String(num).padStart(2, '0')
 
     const thumbnails = [pen.image, ...(pen.angles || [])]
 
     const handlePlaceBidClick = () => {
-        setCustomBidAmount(pen?.bidIncrement || 0)
+        const minIncrementInPreferred = Math.round((pen?.bidIncrement || 0) * (conversionRate || 1));
+        setCustomBidAmount(minIncrementInPreferred);
         setBidError('')
         setShowBidModal(true)
     }
 
     const submitCustomBid = (e) => {
         e.preventDefault()
-        const amt = Number(customBidAmount)
-        const minRequired = pen?.bidIncrement || 0
-        if (isNaN(amt) || amt < minRequired) {
+        const enteredAmt = Number(customBidAmount)
+        const minRequiredUsd = pen?.bidIncrement || 0
+        const minRequiredPreferred = Math.round(minRequiredUsd * (conversionRate || 1));
+        if (isNaN(enteredAmt) || enteredAmt < minRequiredPreferred) {
             console.warn("[BID PLACEMENT] Validation failed: Bid amount is lower than minimum required increment.", {
-                enteredAmount: amt,
-                minRequired
+                enteredAmount: enteredAmt,
+                minRequiredPreferred,
+                minRequiredUsd
             });
-            setBidError(`Bid must be at least ${formatCurrency(minRequired)}`)
+            setBidError(`Bid must be at least ${formatCurrency(minRequiredUsd)}`)
             return
         }
 
+        // Convert preferred currency amount back to USD (database standard is USD)
+        const rate = conversionRate > 0 ? conversionRate : 1;
+        const bidAmountInUsd = Number((enteredAmt / rate).toFixed(2));
+
         const payload = {
             ItemId: pen.itemId,
-            BidAmount: amt,
-            Currency: pen.currency || "USD"
+            BidAmount: bidAmountInUsd,
+            Currency: "USD"
         }
 
         const localTime = new Date().toLocaleTimeString();
@@ -563,7 +603,7 @@ const DetailedPenPage = () => {
             tokenInStorage = localStorage.getItem("token");
         }
 
-        console.group(`%c[BID PLACEMENT 💰] Placing Pen Bid of ${formatCurrency(amt)} at ${localTime}`, "background: #d4af37; color: #000; font-weight: bold; padding: 3px 8px; border-radius: 4px; font-size: 13px;");
+        console.group(`%c[BID PLACEMENT 💰] Placing Pen Bid of ${formatCurrency(bidAmountInUsd)} (${enteredAmt} ${preferredCurrency}) at ${localTime}`, "background: #d4af37; color: #000; font-weight: bold; padding: 3px 8px; border-radius: 4px; font-size: 13px;");
         console.log("%c🎯 Item Details:", "color: #d4af37; font-weight: bold;", {
             itemId: pen.itemId,
             title: pen.title,
@@ -597,16 +637,16 @@ const DetailedPenPage = () => {
                     timeAgo: 'Just now',
                     bidDate: 'Just now',
                     timestamp: Date.now(),
-                    amount: formatCurrency(amt),
-                    bidAmount: amt,
-                    amountNumber: amt
+                    amount: formatCurrency(bidAmountInUsd),
+                    bidAmount: bidAmountInUsd,
+                    amountNumber: bidAmountInUsd
                 }
-                setCurrentBid(amt)
+                setCurrentBid(bidAmountInUsd)
                 setBids(prev => [newBidObj, ...prev])
                 setBiddersCount(prev => (prev || 0) + 1)
                 fetchLatestBid();
                 setShowBidModal(false)
-                setSuccessMessage(`Bid of ${formatCurrency(amt)} placed successfully!`)
+                setSuccessMessage(`Bid of ${formatCurrency(bidAmountInUsd)} placed successfully!`)
                 setTimeout(() => setSuccessMessage(''), 4000)
             })
             .catch((err) => {
@@ -1012,20 +1052,20 @@ const DetailedPenPage = () => {
                                     </div>
                                     <div className="pen-modal-bid-stat pen-modal-bid-stat--right">
                                         <span className="pen-modal-bid-stat-label">MIN. NEXT BID</span>
-                                        <span className="pen-modal-bid-stat-value pen-modal-bid-stat-value--accent">${pen.bidIncrement}</span>
+                                        <span className="pen-modal-bid-stat-value pen-modal-bid-stat-value--accent">{formatCurrency(pen.bidIncrement)}</span>
                                     </div>
                                 </div>
                                 <div className="pen-modal-input-section">
-                                    <label className="pen-modal-input-label">YOUR BID AMOUNT (USD)</label>
+                                    <label className="pen-modal-input-label">YOUR BID AMOUNT ({preferredCurrency})</label>
                                     <div className="pen-modal-input-wrapper">
-                                        <span className="pen-currency-prefix">$</span>
+                                        <span className="pen-currency-prefix">{preferredCurrency}</span>
                                         <input
                                             type="number"
                                             className="pen-modal-bid-input"
                                             value={customBidAmount}
-                                            onChange={(e) => setCustomBidAmount(Number(e.target.value))}
-                                            min={pen?.bidIncrement}
-                                            step={1}
+                                            onChange={(e) => setCustomBidAmount(e.target.value)}
+                                            min={Math.round((pen?.bidIncrement || 0) * (conversionRate || 1))}
+                                            step="any"
                                             required
                                             autoFocus
                                         />

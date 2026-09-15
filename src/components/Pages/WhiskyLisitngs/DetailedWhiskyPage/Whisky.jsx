@@ -281,9 +281,9 @@ const DetailedWhiskyPage = () => {
               setCurrentBid(Number(newPrice));
             }
             if (nextBid != null && !isNaN(Number(nextBid))) {
-              setCustomBidAmount(Number(nextBid));
+              setCustomBidAmount(Math.round(Number(nextBid) * (conversionRate || 1)));
             } else if (newPrice != null && !isNaN(Number(newPrice))) {
-              setCustomBidAmount(Number(newPrice) + (item?.bidIncrement || 500));
+              setCustomBidAmount(Math.round((Number(newPrice) + (item?.bidIncrement || 500)) * (conversionRate || 1)));
             }
             if (count != null && !isNaN(Number(count))) {
               setBiddersCount(Number(count));
@@ -654,14 +654,14 @@ const DetailedWhiskyPage = () => {
       setCurrentBid(item.currentBidNumber);
       // setBids(item.liveActivity || []);
       // setBiddersCount(item.activeBidders || 0);
-      setCustomBidAmount(item.currentBidNumber + item.bidIncrement);
+      setCustomBidAmount(Math.round((item.bidIncrement || 0) * (conversionRate || 1)));
       setTimeLeft(
         item.auctionEndDate
           ? calculateTimeLeft(item.auctionEndDate)
           : { days: 1, hours: 4, minutes: 18, seconds: 40 }
       );
     }
-  }, [item]);
+  }, [item, conversionRate]);
 
   useEffect(() => {
     if (!item || !item.auctionEndDate) return;
@@ -728,17 +728,18 @@ const DetailedWhiskyPage = () => {
     );
   }
 
-  const formatCurrency = (val) => {
-    const num = Number(val);
+  const formatCurrency = (valInUsd) => {
+    const num = Number(valInUsd);
     if (isNaN(num)) return "$0";
+    const convertedVal = num * (conversionRate || 1);
     try {
       return new Intl.NumberFormat("en-US", {
         style: "currency",
-        currency: preferredCurrency,
+        currency: preferredCurrency || "USD",
         maximumFractionDigits: 0,
-      }).format(num);
+      }).format(convertedVal);
     } catch {
-      return `${preferredCurrency} ${Math.round(num).toLocaleString()}`;
+      return `${preferredCurrency || "USD"} ${Math.round(convertedVal).toLocaleString()}`;
     }
   };
 
@@ -749,28 +750,36 @@ const DetailedWhiskyPage = () => {
   );
 
   const handlePlaceBidClick = () => {
-    setCustomBidAmount(item?.bidIncrement || 0);
+    const minIncrementInPreferred = Math.round((item?.bidIncrement || 0) * (conversionRate || 1));
+    setCustomBidAmount(minIncrementInPreferred);
     setBidError("");
     setShowBidModal(true);
   };
 
   const submitCustomBid = (e) => {
     e.preventDefault();
-    const amt = Number(customBidAmount);
-    const minRequired = item?.bidIncrement || 0;
-    if (isNaN(amt) || amt < minRequired) {
+    const enteredAmt = Number(customBidAmount);
+    const minRequiredUsd = item?.bidIncrement || 0;
+    const minRequiredPreferred = Math.round(minRequiredUsd * (conversionRate || 1));
+
+    if (isNaN(enteredAmt) || enteredAmt < minRequiredPreferred) {
       console.warn("[BID PLACEMENT] Validation failed: Bid amount is lower than minimum required increment.", {
-        enteredAmount: amt,
-        minRequired
+        enteredAmount: enteredAmt,
+        minRequiredPreferred,
+        minRequiredUsd
       });
-      setBidError(`Bid must be at least ${formatCurrency(minRequired)}`);
+      setBidError(`Bid must be at least ${formatCurrency(minRequiredUsd)}`);
       return;
     }
 
+    // Convert preferred currency amount back to USD (database standard is USD)
+    const rate = conversionRate > 0 ? conversionRate : 1;
+    const bidAmountInUsd = Number((enteredAmt / rate).toFixed(2));
+
     const payload = {
       ItemId: item.itemId,
-      BidAmount: amt,
-      Currency: item.currency || "USD"
+      BidAmount: bidAmountInUsd,
+      Currency: "USD"
     };
 
     const localTime = new Date().toLocaleTimeString();
@@ -781,7 +790,7 @@ const DetailedWhiskyPage = () => {
       tokenInStorage = localStorage.getItem("token");
     }
 
-    console.group(`%c[BID PLACEMENT 💰] Placing Whisky Bid of ${formatCurrency(amt)} at ${localTime}`, "background: #d4af37; color: #000; font-weight: bold; padding: 3px 8px; border-radius: 4px; font-size: 13px;");
+    console.group(`%c[BID PLACEMENT 💰] Placing Whisky Bid of ${formatCurrency(bidAmountInUsd)} (${enteredAmt} ${preferredCurrency}) at ${localTime}`, "background: #d4af37; color: #000; font-weight: bold; padding: 3px 8px; border-radius: 4px; font-size: 13px;");
     console.log("%c🎯 Item Details:", "color: #d4af37; font-weight: bold;", {
       itemId: item.itemId,
       title: item.title,
@@ -815,16 +824,16 @@ const DetailedWhiskyPage = () => {
           timeAgo: "Just now",
           bidDate: "Just now",
           timestamp: Date.now(),
-          amount: formatCurrency(amt),
-          bidAmount: amt,
-          amountNumber: amt,
+          amount: formatCurrency(bidAmountInUsd),
+          bidAmount: bidAmountInUsd,
+          amountNumber: bidAmountInUsd,
         };
-        setCurrentBid(amt);
+        setCurrentBid(bidAmountInUsd);
         setBids((prev) => [newBidObj, ...prev]);
         setBiddersCount((prev) => (prev || 0) + 1);
         fetchLatestBid();
         setShowBidModal(false);
-        setSuccessMessage(`Bid of ${formatCurrency(amt)} placed successfully!`);
+        setSuccessMessage(`Bid of ${formatCurrency(bidAmountInUsd)} placed successfully!`);
         setTimeout(() => setSuccessMessage(""), 4000);
       })
       .catch((err) => {
@@ -1020,7 +1029,7 @@ const DetailedWhiskyPage = () => {
                   <div className="bid-status-col">
                     <span className="panel-label">CURRENT BID</span>
                     <span className="panel-value panel-value--large">
-                      {formatCurrency(currentBid * conversionRate)}
+                      {formatCurrency(currentBid)}
                     </span>
                   </div>
                   <div className="bid-status-col text-right">
@@ -1056,7 +1065,7 @@ const DetailedWhiskyPage = () => {
                   <div className="spec-col">
                     <span className="panel-label">BID INCREMENT:</span>
                     <span className="panel-value">
-                      {formatCurrency(item?.bidIncrement * conversionRate)}
+                      {formatCurrency(item?.bidIncrement)}
                     </span>
                   </div>
                   <div className="spec-col text-right">
@@ -1338,32 +1347,30 @@ const DetailedWhiskyPage = () => {
                   <div className="modal-bid-stat">
                     <span className="modal-bid-stat-label">CURRENT BID</span>
                     <span className="modal-bid-stat-value">
-                      {formatCurrency(currentBid * conversionRate)}
+                      {formatCurrency(currentBid)}
                     </span>
                   </div>
                   <div className="modal-bid-stat modal-bid-stat--right">
                     <span className="modal-bid-stat-label">MIN. NEXT BID</span>
                     <span className="modal-bid-stat-value modal-bid-stat-value--gold">
-                      {formatCurrency(item.bidIncrement * conversionRate)}
+                      {formatCurrency(item.bidIncrement)}
                     </span>
                   </div>
                 </div>
 
                 <div className="modal-input-section">
                   <label className="modal-input-label">
-                    YOUR BID AMOUNT ({userInfo?.preferences?.preferredCurrency})
+                    YOUR BID AMOUNT ({preferredCurrency})
                   </label>
                   <div className="modal-input-wrapper">
-                    <span className="currency-prefix">{userInfo?.preferences?.preferredCurrency}</span>
+                    <span className="currency-prefix">{preferredCurrency}</span>
                     <input
                       type="number"
                       className="modal-bid-input"
-                      value={(customBidAmount * conversionRate).toFixed(2) }
-                      onChange={(e) =>
-                        setCustomBidAmount(Number(e.target.value))
-                      }
-                      min={item?.bidIncrement}
-                      step={1}
+                      value={customBidAmount}
+                      onChange={(e) => setCustomBidAmount(e.target.value)}
+                      min={Math.round((item?.bidIncrement || 0) * (conversionRate || 1))}
+                      step="any"
                       required
                       autoFocus
                     />

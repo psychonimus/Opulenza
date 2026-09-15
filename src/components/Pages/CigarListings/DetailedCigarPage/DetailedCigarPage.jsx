@@ -8,6 +8,7 @@ import cigarData from '../../../../data/CigarData'
 import { AddBid, getLatestBid } from '../../../../services/biddingServices/BiddingServices'
 import './DetailedCigarPage.css'
 import { useUser } from "../../../../services/showUserInfo/ShowUserInfo";
+import { ConvertCurrency } from "../../../../services/convertCurrency/ConvertCurrency";
 
 
 /* ── Cigar-specific enrichments ─────────────────────────────── */
@@ -26,6 +27,28 @@ const calculateTimeLeft = (endDateStr) => {
 }
 
 const DetailedCigarPage = () => {
+    const { userInfo, refreshUser } = useUser();
+    const preferredCurrency = userInfo?.preferences?.preferredCurrency || "USD";
+    const [conversionRate, setConversionRate] = useState(1);
+
+    useEffect(() => {
+        if (!preferredCurrency || preferredCurrency === "USD") {
+            setConversionRate(1);
+            return;
+        }
+
+        ConvertCurrency(preferredCurrency)
+            .then((res) => {
+                if (res?.data?.rate) {
+                    setConversionRate(res.data.rate);
+                }
+            })
+            .catch((err) => {
+                console.error("Currency conversion error:", err);
+                setConversionRate(1);
+            });
+    }, [preferredCurrency]);
+
     const { id } = useParams()
     const [item, setItem] = useState(null)
     const [loading, setLoading] = useState(true)
@@ -67,8 +90,6 @@ const DetailedCigarPage = () => {
     const [termsAccepted, setTermsAccepted] = useState(false)
     const [modalAutoBid, setModalAutoBid] = useState(false)
     const [latestBidData, setLatestBidData] = useState([])
-
-    const { userInfo, refreshUser } = useUser();
 
     const isTopBidder = Boolean(userInfo?.memberID && bids?.[0]?.memberId && bids[0].memberId == userInfo.memberID);
 
@@ -180,9 +201,9 @@ const DetailedCigarPage = () => {
                             setCurrentBid(Number(newPrice))
                         }
                         if (nextBid != null && !isNaN(Number(nextBid))) {
-                            setCustomBidAmount(Number(nextBid))
+                            setCustomBidAmount(Math.round(Number(nextBid) * (conversionRate || 1)))
                         } else if (newPrice != null && !isNaN(Number(newPrice))) {
-                            setCustomBidAmount(Number(newPrice) + (item?.bidIncrement || 500))
+                            setCustomBidAmount(Math.round((Number(newPrice) + (item?.bidIncrement || 500)) * (conversionRate || 1)))
                         }
                         if (count != null && !isNaN(Number(count))) {
                             setBiddersCount(Number(count))
@@ -452,10 +473,10 @@ const DetailedCigarPage = () => {
             setCurrentBid(item.currentBidNumber)
             // setBids(item.liveActivity || [])
             // setBiddersCount(item?.activeBidders)
-            setCustomBidAmount(item.currentBidNumber + item.bidIncrement)
+            setCustomBidAmount(Math.round((item.bidIncrement || 0) * (conversionRate || 1)))
             setTimeLeft(item.auctionEndDate ? calculateTimeLeft(item.auctionEndDate) : { days: 1, hours: 4, minutes: 18, seconds: 40 })
         }
-    }, [item])
+    }, [item, conversionRate])
 
     useEffect(() => {
         if (!item || !item.auctionEndDate) return
@@ -519,8 +540,20 @@ const DetailedCigarPage = () => {
         )
     }
 
-    const formatCurrency = (val) =>
-        new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val)
+    const formatCurrency = (valInUsd) => {
+        const num = Number(valInUsd);
+        if (isNaN(num)) return "$0";
+        const convertedVal = num * (conversionRate || 1);
+        try {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: preferredCurrency || 'USD',
+                maximumFractionDigits: 0
+            }).format(convertedVal);
+        } catch {
+            return `${preferredCurrency || 'USD'} ${Math.round(convertedVal).toLocaleString()}`;
+        }
+    };
 
     const formatNum = (num) => String(num).padStart(2, '0')
 
@@ -532,28 +565,35 @@ const DetailedCigarPage = () => {
     const rarity = item.details?.find(d => d.label === 'RARITY')?.value || '—'
 
     const handlePlaceBidClick = () => {
-        setCustomBidAmount(item?.bidIncrement || 0)
+        const minIncrementInPreferred = Math.round((item?.bidIncrement || 0) * (conversionRate || 1));
+        setCustomBidAmount(minIncrementInPreferred);
         setBidError('')
         setShowBidModal(true)
     }
 
     const submitCustomBid = (e) => {
         e.preventDefault()
-        const amt = Number(customBidAmount)
-        const minRequired = item?.bidIncrement || 0
-        if (isNaN(amt) || amt < minRequired) {
+        const enteredAmt = Number(customBidAmount)
+        const minRequiredUsd = item?.bidIncrement || 0
+        const minRequiredPreferred = Math.round(minRequiredUsd * (conversionRate || 1));
+        if (isNaN(enteredAmt) || enteredAmt < minRequiredPreferred) {
             console.warn("[BID PLACEMENT] Validation failed: Bid amount is lower than minimum required increment.", {
-                enteredAmount: amt,
-                minRequired
+                enteredAmount: enteredAmt,
+                minRequiredPreferred,
+                minRequiredUsd
             });
-            setBidError(`Bid must be at least ${formatCurrency(minRequired)}`)
+            setBidError(`Bid must be at least ${formatCurrency(minRequiredUsd)}`)
             return
         }
 
+        // Convert preferred currency amount back to USD (database standard is USD)
+        const rate = conversionRate > 0 ? conversionRate : 1;
+        const bidAmountInUsd = Number((enteredAmt / rate).toFixed(2));
+
         const payload = {
             ItemId: item.itemId,
-            BidAmount: amt,
-            Currency: item.currency || "USD"
+            BidAmount: bidAmountInUsd,
+            Currency: "USD"
         }
 
         const localTime = new Date().toLocaleTimeString();
@@ -564,7 +604,7 @@ const DetailedCigarPage = () => {
             tokenInStorage = localStorage.getItem("token");
         }
 
-        console.group(`%c[BID PLACEMENT 💰] Placing Bid of ${formatCurrency(amt)} at ${localTime}`, "background: #d4af37; color: #000; font-weight: bold; padding: 3px 8px; border-radius: 4px; font-size: 13px;");
+        console.group(`%c[BID PLACEMENT 💰] Placing Bid of ${formatCurrency(bidAmountInUsd)} (${enteredAmt} ${preferredCurrency}) at ${localTime}`, "background: #d4af37; color: #000; font-weight: bold; padding: 3px 8px; border-radius: 4px; font-size: 13px;");
         console.log("%c🎯 Item Details:", "color: #d4af37; font-weight: bold;", {
             itemId: item.itemId,
             title: item.title,
@@ -598,16 +638,16 @@ const DetailedCigarPage = () => {
                     timeAgo: 'Just now',
                     bidDate: 'Just now',
                     timestamp: Date.now(),
-                    amount: formatCurrency(amt),
-                    bidAmount: amt,
-                    amountNumber: amt
+                    amount: formatCurrency(bidAmountInUsd),
+                    bidAmount: bidAmountInUsd,
+                    amountNumber: bidAmountInUsd
                 }
-                setCurrentBid(amt)
+                setCurrentBid(bidAmountInUsd)
                 setBids(prev => [newBidObj, ...prev])
                 setBiddersCount(prev => (prev || 0) + 1)
                 fetchLatestBid();
                 setShowBidModal(false)
-                setSuccessMessage(`Bid of ${formatCurrency(amt)} placed successfully!`)
+                setSuccessMessage(`Bid of ${formatCurrency(bidAmountInUsd)} placed successfully!`)
                 setTimeout(() => setSuccessMessage(''), 4000)
             })
             .catch((err) => {
@@ -1022,20 +1062,20 @@ const DetailedCigarPage = () => {
                                     </div>
                                     <div className="modal-bid-stat modal-bid-stat--right">
                                         <span className="modal-bid-stat-label">MIN. NEXT BID</span>
-                                        <span className="modal-bid-stat-value modal-bid-stat-value--gold">${item.bidIncrement}</span>
+                                        <span className="modal-bid-stat-value modal-bid-stat-value--gold">{formatCurrency(item.bidIncrement)}</span>
                                     </div>
                                 </div>
                                 <div className="modal-input-section">
-                                    <label className="modal-input-label">YOUR BID AMOUNT (USD)</label>
+                                    <label className="modal-input-label">YOUR BID AMOUNT ({preferredCurrency})</label>
                                     <div className="modal-input-wrapper">
-                                        <span className="currency-prefix">$</span>
+                                        <span className="currency-prefix">{preferredCurrency}</span>
                                         <input
                                             type="number"
                                             className="modal-bid-input"
                                             value={customBidAmount}
-                                            onChange={(e) => setCustomBidAmount(Number(e.target.value))}
-                                            min={item?.bidIncrement}
-                                            step={1}
+                                            onChange={(e) => setCustomBidAmount(e.target.value)}
+                                            min={Math.round((item?.bidIncrement || 0) * (conversionRate || 1))}
+                                            step="any"
                                             required
                                             autoFocus
                                         />

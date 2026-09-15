@@ -122,10 +122,10 @@
 }
 
 .contact-hero__title {
-    font-family: 'cormorant', 'Playfair Display', serif;
-    font-size: clamp(3.2rem, 7vw, 6rem);
+    font-family: 'cormorant', serif;
+    font-size: clamp(3.2rem, 4vw, 6rem);
     font-weight: 700;
-    font-style: italic;
+    /* font-style: italic; */
     line-height: 1.05;
     margin-bottom: 1.5rem;
     color: #fff;
@@ -249,7 +249,7 @@
    MAIN: FORM + OFFICES
    ═══════════════════════════════════════════════════════════════ */
 .contact-main-section {
-    padding: 7rem 0;
+    padding: 3rem 0;
 }
 
 .contact-main-grid {

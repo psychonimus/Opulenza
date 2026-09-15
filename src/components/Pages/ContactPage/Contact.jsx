@@ -115,7 +115,7 @@ const Contact = () => {
                     </h1>
                     <p className="contact-hero__subtitle">
                         Whether you are looking to acquire, consign, or simply learn more about
-                        membership — our team of specialists is at your disposal.
+                        membership, our team of specialists is at your disposal.
                     </p>
                 </div>
                 <div className="contact-hero__scroll-hint">
@@ -163,6 +163,16 @@ const Contact = () => {
                                     A member of our concierge team will respond within one business day.
                                     We appreciate your discretion.
                                 </p>
+                                <button
+                                    type="button"
+                                    className="contact-submit-btn"
+                                    onClick={() => {
+                                        setSubmitted(false);
+                                        setFormData({ name: '', email: '', subject: '', message: '' });
+                                    }}
+                                >
+                                    <span>Send Another Message</span>
+                                </button>
                             </div>
                         ) : (
                             <form className="contact-form" onSubmit={handleSubmit} id="contact-form">
@@ -272,43 +282,14 @@ const Contact = () => {
                         </div>
 
                         {/* Decorative element */}
-                        <div className="contact-globe-visual">
-                            <div className="contact-globe">
-                                <div className="contact-globe__ring contact-globe__ring--1" />
-                                <div className="contact-globe__ring contact-globe__ring--2" />
-                                <div className="contact-globe__ring contact-globe__ring--3" />
-                                <div className="contact-globe__dot contact-globe__dot--geneva" title="Geneva" />
-                                <div className="contact-globe__dot contact-globe__dot--singapore" title="Singapore" />
-                                <div className="contact-globe__dot contact-globe__dot--london" title="London" />
-                                <div className="contact-globe__glow" />
-                            </div>
-                        </div>
+
                     </div>
 
                 </div>
             </section>
 
             {/* ── Privacy Note ────────────────────────────────────────── */}
-            <section className="contact-privacy-section" ref={addRef}>
-                <div className="contact-container">
-                    <div className="contact-privacy-card">
-                        <div className="contact-privacy-card__icon">
-                            <svg viewBox="0 0 40 40" fill="none">
-                                <path d="M20 5L8 10v10c0 7.18 5.16 13.9 12 15.5C27.84 33.9 32 27.18 32 20V10L20 5z" stroke="#d6a54d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M14 20l4 4 8-8" stroke="#d6a54d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 className="contact-privacy-card__title">Your Discretion is Guaranteed</h3>
-                            <p className="contact-privacy-card__text">
-                                All correspondence with Opluenza is held in the strictest confidence.
-                                We never disclose client identities, inquiries, or transaction details
-                                to third parties. Your privacy is not a policy — it is a promise.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </section>
+           
 
         </div>
     )

@@ -11,6 +11,7 @@ import BidPage from "./components/Pages/BidPage/BidPage";
 import CigarListings from "./components/Pages/CigarListings/CigarListings";
 import DetailedCigarPage from "./components/Pages/CigarListings/DetailedCigarPage/DetailedCigarPage";
 import Concierge from "./components/Pages/concierge/Concierge";
+import Contact from "./components/Pages/ContactPage/Contact";
 import Explore from "./components/Pages/Explore/Explore";
 import Home from "./components/Pages/Home/Home";
 import DetailedPenPage from "./components/Pages/PensListings/DetailedPenPage/DetailedPenPage";
@@ -62,6 +63,8 @@ const AppLayout = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/contact-us" element={<Contact />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/terms-and-conditions" element={<TermsPage />} />
         <Route path="/policy" element={<PolicyPage />} />

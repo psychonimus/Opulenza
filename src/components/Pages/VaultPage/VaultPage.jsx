@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import './VaultPage.css'
 import { GetMySoldItems } from '../../../services/getUserData/GetUserData'
 import { getMyWishList, getMyActiveBids, getMyWonItems } from '../../../services/sellingServices/getSellListings/getSellListings'
+import { useUser } from '../../../services/showUserInfo/ShowUserInfo'
+import { ConvertCurrency } from '../../../services/convertCurrency/ConvertCurrency'
 
 
 
@@ -13,6 +15,28 @@ import { getMyWishList, getMyActiveBids, getMyWonItems } from '../../../services
 
 
 const VaultPage = () => {
+  const { userInfo } = useUser();
+  const preferredCurrency = userInfo?.preferences?.preferredCurrency || "USD";
+  const [conversionRate, setConversionRate] = useState(1);
+
+  useEffect(() => {
+    if (!preferredCurrency || preferredCurrency === "USD") {
+      setConversionRate(1);
+      return;
+    }
+
+    ConvertCurrency(preferredCurrency)
+      .then((res) => {
+        if (res?.data?.rate) {
+          setConversionRate(res.data.rate);
+        }
+      })
+      .catch((err) => {
+        console.error("Currency conversion error:", err);
+        setConversionRate(1);
+      });
+  }, [preferredCurrency]);
+
   const [activeTab, setActiveTab] = useState('bids') // 'bids' | 'secured' | 'cart' | 'watchlist'
 
   // State lists
@@ -110,8 +134,20 @@ const VaultPage = () => {
     return () => clearInterval(interval)
   }, [])
 
-  const formatCurrency = (val) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val)
+  const formatCurrency = (valInUsd) => {
+    const num = Number(valInUsd);
+    if (isNaN(num)) return "$0";
+    const convertedVal = num * (conversionRate || 1);
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: preferredCurrency || 'USD',
+        maximumFractionDigits: 0
+      }).format(convertedVal);
+    } catch {
+      return `${preferredCurrency || 'USD'} ${Math.round(convertedVal).toLocaleString()}`;
+    }
+  };
 
   const getAuctionDate = (itemOrTime) => {
     if (!itemOrTime) return null
@@ -380,15 +416,19 @@ const VaultPage = () => {
                         </div>
                         <div className="vault-item-card__details">
                           <span className="vault-item-cat">{item?.categoryName}</span>
-                          <h3 className="vault-item-title">{item?.details?.brand || item?.details?.producerName} <span className="vault-item-ref">{item?.details?.editionName || item?.details?.bottlingName || item?.details?.model}</span></h3>
+                          <h3 className="vault-item-title">{item?.details?.brand || item?.details?.producerName || item?.details?.caskType} <span className="vault-item-ref">{item?.details?.editionName || item?.details?.bottlingName || item?.details?.model || item?.details?.distillesy}</span></h3>
                           <div className="vault-item-specs">
                             <div>
-                              <span className="vault-spec-label">YOUR BID</span>
+                              <span className="vault-spec-label">Current Bid</span>
                               <span className="vault-spec-val">{formatCurrency(item?.currentPrice)}</span>
                             </div>
                             <div>
+                              <span className="vault-spec-label">YOUR BID</span>
+                              <span className="vault-spec-val">{formatCurrency(item?.latestBidAmount)}</span>
+                            </div>
+                            <div>
                               <span className="vault-spec-label">CURRENT HIGH</span>
-                              <span className="vault-spec-val">{formatCurrency(item?.currentPrice)}</span>
+                              <span className="vault-spec-val">{formatCurrency(item?.bidIncreament)}</span>
                             </div>
                             <div>
                               <span className="vault-spec-label">CLOSES IN</span>
@@ -397,11 +437,11 @@ const VaultPage = () => {
                           </div>
                         </div>
                         <div className="vault-item-card__action-zone">
-                          <span className={`vault-bid-status-badge ${isWinning ? 'winning' : 'outbid'}`}>
-                            {isWinning ? 'WINNING' : 'OUTBID'}
+                          <span className={`vault-bid-status-badge ${item?.isWinning ? 'winning' : 'outbid'}`}>
+                            {item?.isWinning ? 'WINNING' : 'OUTBID'}
                           </span>
                           <Link to={item?.details?.link || getItemLink(item)} className="vault-action-btn">
-                            {isWinning ? 'VIEW ITEM' : 'RAISE BID'}
+                            {item?.isWinning ? 'VIEW ITEM' : 'RAISE BID'}
                           </Link>
                         </div>
                       </div>
@@ -521,7 +561,7 @@ const VaultPage = () => {
                       </div>
                       <div className="vault-item-card__details">
                         <span className="vault-item-cat">{item?.categoryName}</span>
-                        <h3 className="vault-item-title">{item?.details?.brand || item?.details?.caskType} <span className="vault-item-ref">{item?.details?.distillesy}</span></h3>
+                        <h3 className="vault-item-title">{item?.details?.brand || item?.details?.caskType || item?.details?.producerName} <span className="vault-item-ref">{item?.details?.distillesy || item?.details?.bottlingName}</span></h3>
                         <div className="vault-item-specs">
                           <div>
                             <span className="vault-spec-label">CURRENT BID</span>

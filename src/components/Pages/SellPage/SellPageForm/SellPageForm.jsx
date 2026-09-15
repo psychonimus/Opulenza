@@ -1613,22 +1613,28 @@ const SellPageForm = () => {
         formData.set("originalPrice", unconvertedPrice);
       }
 
-      if (data.Currency === "USD") {
+      const numPrice = Number(String(rawAskingPrice).replace(/,/g, "").trim());
+
+      if (!data.Currency || data.Currency.toUpperCase() === "USD") {
         // Already USD
-        formData.set("expectedPrice", rawAskingPrice);
+        formData.set("expectedPrice", isNaN(numPrice) ? rawAskingPrice : numPrice);
+        formData.set("Currency", "USD");
+        formData.set("currency", "USD");
       } else {
         // Convert selected currency to USD
         const res = await ConvertToUsd(data.Currency);
+        const rate = res?.data?.rate;
 
-        const numPrice = Number(String(rawAskingPrice).replace(/,/g, "").trim());
-        const usdPrice = numPrice * res.data.rate;
+        const usdPrice = rate ? Number((numPrice * rate).toFixed(2)) : numPrice;
 
         formData.set("expectedPrice", usdPrice);
+        formData.set("Currency", "USD"); // database standard is USD
+        formData.set("currency", "USD");
 
         console.log("Original Currency:", data.Currency);
         console.log("Original Price (unconverted):", unconvertedPrice);
         console.log("Original Amount (Asking Price):", rawAskingPrice);
-        console.log("Exchange Rate:", res.data.rate);
+        console.log("Exchange Rate:", rate);
         console.log("USD Amount (expectedPrice):", usdPrice);
       }
     } catch (error) {
