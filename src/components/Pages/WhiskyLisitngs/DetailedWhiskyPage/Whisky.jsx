@@ -8,6 +8,18 @@ import "./Whisky.css";
 import { useUser } from "../../../../services/showUserInfo/ShowUserInfo";
 import { ConvertCurrency } from "../../../../services/convertCurrency/ConvertCurrency";
 
+const formatDateOnly = (val) => {
+  if (!val || val === "—" || val === "N/A") return val || "—";
+  const str = String(val).trim();
+  if (/^\d{4}$/.test(str)) return str;
+  if (str.includes("T")) return str.split("T")[0];
+  if (/^\d{4}-\d{2}-\d{2}/.test(str)) return str.substring(0, 10);
+  const d = new Date(str);
+  if (!isNaN(d.getTime())) {
+    return d.toISOString().split("T")[0];
+  }
+  return str;
+};
 
 const DetailedWhiskyPage = () => {
   const { userInfo, refreshUser } = useUser();
@@ -553,7 +565,7 @@ const DetailedWhiskyPage = () => {
               title: "Cask Provenance & History",
               description: `Matured at the ${found.details?.distillesy || 'distillery'} in a ${found.details?.caskType || 'N/A'} cask. The lot includes the original sale documentation and cask registry extract.`,
               timeline: [
-                { period: found.details?.ays || "N/A", detail: "Cask filled / distilled" },
+                { period: formatDateOnly(found.details?.ays) || "N/A", detail: "Cask filled / distilled" },
                 { period: "PRESENT", detail: "Opulenza Authenticated Vault Custody" }
               ]
             };
@@ -569,7 +581,7 @@ const DetailedWhiskyPage = () => {
             };
             mappedItem.details = [
               { label: "DISTILLERY", value: found.details?.distillesy || "—" },
-              { label: "DISTILLED", value: found.details?.ays || "—" },
+              { label: "DISTILLED", value: formatDateOnly(found.details?.ays) || "—" },
               { label: "CASK", value: found.details?.caskType || "—" },
               { label: "RARITY", value: found.details?.noOfBottles ? `${found.details.noOfBottles} Bottles` : "—" },
             ];
@@ -855,7 +867,7 @@ const DetailedWhiskyPage = () => {
   const distillery =
     item.details?.find((d) => d.label === "DISTILLERY")?.value || item.title;
   const distilled =
-    item.details?.find((d) => d.label === "DISTILLED")?.value || "—";
+    formatDateOnly(item.details?.find((d) => d.label === "DISTILLED")?.value) || "—";
   const cask = item.details?.find((d) => d.label === "CASK")?.value || "—";
   const rarity = item.details?.find((d) => d.label === "RARITY")?.value || "—";
 
@@ -928,9 +940,9 @@ const DetailedWhiskyPage = () => {
 
               {/* Title */}
               <h1 className="detailed-page__title">
-                {item.title}{" "}
+                {item.reference}{" "}
                 <span className="detailed-page__reference">
-                  {item.reference}
+                  {item.title}
                 </span>
               </h1>
 
