@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import yachtData from '../../../../data/YachtData'
 import { getApprovedListing } from '../../../../services/sellingServices/getSellListings/getSellListings'
+import { useUser } from '../../../../services/showUserInfo/ShowUserInfo'
+import { ConvertCurrency } from '../../../../services/convertCurrency/ConvertCurrency'
 import './AllYachts.css'
 
 const CountdownTimer = ({ days, hours, minutes, seconds, endDate }) => {
@@ -64,6 +66,61 @@ const AllYachts = () => {
     const [currentPage, setCurrentPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
     const [loading, setLoading] = useState(false)
+
+    const { userInfo } = useUser();
+    const preferredCurrency = userInfo?.preferences?.preferredCurrency || "USD";
+    const [conversionRate, setConversionRate] = useState(1);
+
+    useEffect(() => {
+        if (!preferredCurrency || preferredCurrency === "USD") {
+            setConversionRate(1);
+            return;
+        }
+
+        ConvertCurrency(preferredCurrency)
+            .then((res) => {
+                const rate = res?.data?.rate || (res?.data?.rates && res?.data?.rates[preferredCurrency]) || 1;
+                if (rate) {
+                    setConversionRate(rate);
+                }
+            })
+            .catch((err) => {
+                console.error("Currency conversion error:", err);
+                setConversionRate(1);
+            });
+    }, [preferredCurrency]);
+
+    const formatCurrency = (valInUsd) => {
+        if (typeof valInUsd === 'string' && (valInUsd.includes('M') || valInUsd.includes('K'))) {
+            const clean = valInUsd.replace(/[^0-9.]/g, '');
+            const mult = valInUsd.toUpperCase().includes('M') ? 1000000 : valInUsd.toUpperCase().includes('K') ? 1000 : 1;
+            const parsed = Number(clean) * mult;
+            if (!isNaN(parsed) && parsed > 0) {
+                const converted = parsed * (conversionRate || 1);
+                try {
+                    return new Intl.NumberFormat("en-US", {
+                        style: "currency",
+                        currency: preferredCurrency || "USD",
+                        maximumFractionDigits: 0,
+                    }).format(converted);
+                } catch {
+                    return `${preferredCurrency || "USD"} ${Math.round(converted).toLocaleString()}`;
+                }
+            }
+        }
+        const num = Number(valInUsd);
+        const validNum = isNaN(num) ? 0 : num;
+        const convertedVal = validNum * (conversionRate || 1);
+        try {
+            return new Intl.NumberFormat("en-US", {
+                style: "currency",
+                currency: preferredCurrency || "USD",
+                maximumFractionDigits: 0,
+            }).format(convertedVal);
+        } catch {
+            return `${preferredCurrency || "USD"} ${Math.round(convertedVal).toLocaleString()}`;
+        }
+    };
 
     const toggleFavorite = (id) => {
         setFavorites(prev => ({ ...prev, [id]: !prev[id] }))
@@ -151,7 +208,8 @@ const AllYachts = () => {
                         const title = yacht.details?.brand || yacht.title || 'Luxury Yacht'
                         const reference = yacht.details?.model || yacht.reference || yacht.details?.editionName || ''
                         const description = yacht.details?.description || yacht.description || ''
-                        const currentPrice = yacht.currentPrice ? `$${yacht.currentPrice}` : (yacht.currentBid || '$0')
+                        const rawPrice = yacht.currentPrice ?? yacht.currentBidNumber ?? yacht.currentBid ?? 0
+                        const currentPrice = formatCurrency(rawPrice)
 
                         return (
                             <div className="yacht-card" key={itemId}>

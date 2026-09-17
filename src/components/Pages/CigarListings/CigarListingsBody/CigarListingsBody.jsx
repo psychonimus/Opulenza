@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import cigarData from '../../../../data/CigarData'
 import './CigarListingsBody.css'
 import { getApprovedListing, updateWishListItem } from '../../../../services/sellingServices/getSellListings/getSellListings'
+import { useUser } from '../../../../services/showUserInfo/ShowUserInfo'
+import { ConvertCurrency } from '../../../../services/convertCurrency/ConvertCurrency'
 
 
 
@@ -14,6 +16,44 @@ const CigarListingsBody = () => {
     const [currentPage, setCurrentPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
     const [loading, setLoading] = useState(false)
+
+    const { userInfo } = useUser();
+    const preferredCurrency = userInfo?.preferences?.preferredCurrency || "USD";
+    const [conversionRate, setConversionRate] = useState(1);
+
+    useEffect(() => {
+        if (!preferredCurrency || preferredCurrency === "USD") {
+            setConversionRate(1);
+            return;
+        }
+
+        ConvertCurrency(preferredCurrency)
+            .then((res) => {
+                const rate = res?.data?.rate || (res?.data?.rates && res?.data?.rates[preferredCurrency]) || 1;
+                if (rate) {
+                    setConversionRate(rate);
+                }
+            })
+            .catch((err) => {
+                console.error("Currency conversion error:", err);
+                setConversionRate(1);
+            });
+    }, [preferredCurrency]);
+
+    const formatCurrency = (valInUsd) => {
+        const num = Number(valInUsd);
+        const validNum = isNaN(num) ? 0 : num;
+        const convertedVal = validNum * (conversionRate || 1);
+        try {
+            return new Intl.NumberFormat("en-US", {
+                style: "currency",
+                currency: preferredCurrency || "USD",
+                maximumFractionDigits: 0,
+            }).format(convertedVal);
+        } catch {
+            return `${preferredCurrency || "USD"} ${Math.round(convertedVal).toLocaleString()}`;
+        }
+    };
 
     const handleWishList = (itemId) => {
         const currentItem = cigars.find(c => c.itemId === itemId)
@@ -184,7 +224,7 @@ const CigarListingsBody = () => {
                                         <div className="cigar-card__footer">
                                             <div className="cigar-card__bid">
                                                 <span className="cigar-card__bid-label">CURRENT BID</span>
-                                                <span className="cigar-card__bid-value">${item.currentPrice}</span>
+                                                <span className="cigar-card__bid-value">{formatCurrency(item.currentPrice)}</span>
                                             </div>
 
                                             <Link

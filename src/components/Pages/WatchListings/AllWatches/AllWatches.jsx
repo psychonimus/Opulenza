@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom'
 // import watchData from '../../data/WatchData'
 import watchData from '../../../../data/WatchData'
 import { getApprovedListing, updateWishListItem } from '../../../../services/sellingServices/getSellListings/getSellListings'
+import { useUser } from '../../../../services/showUserInfo/ShowUserInfo'
+import { ConvertCurrency } from '../../../../services/convertCurrency/ConvertCurrency'
 
 // const watchData = [
 //   {
@@ -89,6 +91,44 @@ const AllWatches = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(false)
+
+  const { userInfo } = useUser();
+  const preferredCurrency = userInfo?.preferences?.preferredCurrency || "USD";
+  const [conversionRate, setConversionRate] = useState(1);
+
+  useEffect(() => {
+    if (!preferredCurrency || preferredCurrency === "USD") {
+      setConversionRate(1);
+      return;
+    }
+
+    ConvertCurrency(preferredCurrency)
+      .then((res) => {
+        const rate = res?.data?.rate || (res?.data?.rates && res?.data?.rates[preferredCurrency]) || 1;
+        if (rate) {
+          setConversionRate(rate);
+        }
+      })
+      .catch((err) => {
+        console.error("Currency conversion error:", err);
+        setConversionRate(1);
+      });
+  }, [preferredCurrency]);
+
+  const formatCurrency = (valInUsd) => {
+    const num = Number(valInUsd);
+    const validNum = isNaN(num) ? 0 : num;
+    const convertedVal = validNum * (conversionRate || 1);
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: preferredCurrency || 'USD',
+        maximumFractionDigits: 0
+      }).format(convertedVal);
+    } catch {
+      return `${preferredCurrency || 'USD'} ${Math.round(convertedVal).toLocaleString()}`;
+    }
+  };
 
   const handleWishList = (itemId) => {
     const currentItem = watches.find(c => c.itemId === itemId)
@@ -233,7 +273,7 @@ const AllWatches = () => {
                       <div className="watch-card__details-grid">
                         <div>
                           <div className="watch-card__bid-label">CURRENT BID</div>
-                          <div className="watch-card__bid-value">${watch.currentPrice}</div>
+                          <div className="watch-card__bid-value">{formatCurrency(watch.currentPrice)}</div>
                         </div>
                         <div className="watch-card__footer">
                         <Link to={`/watch/${watch.itemId}`} style={{ textDecoration: "none" }}><button className="watch-card__bid-btn" >

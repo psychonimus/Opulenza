@@ -37,8 +37,9 @@ const AllWhisky = () => {
 
     ConvertCurrency(preferredCurrency)
       .then((res) => {
-        if (res?.data?.rate) {
-          setConversionRate(res.data.rate);
+        const rate = res?.data?.rate || (res?.data?.rates && res?.data?.rates[preferredCurrency]) || 1;
+        if (rate) {
+          setConversionRate(rate);
         }
       })
       .catch((err) => {
@@ -165,17 +166,18 @@ const AllWhisky = () => {
   }
 
 
-  const formatCurrency = (val) => {
-    const num = Number(val);
-    if (isNaN(num)) return "$0";
+  const formatCurrency = (valInUsd) => {
+    const num = Number(valInUsd);
+    const validNum = isNaN(num) ? 0 : num;
+    const convertedVal = validNum * (conversionRate || 1);
     try {
       return new Intl.NumberFormat("en-US", {
         style: "currency",
-        currency: preferredCurrency,
+        currency: preferredCurrency || "USD",
         maximumFractionDigits: 0,
-      }).format(num);
+      }).format(convertedVal);
     } catch {
-      return `${preferredCurrency} ${Math.round(num).toLocaleString()}`;
+      return `${preferredCurrency || "USD"} ${Math.round(convertedVal).toLocaleString()}`;
     }
   };
 
@@ -306,7 +308,7 @@ const AllWhisky = () => {
                         <div className="whisky-card__footer">
                           <div className="whisky-card__bid">
                             <span className="whisky-card__bid-label">CURRENT BID</span>
-                            <span className="whisky-card__bid-value">{formatCurrency((item?.currentPrice || 0) * conversionRate)}</span>
+                            <span className="whisky-card__bid-value">{formatCurrency(item?.currentPrice)}</span>
                           </div>
                           <Link
                             to={`/whisky/${item.itemId}`}
@@ -451,7 +453,7 @@ const AllWhisky = () => {
                         <div className="whisky-card__footer">
                           <div className="whisky-card__bid">
                             <span className="whisky-card__bid-label">CURRENT BID</span>
-                            <span className="whisky-card__bid-value">{formatCurrency((item?.currentPrice || 0) * conversionRate)}</span>
+                            <span className="whisky-card__bid-value">{formatCurrency(item?.currentPrice)}</span>
                           </div>
                           <Link
                             to={`/cask/${item?.itemId}`}

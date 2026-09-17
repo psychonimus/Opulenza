@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 // import pensData from '../../../../data/PensData'
 import { getApprovedListing, updateWishListItem } from '../../../../services/sellingServices/getSellListings/getSellListings'
+import { useUser } from '../../../../services/showUserInfo/ShowUserInfo'
+import { ConvertCurrency } from '../../../../services/convertCurrency/ConvertCurrency'
 import './AllPens.css'
 
 const CountdownTimer = ({ endDate }) => {
@@ -47,6 +49,44 @@ const AllPens = () => {
     const [currentPage, setCurrentPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
     const [loading, setLoading] = useState(false)
+
+    const { userInfo } = useUser();
+    const preferredCurrency = userInfo?.preferences?.preferredCurrency || "USD";
+    const [conversionRate, setConversionRate] = useState(1);
+
+    useEffect(() => {
+        if (!preferredCurrency || preferredCurrency === "USD") {
+            setConversionRate(1);
+            return;
+        }
+
+        ConvertCurrency(preferredCurrency)
+            .then((res) => {
+                const rate = res?.data?.rate || (res?.data?.rates && res?.data?.rates[preferredCurrency]) || 1;
+                if (rate) {
+                    setConversionRate(rate);
+                }
+            })
+            .catch((err) => {
+                console.error("Currency conversion error:", err);
+                setConversionRate(1);
+            });
+    }, [preferredCurrency]);
+
+    const formatCurrency = (valInUsd) => {
+        const num = Number(valInUsd);
+        const validNum = isNaN(num) ? 0 : num;
+        const convertedVal = validNum * (conversionRate || 1);
+        try {
+            return new Intl.NumberFormat("en-US", {
+                style: "currency",
+                currency: preferredCurrency || "USD",
+                maximumFractionDigits: 0,
+            }).format(convertedVal);
+        } catch {
+            return `${preferredCurrency || "USD"} ${Math.round(convertedVal).toLocaleString()}`;
+        }
+    };
 
     const handleWishList = (itemId) => {
         const currentItem = pens.find(c => c.itemId === itemId)
@@ -218,7 +258,7 @@ const AllPens = () => {
                                             <div className="pen-card__footer">
                                                 <div className="pen-card__closes-container">
                                                     <div className="pen-card__bid-label">CURRENT BID</div>
-                                                    <div className="pen-card__bid-value">$ {pen?.currentPrice}</div>
+                                                    <div className="pen-card__bid-value">{formatCurrency(pen?.currentPrice)}</div>
                                                 </div>
                                                 <Link to={`/pen/${pen?.itemId}`} style={{ textDecoration: 'none' }}>
                                                     <button className="pen-card__bid-btn">{pen.canUserBid ? "BID NOW" : "VIEW BIDDING"} </button>

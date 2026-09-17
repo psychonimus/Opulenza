@@ -27,8 +27,9 @@ const VaultPage = () => {
 
     ConvertCurrency(preferredCurrency)
       .then((res) => {
-        if (res?.data?.rate) {
-          setConversionRate(res.data.rate);
+        const rate = res?.data?.rate || (res?.data?.rates && res?.data?.rates[preferredCurrency]) || 1;
+        if (rate) {
+          setConversionRate(rate);
         }
       })
       .catch((err) => {
@@ -136,8 +137,8 @@ const VaultPage = () => {
 
   const formatCurrency = (valInUsd) => {
     const num = Number(valInUsd);
-    if (isNaN(num)) return "$0";
-    const convertedVal = num * (conversionRate || 1);
+    const validNum = isNaN(num) ? 0 : num;
+    const convertedVal = validNum * (conversionRate || 1);
     try {
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -463,31 +464,36 @@ const VaultPage = () => {
               ) : (
                 <div className="vault-items-list">
                   {securedAssets?.map(item => (
-                    <div className="vault-item-card vault-item-card--secured" key={item.itemId}>
+                    <div className="vault-item-card vault-item-card--secured" key={item?.itemId || item?.id}>
                       <div className="vault-item-card__image">
-                        <img src={item?.details?.thumbnail || item?.details?.image1} alt={item.details.brand} />
+                        <img src={item?.details?.thumbnail || item?.details?.image1 || item?.image} alt={item?.details?.brand || item?.title || 'Asset'} />
                       </div>
                       <div className="vault-item-card__details">
-                        <span className="vault-item-cat">{item.categoryName}</span>
-                        <h3 className="vault-item-title">{item.details.brand || item.details.caskType} <span className="vault-item-ref">{item.details.editionName || item.details.distillesy}</span></h3>
+                        <span className="vault-item-cat">{item?.categoryName || item?.category}</span>
+                        <h3 className="vault-item-title">
+                          {item?.details?.brand || item?.details?.caskType || item?.title || item?.name || 'Asset'}{' '}
+                          <span className="vault-item-ref">{item?.details?.editionName || item?.details?.distillesy || item?.details?.reference || item?.reference}</span>
+                        </h3>
                         <div className="vault-item-specs">
                           <div>
                             <span className="vault-spec-label">ACQUISITION PRICE</span>
-                            <span className="vault-spec-val vault-spec-val--gold">{formatCurrency(item.purchasePrice)}</span>
+                            <span className="vault-spec-val vault-spec-val--gold">
+                              {formatCurrency(item?.purchasePrice ?? item?.price ?? item?.currentPrice ?? item?.finalPrice ?? item?.winningBid ?? item?.bidAmount ?? item?.amount ?? item?.details?.purchasePrice ?? item?.details?.price ?? 0)}
+                            </span>
                           </div>
                           
                           <div>
                             <span className="vault-spec-label">SECURED DATE</span>
-                            <span className="vault-spec-val">{item.securedDate}</span>
+                            <span className="vault-spec-val">{item?.securedDate || item?.wonDate || item?.createdDate || item?.date || 'N/A'}</span>
                           </div>
                         </div>
                       </div>
                       <div className="vault-item-card__action-zone">
                         <div className="vault-cert-block">
                           <span className="vault-spec-label">CERTIFICATE ID</span>
-                          <span className="vault-cert-id">{item.certificateId}</span>
+                          <span className="vault-cert-id">{item?.certificateId || item?.certificateNumber || item?.id || 'OP-VERIFIED'}</span>
                         </div>
-                        <button className="vault-action-btn vault-action-btn--outline" onClick={() => alert(`Certificate ${item.certificateId} details dispatched to email.`)}>
+                        <button className="vault-action-btn vault-action-btn--outline" onClick={() => alert(`Certificate ${item?.certificateId || item?.certificateNumber || item?.id || 'details'} details dispatched to email.`)}>
                           DOWNLOAD CERTIFICATE
                         </button>
                       </div>
