@@ -388,14 +388,14 @@ const formFields = {
 
     // Pricing
     { id: "pricingSection", label: "Pricing & Value", type: "section" },
-    {
-      id: "originalPrice",
-      label: "Original Price",
-      type: "text",
-      placeholder: "Value at acquisition",
-      half: true,
-      hasCurrency: true,
-    },
+    // {
+    //   id: "originalPrice",
+    //   label: "Original Price",
+    //   type: "text",
+    //   placeholder: "Value at acquisition",
+    //   half: true,
+    //   hasCurrency: true,
+    // },
     {
       id: "expectedPrice",
       label: "Estimated Value",
