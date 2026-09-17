@@ -795,50 +795,7 @@ const ProfilePage = () => {
           </div>
 
           {/* ── Sidebar ───────────────────────────────── */}
-          <aside className="prof-sidebar">
-            {/* Membership Card */}
-            <div className="prof-member-card">
-              <div className="prof-member-card__top">
-                <span className="prof-member-card__eyebrow">OPLUENZA</span>
-                {/* <span className="prof-member-card__tier">{member.tier}</span> */}
-              </div>
-              <div className="prof-member-card__id">{member.memberId}</div>
-              <div className="prof-member-card__name">
-                {userInfo?.firstName + " " + userInfo?.lastName}
-              </div>
-              <div className="prof-member-card__since">
-                {/* Member since {member.since} */}
-              </div>
-              <div className="prof-member-card__shine" />
-            </div>
-
-            {/* Quick Links */}
-            <div className="prof-sidebar-box">
-              <p className="prof-sidebar-box__title">Quick Links</p>
-              <div className="prof-quick-links">
-                {[
-                  { label: "Browse Watches", path: "/watchListing" },
-                  { label: "Browse Whisky", path: "/whiskyListings" },
-                  { label: "Concierge", path: "/concierge" },
-                  { label: "Sell an Asset", path: "/sell" },
-                ].map((l) => (
-                  <Link key={l.label} to={l.path} className="prof-quick-link">
-                    {l.label}
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <path d="M5 12h14M12 5l7 7-7 7" />
-                    </svg>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </aside>
+         
         </div>
       </div>
 

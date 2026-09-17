@@ -8,6 +8,8 @@ import PensData from '../../../data/PensData'
 import YachtData from '../../../data/YachtData'
 import './Explore.css'
 import { getApprovedListing } from '../../../services/sellingServices/getSellListings/getSellListings'
+import { useUser } from '../../../services/showUserInfo/ShowUserInfo'
+import { ConvertCurrency } from '../../../services/convertCurrency/ConvertCurrency'
 
 const CountdownTimer = ({ days, hours, minutes, seconds, endDate }) => {
   const calculateTimeLeft = () => {
@@ -75,6 +77,61 @@ const Explore = () => {
   const [watchData, setWatchData] = useState([]);
   const [penData, setPenData] = useState([]);
   const [yachtData, setYachtData] = useState([]);
+
+  const { userInfo } = useUser();
+  const preferredCurrency = userInfo?.preferences?.preferredCurrency || "USD";
+  const [conversionRate, setConversionRate] = useState(1);
+
+  useEffect(() => {
+    if (!preferredCurrency || preferredCurrency === "USD") {
+      setConversionRate(1);
+      return;
+    }
+
+    ConvertCurrency(preferredCurrency)
+      .then((res) => {
+        const rate = res?.data?.rate || (res?.data?.rates && res?.data?.rates[preferredCurrency]) || 1;
+        if (rate) {
+          setConversionRate(rate);
+        }
+      })
+      .catch((err) => {
+        console.error("Currency conversion error:", err);
+        setConversionRate(1);
+      });
+  }, [preferredCurrency]);
+
+  const formatCurrency = (valInUsd) => {
+    if (typeof valInUsd === 'string' && (valInUsd.includes('M') || valInUsd.includes('K'))) {
+      const clean = valInUsd.replace(/[^0-9.]/g, '');
+      const mult = valInUsd.toUpperCase().includes('M') ? 1000000 : valInUsd.toUpperCase().includes('K') ? 1000 : 1;
+      const parsed = Number(clean) * mult;
+      if (!isNaN(parsed) && parsed > 0) {
+        const converted = parsed * (conversionRate || 1);
+        try {
+          return new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: preferredCurrency || "USD",
+            maximumFractionDigits: 0,
+          }).format(converted);
+        } catch {
+          return `${preferredCurrency || "USD"} ${Math.round(converted).toLocaleString()}`;
+        }
+      }
+    }
+    const num = Number(valInUsd);
+    const validNum = isNaN(num) ? 0 : num;
+    const convertedVal = validNum * (conversionRate || 1);
+    try {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: preferredCurrency || "USD",
+        maximumFractionDigits: 0,
+      }).format(convertedVal);
+    } catch {
+      return `${preferredCurrency || "USD"} ${Math.round(convertedVal).toLocaleString()}`;
+    }
+  };
 
 
   const getCigarData = () => {
@@ -331,7 +388,9 @@ const Explore = () => {
                       {/* Current Bid Overlay */}
                       <div className="explore-card__bid-overlay">
                         <div className="explore-card__bid-label">CURRENT BID</div>
-                        <div className="explore-card__bid-value">${item.currentPrice}</div>
+                        <div className="explore-card__bid-value">
+                          {formatCurrency(item?.currentPrice ?? item?.currentBidNumber ?? item?.currentBid ?? item?.price ?? 0)}
+                        </div>
                       </div>
                     </div>
 

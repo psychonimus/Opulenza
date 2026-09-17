@@ -407,8 +407,9 @@ const AllWhisky = () => {
                       <div className="whisky-card__body">
                         <div className="d-flex justify-content-between">
                           <div>
-                          <h3 className="whisky-card__title">{item?.details?.caskType}</h3>
-                          <p className="whisky-card__reference">{item?.details?.distillesy}</p>
+                          <h3 className="whisky-card__title">{item?.details?.distillesy}</h3>
+                          <p className="whisky-card__reference">{item?.details?.caskType}</p>
+                          {/* <p className="whisky-card__reference">{}</p>z */}
                           <p className="whisky-card__desc">{item?.details?.storageCondition}</p>
                         </div>
 

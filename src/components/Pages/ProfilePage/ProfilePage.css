@@ -334,7 +334,7 @@
 /* ── Layout ───────────────────────────────────────────── */
 .prof-layout {
   display: grid;
-  grid-template-columns: 1fr 280px;
+  grid-template-columns: 1fr;
   gap: 2rem;
   align-items: start;
   min-width: 0;
