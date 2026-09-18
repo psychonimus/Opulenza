@@ -359,8 +359,8 @@ const Explore = () => {
                   cardSub = item?.details?.bottlingName;
                   cardDesc = item?.details?.storageCondition || item?.description;
                 } else if (isCask) {
-                  cardTitle = item?.details?.caskType || item?.title;
-                  cardSub = item?.details?.distillesy;
+                  cardTitle = item?.details?.distillesy || item?.title;
+                  cardSub = item?.details?.caskType;
                   cardDesc = item?.details?.storageCondition || item?.description;
                 } else if (isPen) {
                   cardTitle = item?.details?.brand || item?.title;
