@@ -337,11 +337,11 @@ const DetailedPage = () => {
 
     useEffect(() => {
         setLoading(true)
-        getApprovedListing(3)
+        getApprovedListing(3, 1, 1000)
             .then((res) => {
                 const list = res?.data?.data || []
                 setWatchData(list)
-                const found = list.find(w => w.itemId === Number(id))
+                const found = list.find(w => Number(w.itemId) === Number(id) || String(w.itemId) === String(id))
                 if (found) {
                     const mappedWatch = {
                         id: found.itemId,

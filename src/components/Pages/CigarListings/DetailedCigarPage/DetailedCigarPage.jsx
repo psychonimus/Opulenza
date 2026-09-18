@@ -313,10 +313,10 @@ const DetailedCigarPage = () => {
 
     useEffect(() => {
         setLoading(true)
-        getApprovedListing(1)
+        getApprovedListing(1, 1, 1000)
             .then((res) => {
                 const list = res?.data?.data || []
-                const found = list.find(c => c.itemId === Number(id))
+                const found = list.find(c => Number(c.itemId) === Number(id) || String(c.itemId) === String(id))
                 if (found) {
                     const mappedItem = {
                         id: found.itemId,

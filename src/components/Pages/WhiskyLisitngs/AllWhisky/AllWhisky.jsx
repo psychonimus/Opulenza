@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams, useLocation } from "react-router-dom";
 // import whiskyData, { CaskData } from "../../../../data/WhiskyData";
 import "./AllWhisky.css";
 import { getApprovedListing, updateWishListItem } from '../../../../services/sellingServices/getSellListings/getSellListings'
@@ -8,17 +8,44 @@ import { ConvertCurrency } from "../../../../services/convertCurrency/ConvertCur
 
 
 const AllWhisky = () => {
-  const [activeTab, setActiveTab] = useState("whisky");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
 
+  const tabParam =
+    searchParams.get("tab") ||
+    location.state?.fromTab ||
+    sessionStorage.getItem("whisky_active_tab") ||
+    "whisky";
+  const initialTab = tabParam === "cask" ? "cask" : "whisky";
+
+  const initialWhiskyPage =
+    Number(
+      searchParams.get("whiskyPage") ||
+      (initialTab === "whisky" ? searchParams.get("page") : null) ||
+      location.state?.whiskyPage ||
+      (initialTab === "whisky" ? location.state?.fromPage : null) ||
+      sessionStorage.getItem("whisky_page")
+    ) || 1;
+
+  const initialCaskPage =
+    Number(
+      searchParams.get("caskPage") ||
+      (initialTab === "cask" ? searchParams.get("page") : null) ||
+      location.state?.caskPage ||
+      (initialTab === "cask" ? location.state?.fromPage : null) ||
+      sessionStorage.getItem("cask_page")
+    ) || 1;
+
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   const [whiskies, setWhiskies] = useState([])
   const [casks, setCasks] = useState([])
 
-  const [whiskyPage, setWhiskyPage] = useState(1)
+  const [whiskyPage, setWhiskyPage] = useState(initialWhiskyPage)
   const [whiskyTotalPages, setWhiskyTotalPages] = useState(1)
   const [whiskyLoading, setWhiskyLoading] = useState(false)
 
-  const [caskPage, setCaskPage] = useState(1)
+  const [caskPage, setCaskPage] = useState(initialCaskPage)
   const [caskTotalPages, setCaskTotalPages] = useState(1)
   const [caskLoading, setCaskLoading] = useState(false)
 
@@ -28,6 +55,30 @@ const AllWhisky = () => {
   const preferredCurrency = userInfo?.preferences?.preferredCurrency || "USD";
 
   const [conversionRate, setConversionRate] = useState(1);
+
+  useEffect(() => {
+    sessionStorage.setItem("whisky_active_tab", activeTab);
+    sessionStorage.setItem("whisky_page", String(whiskyPage));
+    sessionStorage.setItem("cask_page", String(caskPage));
+  }, [activeTab, whiskyPage, caskPage]);
+
+  useEffect(() => {
+    const currentTab = searchParams.get("tab") || location.state?.fromTab;
+    if (currentTab && (currentTab === "whisky" || currentTab === "cask") && currentTab !== activeTab) {
+      setActiveTab(currentTab);
+    }
+    const pageParam = searchParams.get("page");
+    if (pageParam) {
+      const pageNum = Number(pageParam);
+      if (pageNum && pageNum > 0) {
+        if (currentTab === "cask" || activeTab === "cask") {
+          setCaskPage(pageNum);
+        } else {
+          setWhiskyPage(pageNum);
+        }
+      }
+    }
+  }, [searchParams, location.state]);
 
   useEffect(() => {
     if (!preferredCurrency || preferredCurrency === "USD") {
@@ -47,9 +98,6 @@ const AllWhisky = () => {
         setConversionRate(1);
       });
   }, [preferredCurrency]);
-
-  // console.log("this is the conversion rate : ", conversionRate);
-
 
   const handleWishList = (itemId) => {
     const currentItem = whiskies.find(c => c.itemId === itemId)
@@ -151,19 +199,50 @@ const AllWhisky = () => {
     getCasksListings(caskPage)
   }, [caskPage])
 
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    sessionStorage.setItem("whisky_active_tab", tab);
+    const targetPage = tab === "cask" ? caskPage : whiskyPage;
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set("tab", tab);
+      next.set("page", String(targetPage));
+      return next;
+    }, { replace: true });
+    if (tab === "whisky") {
+      getWhiskyListings(whiskyPage);
+    } else {
+      getCasksListings(caskPage);
+    }
+  };
+
   const handleWhiskyPageChange = (newPage) => {
     if (newPage >= 1 && newPage <= whiskyTotalPages && newPage !== whiskyPage) {
-      setWhiskyPage(newPage)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      setWhiskyPage(newPage);
+      sessionStorage.setItem("whisky_page", String(newPage));
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("tab", "whisky");
+        next.set("page", String(newPage));
+        return next;
+      }, { replace: true });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }
+  };
 
   const handleCaskPageChange = (newPage) => {
     if (newPage >= 1 && newPage <= caskTotalPages && newPage !== caskPage) {
-      setCaskPage(newPage)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      setCaskPage(newPage);
+      sessionStorage.setItem("cask_page", String(newPage));
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("tab", "cask");
+        next.set("page", String(newPage));
+        return next;
+      }, { replace: true });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }
+  };
 
 
   const formatCurrency = (valInUsd) => {
@@ -209,7 +288,7 @@ const AllWhisky = () => {
             type="button"
             id="tab-whisky"
             className={`aw-tab-btn${activeTab === "whisky" ? " aw-tab-btn--active" : ""}`}
-            onClick={() => { setActiveTab("whisky"), getWhiskyListings() }}
+            onClick={() => handleTabChange("whisky")}
           >
             Whisky
           </button>
@@ -217,7 +296,7 @@ const AllWhisky = () => {
             type="button"
             id="tab-cask"
             className={`aw-tab-btn${activeTab === "cask" ? " aw-tab-btn--active" : ""}`}
-            onClick={() => { setActiveTab("cask"), getCasksListings() }}
+            onClick={() => handleTabChange("cask")}
           >
             Cask
           </button>
@@ -312,6 +391,7 @@ const AllWhisky = () => {
                           </div>
                           <Link
                             to={`/whisky/${item.itemId}`}
+                            state={{ item, fromTab: "whisky", fromPage: whiskyPage, whiskyPage, caskPage }}
                             key={item.itemId}
                             className="whisky-card-link"
                           >
@@ -458,6 +538,7 @@ const AllWhisky = () => {
                           </div>
                           <Link
                             to={`/cask/${item?.itemId}`}
+                            state={{ item, fromTab: "cask", fromPage: caskPage, whiskyPage, caskPage }}
                             key={item?.itemId}
                             className="whisky-card-link"
                           >

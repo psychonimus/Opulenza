@@ -25,8 +25,8 @@ export const updateWishListItem = (dataObject) => {
 
 
 
-export const getApprovedListing = (selectedCat, pageNumber = 1) => {
-    return api.get(`api/item/ItemList?PageSize=10&PageNumber=${pageNumber}&CategoryId=${selectedCat}`);    
+export const getApprovedListing = (selectedCat, pageNumber = 1, pageSize = 10) => {
+    return api.get(`api/item/ItemList?PageSize=${pageSize}&PageNumber=${pageNumber}&CategoryId=${selectedCat}`);    
 };
 
 export const getItemMedia = (itemId, mediaId) => {

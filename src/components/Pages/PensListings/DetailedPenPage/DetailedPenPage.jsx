@@ -386,11 +386,11 @@ const DetailedPenPage = () => {
 
     useEffect(() => {
         setLoading(true)
-        getApprovedListing(4)
+        getApprovedListing(4, 1, 1000)
             .then((res) => {
                 const list = res?.data?.data || []
                 setPensList(list)
-                const found = list.find(p => p.itemId === Number(id))
+                const found = list.find(p => Number(p.itemId) === Number(id) || String(p.itemId) === String(id))
                 if (found) {
                     const mappedPen = {
                         id: found.itemId,

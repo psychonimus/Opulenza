@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useLocation, Link } from "react-router-dom";
 import * as signalR from "@microsoft/signalr";
 import connection from "../../../../services/signalR/auctionSignalR";
 import { getApprovedListing, updateWishListItem, getMyWishList } from '../../../../services/sellingServices/getSellListings/getSellListings'
@@ -21,13 +21,115 @@ const formatDateOnly = (val) => {
   return str;
 };
 
+const mapWhiskyOrCaskItem = (found) => {
+  if (!found) return null;
+  const isCask = found.categoryId === 6 || found.categoryName?.toLowerCase() === 'cask';
+
+  let mappedItem = {
+    id: found.itemId,
+    itemId: found.itemId,
+    categoryId: found.categoryId,
+    categoryName: found.categoryName,
+    currency: found.currency || 'USD',
+    auctionEndDate: found.auctionEndDate,
+    bidIncrement: found.bidIncreament || 500,
+    currentBidNumber: found.currentPrice || found.orignalPrice || found.expectedPrice || 1000,
+    isWishList: found.isWishList ?? found.IsWishList,
+    canBid: found.canUserBid,
+  };
+
+  if (isCask) {
+    mappedItem.title = found.details?.caskType || "Rare Cask";
+    mappedItem.reference = found.details?.distillesy || "";
+    mappedItem.description = `Distillery: ${found.details?.distillesy || 'N/A'} | Cask Type: ${found.details?.caskType || 'N/A'}`;
+    mappedItem.detailedDescription = `This is a premium Cask Lot featuring a ${found.details?.caskType || 'cask'} from the renowned ${found.details?.distillesy || 'distillery'}. Number of bottles: ${found.details?.noOfBottles || 'N/A'}, ABV: ${found.details?.abv || 'N/A'}%.`;
+    mappedItem.image = found.details?.thumbnail || found.details?.Thumbnail || found.details?.image1 || found.details?.Image1 || found.details?.frontLabel || found.details?.FrontLabel || found.image || found.imageUrl || "";
+    mappedItem.angles = [
+      found.details?.image1 || found.details?.Image1,
+      found.details?.image2 || found.details?.Image2,
+      found.details?.image3 || found.details?.Image3,
+      found.details?.image4 || found.details?.Image4,
+      found.details?.image5 || found.details?.Image5,
+    ].filter(Boolean);
+    mappedItem.provenance = {
+      title: "Cask Provenance & History",
+      description: `Matured at the ${found.details?.distillesy || 'distillery'} in a ${found.details?.caskType || 'N/A'} cask. The lot includes the original sale documentation and cask registry extract.`,
+      timeline: [
+        { period: formatDateOnly(found.details?.ays) || "N/A", detail: "Cask filled / distilled" },
+        { period: "PRESENT", detail: "Opulenza Authenticated Vault Custody" }
+      ]
+    };
+    mappedItem.authentication = `This cask has been fully authenticated. Original receipts/documents: ${found.details?.receipt ? 'Included' : 'Verified'}. Distillery check: ${found.details?.distillesy ? 'Confirmed' : 'Pending'}. Certificates: ${found.details?.certificate ? 'Included' : 'Verified by cellar masters'}.`;
+    mappedItem.conditionReport = {
+      label: ["CASK TYPE", "ABV", "NO. OF BOTTLES", "FILL LEVEL"],
+      value: [
+        found.details?.caskType || "N/A",
+        found.details?.abv ? `${found.details.abv}% ABV` : "N/A",
+        found.details?.noOfBottles || "N/A",
+        found.details?.fillLevel ? "Pristine - Verified" : "Verified"
+      ]
+    };
+    mappedItem.details = [
+      { label: "DISTILLERY", value: found.details?.distillesy || "—" },
+      { label: "DISTILLED", value: formatDateOnly(found.details?.ays) || "—" },
+      { label: "CASK", value: found.details?.caskType || "—" },
+      { label: "RARITY", value: found.details?.noOfBottles ? `${found.details.noOfBottles} Bottles` : "—" },
+    ];
+  } else {
+    // Whisky
+    mappedItem.title = found.details?.producerName || found.categoryName || "Rare Whisky";
+    mappedItem.reference = found.details?.bottlingName || "";
+    mappedItem.description = `Producer: ${found.details?.producerName || 'N/A'} | Region: ${found.details?.region || 'N/A'}`;
+    mappedItem.detailedDescription = `This is an exceptional bottle of ${found.details?.producerName || 'whisky'} (${found.details?.bottlingName || 'N/A'}). Matured for ${found.details?.age || 'N/A'} years, distilled in ${found.details?.vintageYear || 'N/A'}, strength is ${found.details?.proof || 'N/A'}% ABV. Region: ${found.details?.region || 'N/A'}.`;
+    mappedItem.image = found.details?.thumbnail || found.details?.Thumbnail || found.details?.image1 || found.details?.Image1 || found.details?.frontLabel || found.details?.FrontLabel || found.image || found.imageUrl || "";
+    mappedItem.angles = [
+      found.details?.image1 || found.details?.Image1,
+      found.details?.image2 || found.details?.Image2,
+      found.details?.image3 || found.details?.Image3,
+      found.details?.image4 || found.details?.Image4,
+      found.details?.image5 || found.details?.Image5,
+    ].filter(Boolean);
+    mappedItem.provenance = {
+      title: "Whisky Provenance & History",
+      description: `Produced by ${found.details?.producerName || 'N/A'} in the ${found.details?.region || 'N/A'} region. Stored under ${found.details?.storageCondition || 'excellent'} storage conditions.`,
+      timeline: [
+        { period: found.details?.vintageYear || "N/A", detail: "Distilled and casked" },
+        { period: "PRESENT", detail: "Opulenza Authenticated Vault Custody" }
+      ]
+    };
+    mappedItem.authentication = `This bottle has been fully authenticated. Producer: ${found.details?.producerName || 'N/A'}. Bottle code and front/back labels checked: ${found.details?.frontLabel ? 'Verified' : 'Yes'}.`;
+    mappedItem.conditionReport = {
+      label: ["VINTAGE", "AGE", "STRENGTH", "BOTTLE SIZE"],
+      value: [
+        found.details?.vintageYear || "N/A",
+        found.details?.age ? `${found.details.age} Years` : "N/A",
+        found.details?.proof ? `${found.details.proof}% ABV` : "N/A",
+        found.details?.bottle || "N/A"
+      ]
+    };
+    mappedItem.details = [
+      { label: "DISTILLERY", value: found.details?.producerName || "—" },
+      { label: "DISTILLED", value: found.details?.vintageYear || "—" },
+      { label: "CASK", value: found.details?.productionType || "—" },
+      { label: "RARITY", value: found.details?.age ? `${found.details.age} Years Aged` : "—" },
+    ];
+  }
+  return mappedItem;
+};
+
 const DetailedWhiskyPage = () => {
   const { userInfo, refreshUser } = useUser();
 
   const { id } = useParams();
-  const [item, setItem] = useState(null);
+  const location = useLocation();
+  const passedItem = location.state?.item;
+  const initialMapped = (passedItem && (Number(passedItem.itemId) === Number(id) || String(passedItem.itemId) === String(id)))
+    ? mapWhiskyOrCaskItem(passedItem)
+    : null;
+
+  const [item, setItem] = useState(initialMapped);
   const [whiskyDataList, setWhiskyDataList] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialMapped);
 
   // Tab State
   const [activeTab, setActiveTab] = useState("provenance");
@@ -512,125 +614,30 @@ const DetailedWhiskyPage = () => {
   }, [item?.itemId]);
 
   useEffect(() => {
-    setLoading(true);
-    Promise.all([getApprovedListing(2), getApprovedListing(6)])
+    if (!item) {
+      setLoading(true);
+    }
+    Promise.all([
+      getApprovedListing(2, 1, 1000),
+      getApprovedListing(6, 1, 1000)
+    ])
       .then(([whiskyRes, caskRes]) => {
         const whiskyList = whiskyRes?.data?.data || [];
         const caskList = caskRes?.data?.data || [];
         const list = [...whiskyList, ...caskList];
         setWhiskyDataList(list);
 
-        const found = list.find((w) => w.itemId === Number(id));
+        const found = list.find((w) => Number(w.itemId) === Number(id) || String(w.itemId) === String(id));
         if (found) {
-          const isCask = found.categoryId === 6 || found.categoryName?.toLowerCase() === 'cask';
-
-          let mappedItem = {
-            id: found.itemId,
-            itemId: found.itemId,
-            categoryId: found.categoryId,
-            categoryName: found.categoryName,
-            currency: found.currency || 'USD',
-            auctionEndDate: found.auctionEndDate,
-            bidIncrement: found.bidIncreament || 500,
-            currentBidNumber: found.currentPrice || found.orignalPrice || found.expectedPrice || 1000,
-            isWishList: found.isWishList,
-            canBid: found.canUserBid,
-            // activeBidders: 0,
-            // liveActivity: [
-            //   {
-            //     id: 1,
-            //     member: "MEMBER #7***3",
-            //     timeAgo: "2 minutes ago",
-            //     timestamp: Date.now() - 120000,
-            //     amount: `$${found.currentPrice || found.orignalPrice || found.expectedPrice || 1000}`,
-            //     amountNumber: found.currentPrice || found.orignalPrice || found.expectedPrice || 1000
-            //   }
-            // ]
-          };
-
-          if (isCask) {
-            mappedItem.title = found.details?.caskType || "Rare Cask";
-            mappedItem.reference = found.details?.distillesy || "";
-            mappedItem.description = `Distillery: ${found.details?.distillesy || 'N/A'} | Cask Type: ${found.details?.caskType || 'N/A'}`;
-            mappedItem.detailedDescription = `This is a premium Cask Lot featuring a ${found.details?.caskType || 'cask'} from the renowned ${found.details?.distillesy || 'distillery'}. Number of bottles: ${found.details?.noOfBottles || 'N/A'}, ABV: ${found.details?.abv || 'N/A'}%.`;
-            mappedItem.image = found.details?.thumbnail || found.details?.Thumbnail || found.details?.image1 || found.details?.Image1 || found.details?.frontLabel || found.details?.FrontLabel || found.image || found.imageUrl || "";
-            mappedItem.angles = [
-              found.details?.image1 || found.details?.Image1,
-              found.details?.image2 || found.details?.Image2,
-              found.details?.image3 || found.details?.Image3,
-              found.details?.image4 || found.details?.Image4,
-              found.details?.image5 || found.details?.Image5,
-            ].filter(Boolean);
-            mappedItem.provenance = {
-              title: "Cask Provenance & History",
-              description: `Matured at the ${found.details?.distillesy || 'distillery'} in a ${found.details?.caskType || 'N/A'} cask. The lot includes the original sale documentation and cask registry extract.`,
-              timeline: [
-                { period: formatDateOnly(found.details?.ays) || "N/A", detail: "Cask filled / distilled" },
-                { period: "PRESENT", detail: "Opulenza Authenticated Vault Custody" }
-              ]
-            };
-            mappedItem.authentication = `This cask has been fully authenticated. Original receipts/documents: ${found.details?.receipt ? 'Included' : 'Verified'}. Distillery check: ${found.details?.distillesy ? 'Confirmed' : 'Pending'}. Certificates: ${found.details?.certificate ? 'Included' : 'Verified by cellar masters'}.`;
-            mappedItem.conditionReport = {
-              label: ["CASK TYPE", "ABV", "NO. OF BOTTLES", "FILL LEVEL"],
-              value: [
-                found.details?.caskType || "N/A",
-                found.details?.abv ? `${found.details.abv}% ABV` : "N/A",
-                found.details?.noOfBottles || "N/A",
-                found.details?.fillLevel ? "Pristine - Verified" : "Verified"
-              ]
-            };
-            mappedItem.details = [
-              { label: "DISTILLERY", value: found.details?.distillesy || "—" },
-              { label: "DISTILLED", value: formatDateOnly(found.details?.ays) || "—" },
-              { label: "CASK", value: found.details?.caskType || "—" },
-              { label: "RARITY", value: found.details?.noOfBottles ? `${found.details.noOfBottles} Bottles` : "—" },
-            ];
-          } else {
-            // Whisky
-            mappedItem.title = found.details?.producerName || found.categoryName || "Rare Whisky";
-            mappedItem.reference = found.details?.bottlingName || "";
-            mappedItem.description = `Producer: ${found.details?.producerName || 'N/A'} | Region: ${found.details?.region || 'N/A'}`;
-            mappedItem.detailedDescription = `This is an exceptional bottle of ${found.details?.producerName || 'whisky'} (${found.details?.bottlingName || 'N/A'}). Matured for ${found.details?.age || 'N/A'} years, distilled in ${found.details?.vintageYear || 'N/A'}, strength is ${found.details?.proof || 'N/A'}% ABV. Region: ${found.details?.region || 'N/A'}.`;
-            mappedItem.image = found.details?.thumbnail || found.details?.Thumbnail || found.details?.image1 || found.details?.Image1 || found.details?.frontLabel || found.details?.FrontLabel || found.image || found.imageUrl || "";
-            mappedItem.angles = [
-              found.details?.image1 || found.details?.Image1,
-              found.details?.image2 || found.details?.Image2,
-              found.details?.image3 || found.details?.Image3,
-              found.details?.image4 || found.details?.Image4,
-              found.details?.image5 || found.details?.Image5,
-            ].filter(Boolean);
-            mappedItem.provenance = {
-              title: "Whisky Provenance & History",
-              description: `Produced by ${found.details?.producerName || 'N/A'} in the ${found.details?.region || 'N/A'} region. Stored under ${found.details?.storageCondition || 'excellent'} storage conditions.`,
-              timeline: [
-                { period: found.details?.vintageYear || "N/A", detail: "Distilled and casked" },
-                { period: "PRESENT", detail: "Opulenza Authenticated Vault Custody" }
-              ]
-            };
-            mappedItem.authentication = `This bottle has been fully authenticated. Producer: ${found.details?.producerName || 'N/A'}. Bottle code and front/back labels checked: ${found.details?.frontLabel ? 'Verified' : 'Yes'}.`;
-            mappedItem.conditionReport = {
-              label: ["VINTAGE", "AGE", "STRENGTH", "BOTTLE SIZE"],
-              value: [
-                found.details?.vintageYear || "N/A",
-                found.details?.age ? `${found.details.age} Years` : "N/A",
-                found.details?.proof ? `${found.details.proof}% ABV` : "N/A",
-                found.details?.bottle || "N/A"
-              ]
-            };
-            mappedItem.details = [
-              { label: "DISTILLERY", value: found.details?.producerName || "—" },
-              { label: "DISTILLED", value: found.details?.vintageYear || "—" },
-              { label: "CASK", value: found.details?.productionType || "—" },
-              { label: "RARITY", value: found.details?.age ? `${found.details.age} Years Aged` : "—" },
-            ];
-          }
+          const mappedItem = mapWhiskyOrCaskItem(found);
           setItem(mappedItem);
-          setIsFavorited(found.isWishList)
+          setIsFavorited(Boolean(found.isWishList ?? found.IsWishList));
         }
-        setLoading(false);
       })
       .catch((err) => {
         console.error(err);
+      })
+      .finally(() => {
         setLoading(false);
       });
   }, [id]);
@@ -724,15 +731,17 @@ const DetailedWhiskyPage = () => {
   }
 
   if (!item) {
+    const returnTab = location.state?.fromTab || sessionStorage.getItem("whisky_active_tab") || "whisky";
+    const returnPage = location.state?.fromPage || (returnTab === "cask" ? sessionStorage.getItem("cask_page") : sessionStorage.getItem("whisky_page")) || 1;
     return (
       <div className="whisky-not-found">
         <div className="container text-center py-5">
-          <h2 className="error-title">Bottle Not Found</h2>
+          <h2 className="error-title">Asset Not Found</h2>
           <p className="error-desc">
-            The whisky listing you are looking for does not exist or has been
+            The whisky or cask listing you are looking for does not exist or has been
             archived.
           </p>
-          <Link to="/whiskyListings" className="back-btn">
+          <Link to={`/whiskyListings?tab=${returnTab}&page=${returnPage}`} className="back-btn">
             RETURN TO LISTINGS
           </Link>
         </div>
@@ -871,6 +880,10 @@ const DetailedWhiskyPage = () => {
   const cask = item.details?.find((d) => d.label === "CASK")?.value || "—";
   const rarity = item.details?.find((d) => d.label === "RARITY")?.value || "—";
 
+  const returnTab = location.state?.fromTab || (item?.categoryId === 6 || item?.categoryName?.toLowerCase() === 'cask' ? 'cask' : 'whisky');
+  const returnPage = location.state?.fromPage || (returnTab === 'cask' ? location.state?.caskPage : location.state?.whiskyPage) || (returnTab === 'cask' ? sessionStorage.getItem("cask_page") : sessionStorage.getItem("whisky_page")) || 1;
+  const returnUrl = `/whiskyListings?tab=${returnTab}&page=${returnPage}`;
+
   return (
     <>
       <section className="detailed-page whisky-detailed-page">
@@ -878,7 +891,16 @@ const DetailedWhiskyPage = () => {
         <div className="container detailed-page__container">
           {/* Breadcrumb */}
           <div className="detailed-page__breadcrumb">
-            <Link to="/whiskyListings" className="breadcrumb-link">
+            <Link
+              to={returnUrl}
+              state={{
+                fromTab: returnTab,
+                fromPage: returnPage,
+                caskPage: location.state?.caskPage || (returnTab === 'cask' ? returnPage : 1),
+                whiskyPage: location.state?.whiskyPage || (returnTab === 'whisky' ? returnPage : 1)
+              }}
+              className="breadcrumb-link"
+            >
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
