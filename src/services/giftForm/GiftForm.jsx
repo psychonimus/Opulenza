@@ -7,3 +7,7 @@ export const GiftForm = (dataObj) => {
 export const getGiftingList = () => {
     return api.get("api/member/GiftsList?pageNumber=1&pageSize=10")
 }
+
+export const approveGift = (dataObj) => {
+    return api.post("api/member/UpdateGiftStatus", dataObj)
+}

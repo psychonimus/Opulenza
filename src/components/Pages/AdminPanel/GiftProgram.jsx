@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { MdAdd, MdEdit, MdDelete, MdCardGiftcard } from 'react-icons/md'
-import { getGiftingList } from '../../../services/giftForm/GiftForm';
+import { getGiftingList, approveGift } from '../../../services/giftForm/GiftForm';
 
 
 
@@ -24,7 +24,19 @@ const GiftProgram = () => {
       })
   }
 
-  console.log(giftList)
+  // console.log(giftList)
+  const handleApproveGift = (giftId) => {
+
+    approveGift({
+      GiftId: giftId,
+    })
+      .then((res) => {
+        getGiftListings();
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+  }
 
 
 
@@ -62,11 +74,17 @@ const GiftProgram = () => {
       <div className="ap-table-card">
         <table className="ap-table">
           <thead>
-            <tr><th>Gift Id</th><th>Member Id</th><th>Full Name</th><th>Address</th><th>City</th><th>State</th><th>Country</th><th>Postal Code</th><th>Phone</th><th>Status</th><th>Actions</th></tr>
+            <tr><th>Actions</th><th>Gift Id</th><th>Member Id</th><th>Full Name</th><th>Address</th><th>City</th><th>State</th><th>Country</th><th>Postal Code</th><th>Phone</th><th>Status</th></tr>
           </thead>
           <tbody>
             {giftList.map(g => (
               <tr key={g.id}>
+                <td>
+                  <div className="ap-action-group">
+                    <button className="ap-icon-btn" onClick={() => handleApproveGift(g.gifts?.welcomeGiftId)}><MdEdit size={15} /></button>
+                    <button className="ap-icon-btn ap-icon-btn--danger"><MdDelete size={15} /></button>
+                  </div>
+                </td>
                 <td className="ap-user-cell__name">{g.gifts?.welcomeGiftId}</td>
                 <td className="ap-table__muted">{g?.gifts?.memberId}</td>
                 <td className="ap-table__muted">{g?.gifts?.fullName}</td>
@@ -77,12 +95,7 @@ const GiftProgram = () => {
                 <td className="ap-table__muted">{g.gifts?.postalCode}</td>
                 <td className="ap-table__muted">{g.gifts?.phoneNumber}</td>
                 <td><span className="ap-badge" style={statusColor[g?.gifts?.isDelivered === true ? "Delivered" : "Pending"]}>{g.gifts?.isDelivered === true ? "Delivered" : "Pending"}</span></td>
-                <td>
-                  <div className="ap-action-group">
-                    <button className="ap-icon-btn"><MdEdit size={15} /></button>
-                    <button className="ap-icon-btn ap-icon-btn--danger"><MdDelete size={15} /></button>
-                  </div>
-                </td>
+
               </tr>
             ))}
           </tbody>
