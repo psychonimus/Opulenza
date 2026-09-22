@@ -101,19 +101,22 @@
 }
 
 .pen-card__bid-label {
-    font-family: 'Inter', sans-serif;
-    font-size: 0.65rem;
-    letter-spacing: 0.15em;
-    color: rgba(212, 175, 55, 0.8);
-    margin-bottom: 0.25rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #ffffff59;
+    font-size: .6rem;
 }
 
 .pen-card__bid-value {
-    font-family: 'Cormorant Garamond', 'cormorant', serif;
-    font-size: 2.2rem;
-    font-weight: 400;
-    color: #ffffff;
-    line-height: 1;
+    background: linear-gradient(110deg, #d6a54d, #f2c86c 50%, #d6a54d) 0 0 / 200% 100%;
+    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+    font-family: cormorant, serif;
+    font-size: 1.35rem;
+    font-style: italic;
+    font-weight: 700;
+    animation: 5s infinite goldShimmer;
 }
 
 /* ── Info Section ────────────────────────────────────────────── */

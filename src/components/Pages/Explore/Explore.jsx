@@ -488,12 +488,16 @@ const Explore = () => {
                               <div className="explore-card__detail-value">{item.details?.caskType || "—"}</div>
                             </div>
                             <div className="explore-card__detail-item">
-                              <div className="explore-card__detail-label">VINTAGE</div>
-                              <div className="explore-card__detail-value">{item.details?.vintageYear || "—"}</div>
+                              <div className="explore-card__detail-label">AYS</div>
+                              <div className="explore-card__detail-value">{item.details?.ays || "—"}</div>
                             </div>
                             <div className="explore-card__detail-item">
-                              <div className="explore-card__detail-label">CAPACITY</div>
-                              <div className="explore-card__detail-value">{item.details?.capacity || "—"}</div>
+                              <div className="explore-card__detail-label">ABV</div>
+                              <div className="explore-card__detail-value">{item.details?.abv || "—"} % ABV</div>
+                            </div>
+                            <div className="explore-card__detail-item">
+                              <div className="explore-card__detail-label">Bottles</div>
+                              <div className="explore-card__detail-value">{item.details?.noOfBottles || "—"} </div>
                             </div>
                           </>
                         )}
