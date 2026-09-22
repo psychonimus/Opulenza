@@ -489,7 +489,11 @@ const Explore = () => {
                             </div>
                             <div className="explore-card__detail-item">
                               <div className="explore-card__detail-label">AYS</div>
-                              <div className="explore-card__detail-value">{item.details?.ays || "—"}</div>
+                              <div className="explore-card__detail-value">
+                                {item.details?.ays
+                                  ? String(item.details.ays).split(/[T\s]/)[0]
+                                  : "—"}
+                              </div>
                             </div>
                             <div className="explore-card__detail-item">
                               <div className="explore-card__detail-label">ABV</div>
