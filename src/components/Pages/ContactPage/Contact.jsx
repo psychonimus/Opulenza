@@ -42,7 +42,7 @@ const contactMethods = [
 const offices = [
     {
         city: 'Singapore',
-        address: 'Opulenza Reserve Pte Ltd, Robinson Rd, Singapore',
+        address: 'Opulenza Reserve Pte Ltd Robinson Rd, Singapore',
         role: 'Headquarters',
     }
 ]
