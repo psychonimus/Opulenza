@@ -91,7 +91,7 @@
    ═══════════════════════════════════════════════════════════════ */
 .about-hero {
     position: relative;
-    min-height: 100vh;
+    min-height: 75vh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -152,7 +152,7 @@
 
 .about-hero__title {
     font-family: 'cormorant', 'Playfair Display', serif;
-    font-size: clamp(3.2rem, 7vw, 6rem);
+    font-size: clamp(3.2rem, 5vw, 6rem);
     font-weight: 700;
     font-style: italic;
     line-height: 1.05;
@@ -218,7 +218,7 @@
    ═══════════════════════════════════════════════════════════════ */
 .about-stats {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     border-top: 1px solid rgba(255, 255, 255, 0.06);
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     background: rgba(214, 165, 77, 0.03);
@@ -266,152 +266,356 @@
 /* ═══════════════════════════════════════════════════════════════
    MISSION
    ═══════════════════════════════════════════════════════════════ */
+.about-mission {
+    position: relative;
+    background: radial-gradient(ellipse 70% 50% at 85% 50%, rgba(214, 165, 77, 0.05) 0%, transparent 70%);
+}
+
 .about-mission__grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6rem;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.95fr);
+    gap: clamp(2.5rem, 5vw, 5.5rem);
     align-items: center;
 }
 
-.about-mission__divider {
-    width: 60px;
-    height: 1px;
-    background: linear-gradient(to right, var(--primary-color, #d6a54d), transparent);
-    margin: 2rem 0;
+.about-mission__text {
+    width: 100%;
+    min-width: 0;
 }
 
-.about-quote {
-    font-family: 'cormorant', serif;
-    font-size: 1.25rem;
+.about-mission__eyebrow-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+/* ── Lead Statement Card ─────────────────────────────────────── */
+.about-mission__lead-card {
+    position: relative;
+    background: linear-gradient(135deg, rgba(214, 165, 77, 0.08) 0%, rgba(214, 165, 77, 0.02) 100%);
+    border: 1px solid rgba(214, 165, 77, 0.22);
+    padding: clamp(1rem, 2.5vw, 1.35rem) clamp(1.25rem, 3vw, 1.75rem);
+    margin-bottom: 1.75rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+}
+
+.about-mission__lead-accent {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--gold-gradient, linear-gradient(to bottom, #d6a54d, #f2c86c, #b17000));
+}
+
+.about-mission__lead-text {
+    font-family: 'cormorant', 'Playfair Display', serif;
+    font-size: clamp(1.18rem, 2.2vw, 1.45rem);
     font-style: italic;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.8);
-    border-left: 2px solid var(--primary-color, #d6a54d);
-    padding-left: 1.25rem;
+    color: #fff;
+    line-height: 1.35;
+    letter-spacing: 0.01em;
     margin: 0;
 }
 
-.about-quote cite {
-    display: block;
-    font-size: 0.78rem;
-    font-style: normal;
-    font-family: 'inter', sans-serif;
-    letter-spacing: 0.1em;
-    color: rgba(255, 255, 255, 0.4);
-    margin-top: 0.6rem;
-    text-transform: uppercase;
+.about-mission__body {
+    font-size: clamp(0.92rem, 1.5vw, 0.98rem);
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.68);
+    margin-bottom: 1.25rem;
 }
 
-/* Decorative watch illustration */
+.about-mission__body strong {
+    color: #fff;
+    font-weight: 600;
+}
+
+/* ── Asset Category Badges ───────────────────────────────────── */
+.about-mission__categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1.75rem;
+    padding-top: 0.5rem;
+}
+
+.about-category-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.95rem;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(214, 165, 77, 0.2);
+    border-radius: 999px;
+    font-family: 'inter', sans-serif;
+    font-size: clamp(0.72rem, 1.2vw, 0.78rem);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: rgba(255, 255, 255, 0.85);
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.about-category-pill__dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--primary-color, #d6a54d);
+    box-shadow: 0 0 8px rgba(214, 165, 77, 0.7);
+    flex-shrink: 0;
+}
+
+.about-category-pill:hover {
+    border-color: rgba(214, 165, 77, 0.45);
+    background: rgba(214, 165, 77, 0.08);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MISSION VISUAL: RESERVE VAULT & TRUST CORE
+   ═══════════════════════════════════════════════════════════════ */
 .about-mission__visual {
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+    width: 100%;
 }
 
-.about-watch-frame {
+.about-reserve-card {
     position: relative;
-    width: 260px;
-    height: 260px;
+    width: 100%;
+    max-width: 460px;
+    background: linear-gradient(165deg, rgba(22, 22, 26, 0.85) 0%, rgba(10, 10, 12, 0.95) 100%);
+    border: 1px solid rgba(214, 165, 77, 0.22);
+    padding: clamp(2rem, 3.5vw, 2.6rem) clamp(1.5rem, 3vw, 2.2rem);
+    box-shadow: 
+        0 24px 60px -15px rgba(0, 0, 0, 0.8),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 0 0 1px rgba(255, 255, 255, 0.02);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+    transition: border-color 0.4s ease, box-shadow 0.4s ease;
 }
 
-.about-watch-dial {
+.about-reserve-card:hover {
+    border-color: rgba(214, 165, 77, 0.35);
+    box-shadow: 
+        0 30px 70px -15px rgba(0, 0, 0, 0.9),
+        0 0 40px rgba(214, 165, 77, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.about-reserve-card__glow {
     position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    border: 2px solid rgba(214, 165, 77, 0.5);
-    background: radial-gradient(circle at 40% 30%, rgba(214,165,77,0.08), rgba(0,0,0,0.9) 70%);
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 220px;
+    height: 180px;
+    background: radial-gradient(circle, rgba(214, 165, 77, 0.16) 0%, transparent 70%);
+    pointer-events: none;
+    animation: reserveGlowPulse 4s ease-in-out infinite;
+}
+
+@keyframes reserveGlowPulse {
+    0%, 100% { opacity: 0.5; transform: translateX(-50%) scale(1); }
+    50%      { opacity: 1;   transform: translateX(-50%) scale(1.15); }
+}
+
+/* ── Central Emblem ──────────────────────────────────────────── */
+.about-reserve-emblem {
+    position: relative;
+    width: 170px;
+    height: 170px;
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-bottom: 2rem;
 }
 
-.about-watch-ring {
+.about-emblem-ring {
     position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.about-emblem-ring--outer {
+    inset: 0;
+    border: 1px dashed rgba(214, 165, 77, 0.28);
+    animation: emblemRotate 45s linear infinite;
+}
+
+.about-emblem-ring--middle {
     inset: 14px;
-    border-radius: 50%;
-    border: 1px solid rgba(214, 165, 77, 0.2);
+    border: 1px solid rgba(214, 165, 77, 0.14);
+    border-top-color: rgba(214, 165, 77, 0.5);
+    border-bottom-color: rgba(214, 165, 77, 0.5);
+    animation: emblemRotateRev 24s linear infinite;
 }
 
-.about-watch-inner {
-    position: absolute;
-    inset: 30px;
-    border-radius: 50%;
-    border: 1px solid rgba(214, 165, 77, 0.1);
+.about-emblem-ring--inner {
+    inset: 28px;
+    border: 1px solid rgba(214, 165, 77, 0.08);
+    background: radial-gradient(circle, rgba(214, 165, 77, 0.06) 0%, rgba(0, 0, 0, 0.4) 80%);
 }
 
-.about-watch-hand {
-    position: absolute;
-    bottom: 50%;
-    left: 50%;
-    transform-origin: bottom center;
-    background: linear-gradient(to top, var(--primary-color, #d6a54d), rgba(214,165,77,0.4));
-    border-radius: 2px;
-    transform: translateX(-50%);
+@keyframes emblemRotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
 }
 
-.about-watch-hand--hour {
-    width: 3px;
-    height: 70px;
-    transform: translateX(-50%) rotate(120deg);
-    animation: hourHand 43200s linear infinite;
+@keyframes emblemRotateRev {
+    from { transform: rotate(360deg); }
+    to   { transform: rotate(0deg); }
 }
 
-.about-watch-hand--minute {
-    width: 2px;
-    height: 95px;
-    opacity: 0.7;
-    transform: translateX(-50%) rotate(210deg);
-    animation: minuteHand 3600s linear infinite;
-}
-
-@keyframes hourHand   { to { transform: translateX(-50%) rotate(480deg); } }
-@keyframes minuteHand { to { transform: translateX(-50%) rotate(570deg); } }
-
-.about-watch-center {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--primary-color, #d6a54d);
-    position: absolute;
+.about-emblem-core {
+    position: relative;
     z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
 }
 
-.about-watch-glow {
-    position: absolute;
-    inset: -40px;
+.about-emblem-icon {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 0.35rem;
+    filter: drop-shadow(0 0 12px rgba(214, 165, 77, 0.4));
+}
+
+.about-emblem-title {
+    font-family: 'cormorant', 'Playfair Display', serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.24em;
+    color: #fff;
+    line-height: 1;
+}
+
+.about-emblem-subtitle {
+    font-family: 'inter', sans-serif;
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    color: var(--primary-color, #d6a54d);
+    margin-top: 0.2rem;
+}
+
+/* ── Trust Pillars List ──────────────────────────────────────── */
+.about-reserve-pillars {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.about-reserve-pillar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem 1.1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+    border-radius: 2px;
+}
+
+.about-reserve-pillar:hover {
+    background: rgba(214, 165, 77, 0.04);
+    border-color: rgba(214, 165, 77, 0.25);
+    transform: translateX(4px);
+}
+
+.about-pillar-icon {
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(214, 165, 77, 0.12) 0%, transparent 70%);
-    animation: glowPulse 3s ease-in-out infinite;
+    background: rgba(214, 165, 77, 0.08);
+    border: 1px solid rgba(214, 165, 77, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
-@keyframes glowPulse {
-    0%, 100% { opacity: 0.6; transform: scale(1); }
-    50%       { opacity: 1;   transform: scale(1.06); }
+.about-pillar-icon svg {
+    width: 17px;
+    height: 17px;
+}
+
+.about-pillar-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.about-pillar-title {
+    font-family: 'playfair-display', 'Playfair Display', serif;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: 0.02em;
+}
+
+.about-pillar-desc {
+    font-family: 'inter', sans-serif;
+    font-size: 0.76rem;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   VALUES
+   VALUES / PHILOSOPHY
    ═══════════════════════════════════════════════════════════════ */
 .about-values-section {
     background: radial-gradient(ellipse at 50% 0%, rgba(214, 165, 77, 0.06) 0%, transparent 60%);
+    position: relative;
+}
+
+.about-values-sub {
+    font-family: 'cormorant', 'Playfair Display', serif;
+    font-size: clamp(1.05rem, 2vw, 1.35rem);
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.65);
+    margin-top: -1.75rem;
+    margin-bottom: clamp(2.5rem, 4vw, 3.5rem);
+    letter-spacing: 0.02em;
 }
 
 .about-values-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1.5rem;
-    margin-top: 1rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1.25rem, 2.5vw, 2rem);
+    width: 100%;
 }
 
 .about-value-card {
     border: 1px solid rgba(255, 255, 255, 0.07);
-    background: rgba(255, 255, 255, 0.02);
-    padding: 2.5rem 1.75rem;
-    transition: border-color 0.3s ease, background 0.3s ease, transform 0.35s ease;
+    background: linear-gradient(170deg, rgba(255, 255, 255, 0.025) 0%, rgba(255, 255, 255, 0.01) 100%);
+    padding: clamp(2rem, 3.5vw, 2.75rem) clamp(1.5rem, 2.5vw, 2rem);
+    transition: border-color 0.35s ease, background 0.35s ease, transform 0.35s ease, box-shadow 0.35s ease;
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
 .about-value-card::before {
@@ -427,9 +631,10 @@
 }
 
 .about-value-card:hover {
-    border-color: rgba(214, 165, 77, 0.25);
+    border-color: rgba(214, 165, 77, 0.3);
     background: rgba(214, 165, 77, 0.04);
-    transform: translateY(-4px);
+    transform: translateY(-5px);
+    box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.7), 0 0 20px rgba(214, 165, 77, 0.08);
 }
 
 .about-value-card:hover::before {
@@ -437,14 +642,27 @@
 }
 
 .about-value-card__icon {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.35s ease;
+}
+
+.about-value-card:hover .about-value-card__icon {
+    transform: scale(1.08);
+}
+
+.about-value-card__icon svg {
+    width: 100%;
+    height: 100%;
 }
 
 .about-value-card__title {
     font-family: 'playfair-display', 'Playfair Display', serif;
-    font-size: 1.05rem;
+    font-size: clamp(1.12rem, 2vw, 1.3rem);
     font-weight: 600;
     color: #fff;
     margin-bottom: 0.85rem;
@@ -452,9 +670,9 @@
 }
 
 .about-value-card__desc {
-    font-size: 0.88rem;
+    font-size: clamp(0.86rem, 1.4vw, 0.92rem);
     line-height: 1.75;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.55);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -724,20 +942,25 @@
 /* ═══════════════════════════════════════════════════════════════
    RESPONSIVE
    ═══════════════════════════════════════════════════════════════ */
-@media (max-width: 1024px) {
-    .about-values-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
 @media (max-width: 900px) {
+    .about-values-grid {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
     .about-mission__grid {
         grid-template-columns: 1fr;
-        gap: 3rem;
+        gap: 3.5rem;
     }
 
     .about-mission__visual {
-        display: none;
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .about-reserve-card {
+        max-width: 520px;
     }
 
     .about-timeline__item {
@@ -785,5 +1008,33 @@
 
     .about-section {
         padding: 4rem 0;
+    }
+
+    .about-mission__lead-card {
+        padding: 1rem 1.25rem;
+    }
+
+    .about-reserve-card {
+        padding: 1.75rem 1.25rem;
+    }
+
+    .about-pillar-desc {
+        white-space: normal;
+    }
+}
+
+@media (max-width: 420px) {
+    .about-mission__categories {
+        gap: 0.4rem;
+    }
+
+    .about-category-pill {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .about-reserve-pillar {
+        padding: 0.75rem 0.9rem;
+        gap: 0.75rem;
     }
 }

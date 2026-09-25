@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import './Contact.css'
+import { ContactForm } from '../../../services/contact/ContactForm';
 
 const contactMethods = [
     {
@@ -21,21 +22,21 @@ const contactMethods = [
             </svg>
         ),
         label: 'Direct Line',
-        value: '+41 22 000 0000',
-        href: 'tel:+41220000000',
-        note: 'Geneva headquarters · Mon–Fri, 9am–6pm CET',
+        value: '+65 8369 1023',
+        href: 'tel:+6583691023',
+        note: 'Singapore headquarters · Mon–Fri, 9am–6pm SGT',
     },
-    {
-        icon: (
-            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <circle cx="20" cy="18" r="6" stroke="#d6a54d" strokeWidth="1.5" />
-                <path d="M20 24c-7 0-12 3-12 6h24c0-3-5-6-12-6z" stroke="#d6a54d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-        ),
-        label: 'Personal Concierge',
-        value: 'By Appointment',
-        note: 'Private viewings available in Geneva, Singapore & London',
-    },
+    // {
+    //     icon: (
+    //         <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    //             <circle cx="20" cy="18" r="6" stroke="#d6a54d" strokeWidth="1.5" />
+    //             <path d="M20 24c-7 0-12 3-12 6h24c0-3-5-6-12-6z" stroke="#d6a54d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    //         </svg>
+    //     ),
+    //     label: 'Personal Concierge',
+    //     value: 'By Appointment',
+    //     note: 'Private viewings available in Geneva, Singapore & London',
+    // },
 ]
 
 const offices = [
@@ -96,6 +97,13 @@ const Contact = () => {
     const handleSubmit = (e) => {
         e.preventDefault()
         setSubmitted(true)
+        ContactForm(formData)
+        .then((res)=>{
+            console.log(res);
+        })
+        .catch((err)=>{
+            console.log(err);
+        })
     }
 
     return (
