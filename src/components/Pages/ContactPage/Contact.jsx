@@ -4,28 +4,30 @@ import './Contact.css'
 const contactMethods = [
     {
         icon: (
-            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <rect x="6" y="10" width="28" height="20" rx="2" stroke="#d6a54d" strokeWidth="1.5" />
                 <path d="M6 12l14 10 14-10" stroke="#d6a54d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
         ),
         label: 'Private Correspondence',
         value: 'concierge@opluenza.com',
+        href: 'mailto:concierge@opluenza.com',
         note: 'For membership & acquisition inquiries',
     },
     {
         icon: (
-            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <path d="M10 8h5l2 6-3 2a18 18 0 008 8l2-3 6 2v5c0 1-1 2-2 2C14 30 8 14 8 10c0-1 1-2 2-2z" stroke="#d6a54d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
         ),
         label: 'Direct Line',
         value: '+41 22 000 0000',
+        href: 'tel:+41220000000',
         note: 'Geneva headquarters · Mon–Fri, 9am–6pm CET',
     },
     {
         icon: (
-            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <circle cx="20" cy="18" r="6" stroke="#d6a54d" strokeWidth="1.5" />
                 <path d="M20 24c-7 0-12 3-12 6h24c0-3-5-6-12-6z" stroke="#d6a54d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -38,23 +40,10 @@ const contactMethods = [
 
 const offices = [
     {
-        city: 'Geneva',
-        flag: '🇨🇭',
-        address: '12 Rue de Rive, 1204 Geneva',
-        role: 'Global Headquarters',
-    },
-    {
         city: 'Singapore',
-        flag: '🇸🇬',
-        address: 'One Raffles Quay, Level 27',
-        role: 'Asia-Pacific Hub',
-    },
-    {
-        city: 'London',
-        flag: '🇬🇧',
-        address: '10 Old Bond Street, Mayfair',
-        role: 'European Liaison Office',
-    },
+        address: 'Opulenza Reserve Pte Ltd 152 Robinson Rd, Singapore',
+        role: 'Headquarters',
+    }
 ]
 
 const Contact = () => {
@@ -70,29 +59,38 @@ const Contact = () => {
 
     useEffect(() => {
         const observers = []
-        sectionRefs.current.forEach((el) => {
-            if (!el) return
-            const obs = new IntersectionObserver(
-                ([entry]) => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('contact-visible')
-                        obs.unobserve(entry.target)
-                    }
-                },
-                { threshold: 0.1 }
-            )
-            obs.observe(el)
-            observers.push(obs)
-        })
+        if (typeof IntersectionObserver !== 'undefined') {
+            sectionRefs.current.forEach((el) => {
+                if (!el) return
+                const obs = new IntersectionObserver(
+                    ([entry]) => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('contact-visible')
+                            obs.unobserve(entry.target)
+                        }
+                    },
+                    { threshold: 0.05, rootMargin: '0px 0px -20px 0px' }
+                )
+                obs.observe(el)
+                observers.push(obs)
+            })
+        } else {
+            sectionRefs.current.forEach((el) => {
+                if (el) el.classList.add('contact-visible')
+            })
+        }
         return () => observers.forEach((o) => o.disconnect())
     }, [])
 
     const addRef = (el) => {
-        if (el && !sectionRefs.current.includes(el)) sectionRefs.current.push(el)
+        if (el && !sectionRefs.current.includes(el)) {
+            sectionRefs.current.push(el)
+        }
     }
 
     const handleChange = (e) => {
-        setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+        const { name, value } = e.target
+        setFormData((prev) => ({ ...prev, [name]: value }))
     }
 
     const handleSubmit = (e) => {
@@ -110,7 +108,7 @@ const Contact = () => {
                 <div className="contact-hero__content">
                     <p className="contact-eyebrow-tag">GET IN TOUCH</p>
                     <h1 className="contact-hero__title">
-                        We Value<br />
+                        We Value <br className="contact-hero__br" />
                         <span className="contact-gold-text">Every Conversation</span>
                     </h1>
                     <p className="contact-hero__subtitle">
@@ -118,7 +116,7 @@ const Contact = () => {
                         membership, our team of specialists is at your disposal.
                     </p>
                 </div>
-                <div className="contact-hero__scroll-hint">
+                <div className="contact-hero__scroll-hint" aria-hidden="true">
                     <div className="contact-scroll-dot" />
                 </div>
             </section>
@@ -127,14 +125,26 @@ const Contact = () => {
             <section className="contact-methods-section" ref={addRef}>
                 <div className="contact-container">
                     <div className="contact-methods-grid">
-                        {contactMethods.map((m) => (
-                            <div className="contact-method-card" key={m.label}>
-                                <div className="contact-method-card__icon">{m.icon}</div>
-                                <p className="contact-method-card__label">{m.label}</p>
-                                <p className="contact-method-card__value">{m.value}</p>
-                                <p className="contact-method-card__note">{m.note}</p>
-                            </div>
-                        ))}
+                        {contactMethods.map((m) => {
+                            const CardWrapper = m.href ? 'a' : 'div'
+                            const cardProps = m.href
+                                ? {
+                                      href: m.href,
+                                      className: 'contact-method-card contact-method-card--link',
+                                      target: m.href.startsWith('mailto') || m.href.startsWith('tel') ? undefined : '_blank',
+                                      rel: 'noopener noreferrer'
+                                  }
+                                : { className: 'contact-method-card' }
+
+                            return (
+                                <CardWrapper key={m.label} {...cardProps}>
+                                    <div className="contact-method-card__icon">{m.icon}</div>
+                                    <p className="contact-method-card__label">{m.label}</p>
+                                    <p className="contact-method-card__value">{m.value}</p>
+                                    <p className="contact-method-card__note">{m.note}</p>
+                                </CardWrapper>
+                            )
+                        })}
                     </div>
                 </div>
             </section>
@@ -151,9 +161,9 @@ const Contact = () => {
                         </h2>
 
                         {submitted ? (
-                            <div className="contact-success">
+                            <div className="contact-success" role="status" aria-live="polite">
                                 <div className="contact-success__icon">
-                                    <svg viewBox="0 0 48 48" fill="none">
+                                    <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
                                         <circle cx="24" cy="24" r="22" stroke="#d6a54d" strokeWidth="1.5" />
                                         <path d="M14 24l7 7 13-13" stroke="#d6a54d" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
@@ -167,8 +177,8 @@ const Contact = () => {
                                     type="button"
                                     className="contact-submit-btn"
                                     onClick={() => {
-                                        setSubmitted(false);
-                                        setFormData({ name: '', email: '', subject: '', message: '' });
+                                        setSubmitted(false)
+                                        setFormData({ name: '', email: '', subject: '', message: '' })
                                     }}
                                 >
                                     <span>Send Another Message</span>
@@ -188,7 +198,7 @@ const Contact = () => {
                                         onFocus={() => setFocused('name')}
                                         onBlur={() => setFocused('')}
                                         required
-                                        autoComplete="off"
+                                        autoComplete="name"
                                     />
                                     <div className="contact-field__bar" />
                                 </div>
@@ -202,16 +212,16 @@ const Contact = () => {
                                         name="email"
                                         value={formData.email}
                                         style={{ textTransform: 'lowercase' }}
-                                        onChange={(e) => handleChange({ ...e, target: { ...e.target, value: e.target.value.toLowerCase() } })}
+                                        onChange={(e) => handleChange({ ...e, target: { ...e.target, value: e.target.value.toLowerCase(), name: 'email' } })}
                                         onFocus={() => setFocused('email')}
                                         onBlur={() => setFocused('')}
                                         required
-                                        autoComplete="off"
+                                        autoComplete="email"
                                     />
                                     <div className="contact-field__bar" />
                                 </div>
 
-                                <div className={`contact-field ${focused === 'subject' || formData.subject ? 'contact-field--active' : ''}`}>
+                                <div className={`contact-field contact-field--select-wrapper ${focused === 'subject' || formData.subject ? 'contact-field--active' : ''}`}>
                                     <label className="contact-field__label" htmlFor="contact-subject">Subject</label>
                                     <select
                                         id="contact-subject"
@@ -230,6 +240,11 @@ const Contact = () => {
                                         <option value="concierge">Concierge Services</option>
                                         <option value="other">Other</option>
                                     </select>
+                                    <div className="contact-field__select-arrow" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
+                                            <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                    </div>
                                     <div className="contact-field__bar" />
                                 </div>
 
@@ -244,14 +259,14 @@ const Contact = () => {
                                         onFocus={() => setFocused('message')}
                                         onBlur={() => setFocused('')}
                                         required
-                                        rows={5}
+                                        rows={4}
                                     />
                                     <div className="contact-field__bar" />
                                 </div>
 
                                 <button type="submit" className="contact-submit-btn" id="contact-submit">
                                     <span>Send Message</span>
-                                    <svg viewBox="0 0 24 24" fill="none" width="16" height="16">
+                                    <svg viewBox="0 0 24 24" fill="none" width="16" height="16" aria-hidden="true">
                                         <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
                                 </button>
@@ -269,7 +284,6 @@ const Contact = () => {
                             {offices.map((o) => (
                                 <div className="contact-office-card" key={o.city}>
                                     <div className="contact-office-card__header">
-                                        <span className="contact-office-card__flag">{o.flag}</span>
                                         <div>
                                             <h3 className="contact-office-card__city">{o.city}</h3>
                                             <span className="contact-office-card__role">{o.role}</span>
@@ -280,16 +294,10 @@ const Contact = () => {
                                 </div>
                             ))}
                         </div>
-
-                        {/* Decorative element */}
-
                     </div>
 
                 </div>
             </section>
-
-            {/* ── Privacy Note ────────────────────────────────────────── */}
-           
 
         </div>
     )

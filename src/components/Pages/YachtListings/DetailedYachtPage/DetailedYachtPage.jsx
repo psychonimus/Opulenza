@@ -275,10 +275,10 @@ const DetailedYachtPage = () => {
                                 {/* Current Bid & Reserve */}
                                 <div className="yacht-bid-status">
                                     <div className="yacht-bid-status-col">
-                                        <span className="yacht-panel-label">CURRENT BID</span>
-                                        <span className="yacht-panel-value yacht-panel-value--large">{formatCurrency(currentBid)}</span>
+                                        <span className="yacht-panel-label text-center">CURRENT BID</span>
+                                        <span className="yacht-panel-value yacht-panel-value--large text-center">{formatCurrency(currentBid)}</span>
                                     </div>
-                                    <div className="yacht-bid-status-col yacht-text-right">
+                                    {/* <div className="yacht-bid-status-col yacht-text-right">
                                         <span className="yacht-panel-label">RESERVE</span>
                                         <span className={`yacht-panel-value yacht-panel-value--reserve ${yacht.reserveMet || currentBid >= (yacht.currentBidNumber * 1.02) ? 'yacht-reserve-met' : ''}`}>
                                             {yacht.reserveMet || currentBid >= (yacht.currentBidNumber * 1.02) ? (
@@ -290,7 +290,7 @@ const DetailedYachtPage = () => {
                                                 </>
                                             ) : 'NOT MET'}
                                         </span>
-                                    </div>
+                                    </div> */}
                                 </div>
 
                                 <div className="yacht-sidebar-divider" />
@@ -332,6 +332,16 @@ const DetailedYachtPage = () => {
                                         </svg>
                                         {isFavorited ? 'Added to watchlist' : 'Add to watchlist'}
                                     </button>
+                                </div>
+
+                                {/* Seller Discretion Note */}
+                                <div className="yacht-bid-note">
+                                    <svg className="yacht-bid-note-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <line x1="12" y1="16" x2="12" y2="12" />
+                                        <line x1="12" y1="8" x2="12.01" y2="8" />
+                                    </svg>
+                                    <span>The seller retains the discretion to accept or decline the final offer.</span>
                                 </div>
 
                                 <div className="yacht-sidebar-divider" />
@@ -537,7 +547,7 @@ const DetailedYachtPage = () => {
                                         onChange={(e) => setTermsAccepted(e.target.checked)}
                                     />
                                     <span className="yacht-modal-terms-text">
-                                        I accept the <span className="yacht-modal-terms-link">Terms of Service</span> and acknowledge that this bid constitutes a legally binding contract to purchase the vessel.
+                                        I accept the <span className="yacht-modal-terms-link">Terms of Service</span> and acknowledge that this bid constitutes a legally binding contract to purchase the vessel. The seller retains the discretion to accept or decline the final offer.
                                     </span>
                                 </label>
                                 <button type="submit" className="yacht-submit-bid-btn" disabled={!termsAccepted}>

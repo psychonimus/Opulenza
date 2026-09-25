@@ -808,10 +808,10 @@ const DetailedCigarPage = () => {
                                 {/* Current Bid & Reserve */}
                                 <div className="detailed-page__bid-status">
                                     <div className="bid-status-col">
-                                        <span className="panel-label">CURRENT BID</span>
-                                        <span className="panel-value panel-value--large">{formatCurrency(currentBid)}</span>
+                                        <span className="panel-label text-center">CURRENT BID</span>
+                                        <span className="panel-value panel-value--large text-center">{formatCurrency(currentBid)}</span>
                                     </div>
-                                    <div className="bid-status-col text-right">
+                                    {/* <div className="bid-status-col text-right">
                                         <span className="panel-label">RESERVE</span>
                                         <span className={`panel-value panel-value--reserve ${item.reserveMet || currentBid >= (item.currentBidNumber * 1.05) ? 'reserve-met' : ''}`}>
                                             {item.reserveMet || currentBid >= (item.currentBidNumber * 1.05) ? (
@@ -823,7 +823,7 @@ const DetailedCigarPage = () => {
                                                 </>
                                             ) : 'NOT MET'}
                                         </span>
-                                    </div>
+                                    </div> */}
                                 </div>
 
                                 <div className="sidebar-divider" />
@@ -870,6 +870,16 @@ const DetailedCigarPage = () => {
                                             </button>
                                         )
                                     }
+                                </div>
+
+                                {/* Seller Discretion Note */}
+                                <div className="detailed-page__bid-note">
+                                    <svg className="bid-note-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <line x1="12" y1="16" x2="12" y2="12" />
+                                        <line x1="12" y1="8" x2="12.01" y2="8" />
+                                    </svg>
+                                    <span>The seller retains the discretion to accept or decline the final offer.</span>
                                 </div>
 
                                 <div className="sidebar-divider" />
@@ -1104,7 +1114,7 @@ const DetailedCigarPage = () => {
                                         onChange={(e) => setTermsAccepted(e.target.checked)}
                                     />
                                     <span className="modal-terms-text">
-                                        I accept the <span className="modal-terms-link">Terms of Service</span> and acknowledge that this bid constitutes a legally binding contract to purchase the asset.
+                                        I accept the <span className="modal-terms-link">Terms of Service</span> and acknowledge that this bid constitutes a legally binding contract to purchase the asset. The seller retains the discretion to accept or decline the final offer.
                                     </span>
                                 </label>
                                 <button type="submit" className="submit-bid-btn" disabled={!termsAccepted}>

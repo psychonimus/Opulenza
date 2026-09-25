@@ -795,10 +795,10 @@ const DetailedPenPage = () => {
                                 {/* Current Bid & Reserve */}
                                 <div className="pen-bid-status">
                                     <div className="pen-bid-status-col">
-                                        <span className="pen-panel-label">CURRENT BID</span>
-                                        <span className="pen-panel-value pen-panel-value--large">{formatCurrency(currentBid)}</span>
+                                        <span className="pen-panel-label text-center">CURRENT BID</span>
+                                        <span className="pen-panel-value pen-panel-value--large text-center">{formatCurrency(currentBid)}</span>
                                     </div>
-                                    <div className="pen-bid-status-col pen-text-right">
+                                    {/* <div className="pen-bid-status-col pen-text-right">
                                         <span className="pen-panel-label">RESERVE</span>
                                         <span className={`pen-panel-value pen-panel-value--reserve ${pen.reserveMet || currentBid >= (pen.currentBidNumber * 1.05) ? 'pen-reserve-met' : ''}`}>
                                             {pen.reserveMet || currentBid >= (pen.currentBidNumber * 1.05) ? (
@@ -810,7 +810,7 @@ const DetailedPenPage = () => {
                                                 </>
                                             ) : 'NOT MET'}
                                         </span>
-                                    </div>
+                                    </div> */}
                                 </div>
 
                                 <div className="pen-sidebar-divider" />
@@ -860,6 +860,16 @@ const DetailedPenPage = () => {
                                             </button>
                                         )
                                     }
+                                </div>
+
+                                {/* Seller Discretion Note */}
+                                <div className="pen-bid-note">
+                                    <svg className="pen-bid-note-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <line x1="12" y1="16" x2="12" y2="12" />
+                                        <line x1="12" y1="8" x2="12.01" y2="8" />
+                                    </svg>
+                                    <span>The seller retains the discretion to accept or decline the final offer.</span>
                                 </div>
 
                                 <div className="pen-sidebar-divider" />
@@ -1094,7 +1104,7 @@ const DetailedPenPage = () => {
                                         onChange={(e) => setTermsAccepted(e.target.checked)}
                                     />
                                     <span className="pen-modal-terms-text">
-                                        I accept the <span className="pen-modal-terms-link">Terms of Service</span> and acknowledge that this bid constitutes a legally binding contract to purchase the asset.
+                                        I accept the <span className="pen-modal-terms-link">Terms of Service</span> and acknowledge that this bid constitutes a legally binding contract to purchase the asset. The seller retains the discretion to accept or decline the final offer.
                                     </span>
                                 </label>
                                 <button type="submit" className="pen-submit-bid-btn" disabled={!termsAccepted}>
