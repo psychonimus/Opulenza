@@ -61,7 +61,7 @@
 /* ── Section title ───────────────────────────────────────────── */
 .about-section-title {
     font-family: 'cormorant', 'Playfair Display', serif;
-    font-size: clamp(2.2rem, 4vw, 3.4rem);
+    font-size: clamp(1.8rem, 4vw, 3.4rem);
     font-weight: 700;
     font-style: italic;
     line-height: 1.15;
