@@ -35,7 +35,7 @@
 
 /* ── Shared section spacing ──────────────────────────────────── */
 .about-section {
-    padding: 7rem 0;
+    padding: 4rem 0;
 }
 
 /* ── Gold text ───────────────────────────────────────────────── */
@@ -91,7 +91,7 @@
    ═══════════════════════════════════════════════════════════════ */
 .about-hero {
     position: relative;
-    min-height: 75vh;
+    min-height: 65vh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -125,7 +125,7 @@
     position: relative;
     z-index: 2;
     max-width: 820px;
-    padding: 8rem 2rem 4rem;
+    padding: 8rem 2rem 0rem;
     animation: fadeInUp 1.2s ease-out both;
 }
 
@@ -261,6 +261,7 @@
     letter-spacing: 0.16em;
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.45);
+    text-align: center;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -268,24 +269,20 @@
    ═══════════════════════════════════════════════════════════════ */
 .about-mission {
     position: relative;
-    background: radial-gradient(ellipse 70% 50% at 85% 50%, rgba(214, 165, 77, 0.05) 0%, transparent 70%);
-}
-
-.about-mission__grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.95fr);
-    gap: clamp(2.5rem, 5vw, 5.5rem);
-    align-items: center;
+    background: radial-gradient(ellipse 70% 50% at 50% 50%, rgba(214, 165, 77, 0.06) 0%, transparent 70%);
 }
 
 .about-mission__text {
     width: 100%;
-    min-width: 0;
+    max-width: 820px;
+    margin: 0 auto;
+    text-align: center;
 }
 
 .about-mission__eyebrow-wrap {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.75rem;
     margin-bottom: 0.5rem;
 }
@@ -296,12 +293,14 @@
     background: linear-gradient(135deg, rgba(214, 165, 77, 0.08) 0%, rgba(214, 165, 77, 0.02) 100%);
     border: 1px solid rgba(214, 165, 77, 0.22);
     padding: clamp(1rem, 2.5vw, 1.35rem) clamp(1.25rem, 3vw, 1.75rem);
-    margin-bottom: 1.75rem;
+    margin: 0 auto 2rem;
+    max-width: 620px;
     display: flex;
     align-items: center;
-    gap: 1.25rem;
+    justify-content: center;
     box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     overflow: hidden;
+    text-align: center;
 }
 
 .about-mission__lead-accent {
@@ -848,7 +847,7 @@
    ═══════════════════════════════════════════════════════════════ */
 .about-cta-section {
     position: relative;
-    padding: 8rem 0;
+    padding: 2rem 0;
     text-align: center;
     overflow: hidden;
     background: #000;

@@ -125,18 +125,18 @@ const About = () => {
             </section>
 
             {/* ── Stats ───────────────────────────────────────────── */}
-            <section className="about-stats" ref={addRef}>
+            {/* <section className="about-stats" ref={addRef}>
                 {stats.map((s) => (
                     <div className="about-stat" key={s.label}>
                         <span className="about-stat__value">{s.value}</span>
                         <span className="about-stat__label">{s.label}</span>
                     </div>
                 ))}
-            </section>
+            </section> */}
 
             {/* ── Mission ─────────────────────────────────────────── */}
             <section className="about-section about-mission" ref={addRef}>
-                <div className="about-container about-mission__grid">
+                <div className="about-container">
                     <div className="about-mission__text">
                         <div className="about-mission__eyebrow-wrap">
                             <span className="about-eyebrow-tag">OUR MISSION & PHILOSOPHY</span>
@@ -161,90 +161,6 @@ const About = () => {
                         <p className="about-body-text about-mission__body">
                             From exceptional cigars and rare whiskies to blue-chip watches and bespoke collectible assets, we unite a carefully curated global ecosystem of collectors, verified specialists, and authenticated sources.
                         </p>
-
-                        {/* <div className="about-mission__categories">
-                            <span className="about-category-pill">
-                                <span className="about-category-pill__dot" />
-                                Haute Horlogerie
-                            </span>
-                            <span className="about-category-pill">
-                                <span className="about-category-pill__dot" />
-                                Rare Spirits & Casks
-                            </span>
-                            <span className="about-category-pill">
-                                <span className="about-category-pill__dot" />
-                                Exceptional Cigars
-                            </span>
-                            <span className="about-category-pill">
-                                <span className="about-category-pill__dot" />
-                                Fine Writing Instruments
-                            </span>
-                            <span className="about-category-pill">
-                                <span className="about-category-pill__dot" />
-                                Curated Collectibles
-                            </span>
-                        </div> */}
-                    </div>
-
-                    <div className="about-mission__visual">
-                        <div className="about-reserve-card">
-                            <div className="about-reserve-card__glow" />
-                            
-                            {/* Central Emblem */}
-                            <div className="about-reserve-emblem">
-                                <div className="about-emblem-ring about-emblem-ring--outer" />
-                                <div className="about-emblem-ring about-emblem-ring--middle" />
-                                <div className="about-emblem-ring about-emblem-ring--inner" />
-                                
-                                <div className="about-emblem-core">
-                                    
-                                    <img src="/images/opulenza-logo.svg" width="100px" alt="opluenza-logo-text" />
-                                </div>
-                            </div>
-
-                            {/* Trust Pillar Highlights */}
-                            <div className="about-reserve-pillars">
-                                <div className="about-reserve-pillar">
-                                    <div className="about-pillar-icon">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="#d6a54d" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                                            <path d="M9 12l2 2 4-4"/>
-                                        </svg>
-                                    </div>
-                                    <div className="about-pillar-info">
-                                        <span className="about-pillar-title">Verified Provenance</span>
-                                        <span className="about-pillar-desc">Multi-point specialist authenticity check</span>
-                                    </div>
-                                </div>
-
-                                <div className="about-reserve-pillar">
-                                    <div className="about-pillar-icon">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="#d6a54d" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                                        </svg>
-                                    </div>
-                                    <div className="about-pillar-info">
-                                        <span className="about-pillar-title">Discreet Sanctuary</span>
-                                        <span className="about-pillar-desc">Confidential HNI network & off-market deals</span>
-                                    </div>
-                                </div>
-
-                                <div className="about-reserve-pillar">
-                                    <div className="about-pillar-icon">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="#d6a54d" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                                            <circle cx="12" cy="12" r="10"/>
-                                            <polyline points="12 6 12 12 16 14"/>
-                                        </svg>
-                                    </div>
-                                    <div className="about-pillar-info">
-                                        <span className="about-pillar-title">White-Glove Custody</span>
-                                        <span className="about-pillar-desc">Dedicated concierge from inquiry to delivery</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
                     </div>
                 </div>
             </section>

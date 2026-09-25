@@ -18,25 +18,14 @@ const contactMethods = [
     {
         icon: (
             <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M10 8h5l2 6-3 2a18 18 0 008 8l2-3 6 2v5c0 1-1 2-2 2C14 30 8 14 8 10c0-1 1-2 2-2z" stroke="#d6a54d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M20 6C14.477 6 10 10.477 10 16c0 7.5 10 18 10 18s10-10.5 10-18c0-5.523-4.477-10-10-10z" stroke="#d6a54d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx="20" cy="16" r="3.5" stroke="#d6a54d" strokeWidth="1.5" />
             </svg>
         ),
-        label: 'Direct Line',
-        value: '+65 8369 1023',
-        href: 'tel:+6583691023',
-        note: 'Singapore headquarters',
+        label: 'Singapore',
+        value: 'Headquarters',
+        note: 'Opulenza Reserve Pte Ltd Robinson Rd, Singapore',
     },
-    // {
-    //     icon: (
-    //         <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    //             <circle cx="20" cy="18" r="6" stroke="#d6a54d" strokeWidth="1.5" />
-    //             <path d="M20 24c-7 0-12 3-12 6h24c0-3-5-6-12-6z" stroke="#d6a54d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    //         </svg>
-    //     ),
-    //     label: 'Personal Concierge',
-    //     value: 'By Appointment',
-    //     note: 'Private viewings available in Geneva, Singapore & London',
-    // },
 ]
 
 const offices = [
@@ -124,9 +113,7 @@ const Contact = () => {
                         membership, our team of specialists is at your disposal.
                     </p>
                 </div>
-                <div className="contact-hero__scroll-hint" aria-hidden="true">
-                    <div className="contact-scroll-dot" />
-                </div>
+                
             </section>
 
             {/* ── Contact Methods ────────────────────────────────────── */}
@@ -157,9 +144,9 @@ const Contact = () => {
                 </div>
             </section>
 
-            {/* ── Form & Offices ─────────────────────────────────────── */}
+            {/* ── Form ─────────────────────────────────────────────── */}
             <section className="contact-main-section" ref={addRef}>
-                <div className="contact-container contact-main-grid">
+                <div className="contact-container">
 
                     {/* Form */}
                     <div className="contact-form-wrapper">
@@ -280,28 +267,6 @@ const Contact = () => {
                                 </button>
                             </form>
                         )}
-                    </div>
-
-                    {/* Offices */}
-                    <div className="contact-offices-wrapper">
-                        <p className="contact-eyebrow-tag">OUR OFFICES</p>
-                        <h2 className="contact-section-title">
-                            Where to <em>Find Us</em>
-                        </h2>
-                        <div className="contact-offices-list">
-                            {offices.map((o) => (
-                                <div className="contact-office-card" key={o.city}>
-                                    <div className="contact-office-card__header">
-                                        <div>
-                                            <h3 className="contact-office-card__city">{o.city}</h3>
-                                            <span className="contact-office-card__role">{o.role}</span>
-                                        </div>
-                                    </div>
-                                    <p className="contact-office-card__address">{o.address}</p>
-                                    <div className="contact-office-card__divider" />
-                                </div>
-                            ))}
-                        </div>
                     </div>
 
                 </div>

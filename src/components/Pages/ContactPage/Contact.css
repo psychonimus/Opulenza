@@ -91,7 +91,7 @@
    ═══════════════════════════════════════════════════════════════ */
 .contact-hero {
     position: relative;
-    min-height: 75vh;
+    min-height: 65vh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -101,7 +101,7 @@
         radial-gradient(ellipse 90% 60% at 50% 0%, rgba(214, 165, 77, 0.13) 0%, transparent 65%),
         radial-gradient(ellipse at 50% 100%, rgba(214, 165, 77, 0.06) 0%, transparent 55%),
         #000;
-    padding: clamp(6.5rem, 12vh, 9rem) 1rem clamp(3rem, 6vh, 5rem);
+    padding: clamp(6.5rem, 19vh, 9rem) 1rem clamp(3rem, 6vh, 5rem);
     box-sizing: border-box;
 }
 
@@ -313,6 +313,8 @@
 /* ── Form ────────────────────────────────────────────────────── */
 .contact-form-wrapper {
     width: 100%;
+    /* max-width: 720px; */
+    margin: 0 auto;
     min-width: 0;
 }
 
