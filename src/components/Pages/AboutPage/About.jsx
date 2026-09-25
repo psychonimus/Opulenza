@@ -162,7 +162,7 @@ const About = () => {
                             From exceptional cigars and rare whiskies to blue-chip watches and bespoke collectible assets, we unite a carefully curated global ecosystem of collectors, verified specialists, and authenticated sources.
                         </p>
 
-                        <div className="about-mission__categories">
+                        {/* <div className="about-mission__categories">
                             <span className="about-category-pill">
                                 <span className="about-category-pill__dot" />
                                 Haute Horlogerie
@@ -183,7 +183,7 @@ const About = () => {
                                 <span className="about-category-pill__dot" />
                                 Curated Collectibles
                             </span>
-                        </div>
+                        </div> */}
                     </div>
 
                     <div className="about-mission__visual">

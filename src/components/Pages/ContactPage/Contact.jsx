@@ -24,7 +24,7 @@ const contactMethods = [
         label: 'Direct Line',
         value: '+65 8369 1023',
         href: 'tel:+6583691023',
-        note: 'Singapore headquarters · Mon–Fri, 9am–6pm SGT',
+        note: 'Singapore headquarters',
     },
     // {
     //     icon: (
