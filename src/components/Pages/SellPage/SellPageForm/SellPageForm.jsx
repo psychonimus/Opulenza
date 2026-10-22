@@ -43,7 +43,7 @@ const categories = [
 
 const currentYear = new Date().getFullYear();
 const years = Array.from(
-  { length: currentYear - 1970 + 1 },
+  { length: currentYear - 1950 + 1 },
   (_, i) => currentYear - i,
 );
 
@@ -285,6 +285,7 @@ const formFields = {
         "Bordeaux",
         "Burgundy",
         "Champagne",
+        "Orkney Island",
         "Other",
       ],
       half: true,
@@ -293,7 +294,7 @@ const formFields = {
       id: "bottlingType",
       label: "Bottling Type",
       type: "select",
-      options: ["Distillery Bottling", "Independent Bottler", "Estate Bottled"],
+      options: ["Distillery Bottling", "Independent Bottler", "Estate Bottled", "Crystal Decanter"],
       half: true,
     },
     {
@@ -1424,7 +1425,7 @@ const SellPageForm = () => {
       id.toLowerCase().includes("image") || id.startsWith("photo");
 
     if (isDocument) {
-      const allowedExtensions = ["pdf", "jpg", "jpeg", "png"];
+      const allowedExtensions = ["pdf", "jpg", "jpeg", "png", "webp"];
       if (!allowedExtensions.includes(ext)) {
         return "Invalid file extension. Allowed: .pdf, .jpg, .jpeg, .png";
       }
